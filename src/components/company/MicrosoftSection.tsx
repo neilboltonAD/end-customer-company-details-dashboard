@@ -490,6 +490,90 @@ export const MicrosoftSection = () => {
     setShowSpecialQualificationsSyncModal(false);
   };
 
+  // Azure Management Permissions component
+  const AzureManagementPermissions = () => {
+    const [azureRequested, setAzureRequested] = useState(false);
+    const [azurePending, setAzurePending] = useState(false);
+
+    // Check if Telstra Azure GDAP relationship exists and is active
+    const telstraAzureGdap = gdapRelationships.find(rel => 
+      rel.name === 'Telstra Azure' || rel.name.includes('Telstra Azure')
+    );
+    const hasActiveAzureGdap = telstraAzureGdap && telstraAzureGdap.active;
+
+    const handleRequestAzureGdap = () => {
+      setAzureRequested(true);
+      setAzurePending(true);
+    };
+
+    const handleToggleAzureStatus = () => {
+      if (azurePending) {
+        setAzurePending(false);
+        // Update the GDAP relationship to active
+        setGdapRelationships(prev => 
+          prev.map(rel => 
+            rel.name === 'Telstra Azure' || rel.name.includes('Telstra Azure')
+              ? { ...rel, active: true }
+              : rel
+          )
+        );
+      }
+    };
+
+    if (hasActiveAzureGdap) {
+      return (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-green-700 font-medium">
+            The correct permissions to manage the customers Azure subscription are correct and present!
+          </div>
+          <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+        </div>
+      );
+    }
+
+    if (azureRequested) {
+      return (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            Azure GDAP relationship requested
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              className="px-3 py-1 text-xs rounded border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
+              disabled
+            >
+              Requested
+            </button>
+            <button
+              className={`text-xs font-bold uppercase rounded px-2 py-1 cursor-pointer ${
+                azurePending 
+                  ? 'text-yellow-700 bg-yellow-100 hover:bg-yellow-200' 
+                  : 'text-green-700 bg-green-100'
+              }`}
+              onClick={handleToggleAzureStatus}
+            >
+              {azurePending ? 'Pending' : 'Active'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-red-700">
+          The correct permissions are not present - would you like to request these?
+        </div>
+        <button
+          className="px-3 py-1 text-xs rounded border border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+          onClick={handleRequestAzureGdap}
+        >
+          Request Telstra Azure GDAP
+        </button>
+      </div>
+    );
+  };
+
   // Helper function to get roles based on the selected option
   const getRolesForOption = (option: string) => {
     switch (option) {
@@ -682,6 +766,13 @@ export const MicrosoftSection = () => {
               <Toggle enabled={azureUsage} onChange={setAzureUsage} size="sm" />
               <span className={`text-xs ml-2 ${azureUsage ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureUsage ? 'Enabled' : 'Disabled'}</span>
             </div>
+          </div>
+        </div>
+        <div className="mb-4 py-2">
+          <div className="font-semibold text-gray-700 mb-1">Azure Management Permissions</div>
+          <div className="bg-gray-50 border border-gray-200 rounded p-3">
+            <div className="text-xs text-gray-500 mb-3">Partners are required to have certain permissions to manage customers with Azure subscriptions.</div>
+            <AzureManagementPermissions />
           </div>
         </div>
       </ExpandableSection>
