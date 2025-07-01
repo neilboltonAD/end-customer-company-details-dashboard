@@ -276,7 +276,7 @@ const QualificationConfirmationModal = ({
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Confirm Special Qualification Request</h2>
         <p className="mb-6 text-gray-700">
-          You want to submit a request to Microsoft for this qualification, and you should be aware that this take a few days to be completed by Microsoft. The status of this request will move from Pending to Active once completed - please keep checking back for updates.
+          You want to submit a request to Microsoft for this qualification, and you should be aware that this take a few days to be completed by Microsoft. <br/><br/>The status of this request will move from Pending to Active once completed - please keep checking back for updates.
         </p>
         <div className="bg-gray-50 p-3 rounded mb-6">
           <div className="text-sm font-medium text-gray-800 mb-1">Qualification:</div>
@@ -321,6 +321,10 @@ export const MicrosoftSection = () => {
   const [selectedQualification, setSelectedQualification] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
 
+  // Section open/close state
+  const [gdapSectionOpen, setGdapSectionOpen] = useState(false);
+  const [specialQualificationsSectionOpen, setSpecialQualificationsSectionOpen] = useState(false);
+
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
     setGdapRelationships((prev) =>
       prev.map((rel, i) =>
@@ -352,7 +356,8 @@ export const MicrosoftSection = () => {
     // Add the new relationship to the list
     setGdapRelationships((prev) => [...prev, newGdapRelationship]);
     
-    // Close the modal and clear the selected option
+    // Keep the GDAP section open and close the modal
+    setGdapSectionOpen(true);
     setShowConfirmation(false);
     setSelectedOption('');
   };
@@ -386,7 +391,8 @@ export const MicrosoftSection = () => {
     // Add the new qualification to the list
     setSpecialQualifications((prev) => [...prev, newQualification]);
     
-    // Close the modal and clear the selected values
+    // Keep the Special Qualifications section open and close the modal
+    setSpecialQualificationsSectionOpen(true);
     setShowQualificationConfirmation(false);
     setSelectedQualification('');
     setSelectedDomain('');
@@ -458,6 +464,8 @@ export const MicrosoftSection = () => {
       </ExpandableSection>
       {/* Section 2: GDAP */}
       <ExpandableSection
+        open={gdapSectionOpen}
+        onToggle={setGdapSectionOpen}
         title={
           <div className="flex items-center w-full justify-between">
             <span>GDAP Relationships</span>
@@ -521,6 +529,8 @@ export const MicrosoftSection = () => {
       </ExpandableSection>
       {/* Section 3: Special Qualifications */}
       <ExpandableSection
+        open={specialQualificationsSectionOpen}
+        onToggle={setSpecialQualificationsSectionOpen}
         title={
           <div className="flex items-center w-full justify-between">
             <span>Special Qualifications</span>
