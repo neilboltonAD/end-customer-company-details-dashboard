@@ -303,6 +303,39 @@ const QualificationConfirmationModal = ({
   );
 };
 
+const SyncModal = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">{title}</h2>
+        <p className="mb-6 text-gray-700">{message}</p>
+        <div className="flex justify-end">
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            onClick={onConfirm}
+          >
+            Acknowledge
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const MicrosoftSection = () => {
   const [gdapRelationships, setGdapRelationships] = useState(initialGdapRelationships);
   const [specialQualifications, setSpecialQualifications] = useState(initialSpecialQualifications);
@@ -324,6 +357,10 @@ export const MicrosoftSection = () => {
   // Section open/close state
   const [gdapSectionOpen, setGdapSectionOpen] = useState(false);
   const [specialQualificationsSectionOpen, setSpecialQualificationsSectionOpen] = useState(false);
+
+  // Sync modal state
+  const [showGdapSyncModal, setShowGdapSyncModal] = useState(false);
+  const [showSpecialQualificationsSyncModal, setShowSpecialQualificationsSyncModal] = useState(false);
 
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
     setGdapRelationships((prev) =>
@@ -398,6 +435,61 @@ export const MicrosoftSection = () => {
     setSelectedDomain('');
   };
 
+  // Sync handlers
+  const handleGdapSync = () => {
+    setShowGdapSyncModal(true);
+  };
+
+  const handleGdapSyncConfirm = () => {
+    // Create a new dummy GDAP relationship
+    const newGdapRelationship = {
+      name: `Synced_GDAP_${Date.now()}`,
+      dateRange: '06/25/2025 - 12/25/2025',
+      autoExtend: true,
+      active: true,
+      roles: ['User administrator', 'License administrator'],
+    };
+
+    // Add the new relationship to the list
+    setGdapRelationships((prev) => [...prev, newGdapRelationship]);
+    
+    // Keep the GDAP section open and close the modal
+    setGdapSectionOpen(true);
+    setShowGdapSyncModal(false);
+  };
+
+  const handleSpecialQualificationsSync = () => {
+    setShowSpecialQualificationsSyncModal(true);
+  };
+
+  const handleSpecialQualificationsSyncConfirm = () => {
+    // Find a qualification option that's not already present
+    const existingQualifications = specialQualifications.map(q => q.name);
+    const availableOptions = qualificationOptions.filter(option => 
+      !existingQualifications.some(existing => existing.includes(option.split(' - ')[0]))
+    );
+    
+    // If no new options available, use a default one
+    const newQualificationType = availableOptions.length > 0 
+      ? availableOptions[0] 
+      : 'Education - K12';
+
+    // Create a new dummy special qualification
+    const newQualification = {
+      name: newQualificationType,
+      domain: 'synced-domain.edu',
+      active: true,
+      lastModified: new Date().toLocaleDateString('en-GB'),
+    };
+
+    // Add the new qualification to the list
+    setSpecialQualifications((prev) => [...prev, newQualification]);
+    
+    // Keep the Special Qualifications section open and close the modal
+    setSpecialQualificationsSectionOpen(true);
+    setShowSpecialQualificationsSyncModal(false);
+  };
+
   // Helper function to get roles based on the selected option
   const getRolesForOption = (option: string) => {
     switch (option) {
@@ -449,7 +541,7 @@ export const MicrosoftSection = () => {
             <div className="font-semibold text-gray-700">appdirectdemonstration5.onmicrosoft.com</div>
             <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
           </div>
-          <div className="text-xs text-gray-500 mb-2">408f194e-dc4a-4a2e-ac65-d1d6b0c11a8a</div>
+          <div className="text-xs text-gray-500 mb-2">Tenant UUID: 408f194e-dc4a-4a2e-ac65-d1d6b0c11a8a</div>
           <div className="flex justify-end">
             <button className="px-3 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100">Unlink Tenant</button>
           </div>
@@ -471,7 +563,7 @@ export const MicrosoftSection = () => {
             <span>GDAP Relationships</span>
             <div className="flex items-center">
               <ActionButton onClick={handleGdapNew}>New</ActionButton>
-              <ActionButton>Sync</ActionButton>
+              <ActionButton onClick={handleGdapSync}>Sync</ActionButton>
             </div>
           </div>
         }
@@ -536,7 +628,7 @@ export const MicrosoftSection = () => {
             <span>Special Qualifications</span>
             <div className="flex items-center">
               <ActionButton onClick={handleQualificationNew}>New</ActionButton>
-              <ActionButton>Sync</ActionButton>
+              <ActionButton onClick={handleSpecialQualificationsSync}>Sync</ActionButton>
             </div>
           </div>
         }
@@ -631,6 +723,24 @@ export const MicrosoftSection = () => {
         onConfirm={handleQualificationConfirm}
         selectedQualification={selectedQualification}
         domain={selectedDomain}
+      />
+
+      {/* GDAP Sync Modal */}
+      <SyncModal
+        open={showGdapSyncModal}
+        onClose={() => setShowGdapSyncModal(false)}
+        onConfirm={handleGdapSyncConfirm}
+        title="Syncing GDAP Relationships"
+        message="Now syncing GDAP relationships from Microsoft Partner Centre"
+      />
+
+      {/* Special Qualifications Sync Modal */}
+      <SyncModal
+        open={showSpecialQualificationsSyncModal}
+        onClose={() => setShowSpecialQualificationsSyncModal(false)}
+        onConfirm={handleSpecialQualificationsSyncConfirm}
+        title="Syncing Special Qualifications"
+        message="Now syncing Special Qualification statuses from Microsoft"
       />
     </div>
   );
