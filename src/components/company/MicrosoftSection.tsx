@@ -43,11 +43,27 @@ const initialGdapRelationships = [
   },
 ];
 
+const initialSpecialQualifications = [
+  {
+    name: 'Education: Higher Education',
+    domain: 'university.edu',
+    active: true,
+    lastModified: '06/25/2025',
+  },
+];
+
 const gdapOptions = [
   'Default Marketplace roles',
   'Telstra M365',
   'Telstra Azure',
   'Telstra M365 & Azure'
+];
+
+const qualificationOptions = [
+  'Education - K12',
+  'Government - State Owned',
+  'Government Community Cloud',
+  'Not for Profit'
 ];
 
 const ActionButton = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
@@ -138,8 +154,158 @@ const ConfirmationModal = ({
   );
 };
 
+const QualificationOptionsModal = ({
+  open,
+  onClose,
+  onSelectOption
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelectOption: (option: string) => void;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Choose a Special Qualification type:</h2>
+        <div className="space-y-3 mb-6">
+          {qualificationOptions.map((option) => (
+            <button
+              key={option}
+              className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+              onClick={() => onSelectOption(option)}
+            >
+              <div className="font-medium text-gray-800">{option}</div>
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-end">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DomainInputModal = ({
+  open,
+  onClose,
+  onConfirm,
+  selectedQualification
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (domain: string) => void;
+  selectedQualification: string;
+}) => {
+  const [domain, setDomain] = React.useState('');
+
+  const handleSubmit = () => {
+    if (domain.trim()) {
+      onConfirm(domain.trim());
+      setDomain('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Enter your organization domain URL</h2>
+        <div className="mb-6">
+          <input
+            type="text"
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="e.g www.besthighschool.edu"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            autoFocus
+          />
+        </div>
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSubmit}
+            disabled={!domain.trim()}
+          >
+            Request Qualification
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const QualificationConfirmationModal = ({
+  open,
+  onClose,
+  onConfirm,
+  selectedQualification,
+  domain
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  selectedQualification: string;
+  domain: string;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Confirm Special Qualification Request</h2>
+        <p className="mb-6 text-gray-700">
+          You want to submit a request to Microsoft for this qualification, and you should be aware that this take a few days to be completed by Microsoft. The status of this request will move from Pending to Active once completed - please keep checking back for updates.
+        </p>
+        <div className="bg-gray-50 p-3 rounded mb-6">
+          <div className="text-sm font-medium text-gray-800 mb-1">Qualification:</div>
+          <div className="text-sm text-gray-700">{selectedQualification}</div>
+          <div className="text-sm font-medium text-gray-800 mb-1 mt-2">Domain:</div>
+          <div className="text-sm text-gray-700">{domain}</div>
+        </div>
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            onClick={onConfirm}
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const MicrosoftSection = () => {
   const [gdapRelationships, setGdapRelationships] = useState(initialGdapRelationships);
+  const [specialQualifications, setSpecialQualifications] = useState(initialSpecialQualifications);
   const [azureReservations, setAzureReservations] = useState(true);
   const [azureUsage, setAzureUsage] = useState(false);
 
@@ -147,6 +313,13 @@ export const MicrosoftSection = () => {
   const [showGdapOptions, setShowGdapOptions] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
+
+  // Special Qualifications dialog state
+  const [showQualificationOptions, setShowQualificationOptions] = useState(false);
+  const [showDomainInput, setShowDomainInput] = useState(false);
+  const [showQualificationConfirmation, setShowQualificationConfirmation] = useState(false);
+  const [selectedQualification, setSelectedQualification] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
 
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
     setGdapRelationships((prev) =>
@@ -182,6 +355,41 @@ export const MicrosoftSection = () => {
     // Close the modal and clear the selected option
     setShowConfirmation(false);
     setSelectedOption('');
+  };
+
+  // Special Qualifications handlers
+  const handleQualificationNew = () => {
+    setShowQualificationOptions(true);
+  };
+
+  const handleQualificationOptionSelect = (option: string) => {
+    setSelectedQualification(option);
+    setShowQualificationOptions(false);
+    setShowDomainInput(true);
+  };
+
+  const handleDomainSubmit = (domain: string) => {
+    setSelectedDomain(domain);
+    setShowDomainInput(false);
+    setShowQualificationConfirmation(true);
+  };
+
+  const handleQualificationConfirm = () => {
+    // Create a new pending special qualification
+    const newQualification = {
+      name: selectedQualification,
+      domain: selectedDomain,
+      active: false, // This will show as pending instead of active
+      lastModified: new Date().toLocaleDateString('en-GB'),
+    };
+
+    // Add the new qualification to the list
+    setSpecialQualifications((prev) => [...prev, newQualification]);
+    
+    // Close the modal and clear the selected values
+    setShowQualificationConfirmation(false);
+    setSelectedQualification('');
+    setSelectedDomain('');
   };
 
   // Helper function to get roles based on the selected option
@@ -317,17 +525,34 @@ export const MicrosoftSection = () => {
           <div className="flex items-center w-full justify-between">
             <span>Special Qualifications</span>
             <div className="flex items-center">
-              <ActionButton>New</ActionButton>
+              <ActionButton onClick={handleQualificationNew}>New</ActionButton>
               <ActionButton>Sync</ActionButton>
             </div>
           </div>
         }
       >
-        <div className="flex items-center justify-between mb-1 py-2">
-          <div className="font-semibold text-gray-700">Education</div>
-          <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-        </div>
-        <div className="text-xs text-gray-500 mb-3">Last modified on 06/25/2025</div>
+        {specialQualifications.map((qual, idx) => (
+          <div key={`${qual.name}-${qual.domain}-${idx}`} className="mb-3 py-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-semibold text-gray-700">{qual.name}</div>
+              {qual.active ? (
+                <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+              ) : (
+                <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1">Pending</span>
+              )}
+            </div>
+            {!qual.active && (
+              <div className="text-xs text-gray-600 mb-1">Domain: {qual.domain}</div>
+            )}
+            <div className="text-xs text-gray-500">
+              {!qual.active ? (
+                'Request sent to Microsoft - awaiting approval'
+              ) : (
+                `Last modified on ${qual.lastModified}`
+              )}
+            </div>
+          </div>
+        ))}
       </ExpandableSection>
       {/* Section 4: Azure */}
       <ExpandableSection title="Azure">
@@ -372,6 +597,30 @@ export const MicrosoftSection = () => {
         onClose={() => setShowConfirmation(false)}
         onConfirm={handleSendRequest}
         selectedOption={selectedOption}
+      />
+
+      {/* Special Qualifications Options Modal */}
+      <QualificationOptionsModal
+        open={showQualificationOptions}
+        onClose={() => setShowQualificationOptions(false)}
+        onSelectOption={handleQualificationOptionSelect}
+      />
+
+      {/* Domain Input Modal */}
+      <DomainInputModal
+        open={showDomainInput}
+        onClose={() => setShowDomainInput(false)}
+        onConfirm={handleDomainSubmit}
+        selectedQualification={selectedQualification}
+      />
+
+      {/* Qualification Confirmation Modal */}
+      <QualificationConfirmationModal
+        open={showQualificationConfirmation}
+        onClose={() => setShowQualificationConfirmation(false)}
+        onConfirm={handleQualificationConfirm}
+        selectedQualification={selectedQualification}
+        domain={selectedDomain}
       />
     </div>
   );
