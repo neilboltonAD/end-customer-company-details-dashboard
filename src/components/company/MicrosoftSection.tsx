@@ -492,28 +492,40 @@ export const MicrosoftSection = () => {
 
   // Azure Management Permissions component
   const AzureManagementPermissions = () => {
-    const [azureRequested, setAzureRequested] = useState(false);
-    const [azurePending, setAzurePending] = useState(false);
-
     // Check if Telstra Azure GDAP relationship exists and is active
     const telstraAzureGdap = gdapRelationships.find(rel => 
-      rel.name === 'Telstra Azure' || rel.name.includes('Telstra Azure')
+      rel.name === 'Telstra Azure'
     );
     const hasActiveAzureGdap = telstraAzureGdap && telstraAzureGdap.active;
+    const hasPendingAzureGdap = telstraAzureGdap && !telstraAzureGdap.active;
 
     const handleRequestAzureGdap = () => {
-      setAzureRequested(true);
-      setAzurePending(true);
+      // Create a new pending Telstra Azure GDAP relationship
+      const newAzureGdap = {
+        name: 'Telstra Azure',
+        dateRange: 'Pending - Pending',
+        autoExtend: true,
+        active: false, // This will show as pending
+        roles: [
+          'Cloud application administrator',
+          'Application administrator',
+        ],
+      };
+
+      // Add the new relationship to the GDAP list
+      setGdapRelationships(prev => [...prev, newAzureGdap]);
+      
+      // Keep the GDAP section open to show the new relationship
+      setGdapSectionOpen(true);
     };
 
     const handleToggleAzureStatus = () => {
-      if (azurePending) {
-        setAzurePending(false);
+      if (hasPendingAzureGdap) {
         // Update the GDAP relationship to active
         setGdapRelationships(prev => 
           prev.map(rel => 
-            rel.name === 'Telstra Azure' || rel.name.includes('Telstra Azure')
-              ? { ...rel, active: true }
+            rel.name === 'Telstra Azure'
+              ? { ...rel, active: true, dateRange: '06/25/2025 - 12/25/2025' }
               : rel
           )
         );
@@ -531,7 +543,7 @@ export const MicrosoftSection = () => {
       );
     }
 
-    if (azureRequested) {
+    if (hasPendingAzureGdap) {
       return (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
@@ -545,14 +557,10 @@ export const MicrosoftSection = () => {
               Requested
             </button>
             <button
-              className={`text-xs font-bold uppercase rounded px-2 py-1 cursor-pointer ${
-                azurePending 
-                  ? 'text-yellow-700 bg-yellow-100 hover:bg-yellow-200' 
-                  : 'text-green-700 bg-green-100'
-              }`}
+              className="text-xs font-bold uppercase rounded px-2 py-1 cursor-pointer text-yellow-700 bg-yellow-100 hover:bg-yellow-200"
               onClick={handleToggleAzureStatus}
             >
-              {azurePending ? 'Pending' : 'Active'}
+              Pending
             </button>
           </div>
         </div>
