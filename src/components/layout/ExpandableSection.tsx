@@ -1,7 +1,7 @@
 import React, { useState, ReactNode } from 'react';
 
 interface ExpandableSectionProps {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
   className?: string;
@@ -15,9 +15,9 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
 }) => {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className={`border rounded bg-white mb-4 ${className}`}>
+    <div className={`border-2 border-gray-300 rounded-lg bg-white mb-4 py-2 shadow-sm ${className}`}>
       <button
-        className="w-full flex items-center justify-between px-4 py-3 text-left focus:outline-none"
+        className="w-full flex items-center justify-between px-4 py-3 text-left focus:outline-none hover:bg-gray-50 rounded-t-lg transition-colors"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
