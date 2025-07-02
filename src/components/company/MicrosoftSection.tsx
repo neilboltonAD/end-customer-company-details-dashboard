@@ -303,6 +303,305 @@ const QualificationConfirmationModal = ({
   );
 };
 
+const UnlinkWarningModal = ({
+  open,
+  onClose,
+  onConfirm,
+  confirmation,
+  onConfirmationChange
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  confirmation: string;
+  onConfirmationChange: (value: string) => void;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-red-800">⚠️ High Risk Action</h2>
+        <p className="mb-4 text-gray-700">
+          This is a High Risk Action. By entering 'CONFIRM' in the text box and pressing the 'Unlink' button you understand that there must NOT be any subscriptions linked.
+        </p>
+        <div className="mb-6">
+          <input
+            type="text"
+            value={confirmation}
+            onChange={(e) => onConfirmationChange(e.target.value)}
+            placeholder="Type 'CONFIRM' to proceed"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            autoFocus
+          />
+        </div>
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={onConfirm}
+            disabled={confirmation !== 'CONFIRM'}
+          >
+            Unlink
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CreateTenantModal = ({
+  open,
+  onClose,
+  onConfirm
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (tenantData: any) => void;
+}) => {
+  const [formData, setFormData] = useState({
+    companyName: '',
+    domain: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    addressLine1: '',
+    city: '',
+    state: '',
+    country: 'US',
+    postalCode: '',
+    phoneNumber: '',
+    culture: 'en-US',
+    language: 'en'
+  });
+
+  const handleSubmit = () => {
+    if (formData.companyName && formData.domain && formData.email && formData.firstName && 
+        formData.lastName && formData.addressLine1 && formData.city && formData.state && 
+        formData.country && formData.postalCode) {
+      onConfirm(formData);
+      setFormData({
+        companyName: '',
+        domain: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        addressLine1: '',
+        city: '',
+        state: '',
+        country: 'US',
+        postalCode: '',
+        phoneNumber: '',
+        culture: 'en-US',
+        language: 'en'
+      });
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Create New Tenant</h2>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+            <input
+              type="text"
+              value={formData.companyName}
+              onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Domain *</label>
+            <input
+              type="text"
+              value={formData.domain}
+              onChange={(e) => setFormData({...formData, domain: e.target.value})}
+              placeholder="company.onmicrosoft.com"
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+            <input
+              type="text"
+              value={formData.lastName}
+              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+            <input
+              type="text"
+              value={formData.addressLine1}
+              onChange={(e) => setFormData({...formData, addressLine1: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+            <input
+              type="text"
+              value={formData.city}
+              onChange={(e) => setFormData({...formData, city: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">State/Province *</label>
+            <input
+              type="text"
+              value={formData.state}
+              onChange={(e) => setFormData({...formData, state: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+            <select
+              value={formData.country}
+              onChange={(e) => setFormData({...formData, country: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="US">United States</option>
+              <option value="CA">Canada</option>
+              <option value="GB">United Kingdom</option>
+              <option value="AU">Australia</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code *</label>
+            <input
+              type="text"
+              value={formData.postalCode}
+              onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSubmit}
+            disabled={!formData.companyName || !formData.domain || !formData.email || !formData.firstName || 
+                     !formData.lastName || !formData.addressLine1 || !formData.city || !formData.state || 
+                     !formData.country || !formData.postalCode}
+          >
+            Create Tenant
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LinkTenantModal = ({
+  open,
+  onClose,
+  onConfirm
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (domain: string) => void;
+}) => {
+  const [domain, setDomain] = useState('');
+
+  const handleSubmit = () => {
+    if (domain.trim()) {
+      onConfirm(domain.trim());
+      setDomain('');
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Link Existing Tenant</h2>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Microsoft Tenant Domain</label>
+          <input
+            type="text"
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            placeholder="company.onmicrosoft.com"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            autoFocus
+          />
+        </div>
+        <div className="flex justify-end space-x-3">
+          <button
+            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSubmit}
+            disabled={!domain.trim()}
+          >
+            Link Tenant
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SyncModal = ({
   open,
   onClose,
@@ -342,6 +641,16 @@ export const MicrosoftSection = () => {
   const [azureReservations, setAzureReservations] = useState(true);
   const [azureUsage, setAzureUsage] = useState(false);
 
+  // Tenant state
+  const [isTenantLinked, setIsTenantLinked] = useState(true);
+  const [tenantData, setTenantData] = useState({
+    domain: 'appdirectdemonstration5.onmicrosoft.com',
+    tenantId: '408f194e-dc4a-4a2e-ac65-d1d6b0c11a8a',
+    globalAdmins: ['neil.bolton@xyzcompany.com', 'sarah.johnson@xyzcompany.com'],
+    billingAdmins: ['finance.admin@xyzcompany.com', 'billing.team@xyzcompany.com'],
+    agreementDate: '25/06/2025'
+  });
+
   // GDAP dialog state
   const [showGdapOptions, setShowGdapOptions] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -357,10 +666,18 @@ export const MicrosoftSection = () => {
   // Section open/close state
   const [gdapSectionOpen, setGdapSectionOpen] = useState(false);
   const [specialQualificationsSectionOpen, setSpecialQualificationsSectionOpen] = useState(false);
+  const [tenantDomainSectionOpen, setTenantDomainSectionOpen] = useState(true);
+  const [adminSectionOpen, setAdminSectionOpen] = useState(true);
 
   // Sync modal state
   const [showGdapSyncModal, setShowGdapSyncModal] = useState(false);
   const [showSpecialQualificationsSyncModal, setShowSpecialQualificationsSyncModal] = useState(false);
+
+  // Tenant management modal state
+  const [showUnlinkWarning, setShowUnlinkWarning] = useState(false);
+  const [unlinkConfirmation, setUnlinkConfirmation] = useState('');
+  const [showCreateTenantModal, setShowCreateTenantModal] = useState(false);
+  const [showLinkTenantModal, setShowLinkTenantModal] = useState(false);
 
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
     setGdapRelationships((prev) =>
@@ -488,6 +805,57 @@ export const MicrosoftSection = () => {
     // Keep the Special Qualifications section open and close the modal
     setSpecialQualificationsSectionOpen(true);
     setShowSpecialQualificationsSyncModal(false);
+  };
+
+  // Tenant management handlers
+  const handleUnlinkTenant = () => {
+    setShowUnlinkWarning(true);
+  };
+
+  const handleUnlinkConfirm = () => {
+    if (unlinkConfirmation === 'CONFIRM') {
+      setIsTenantLinked(false);
+      setShowUnlinkWarning(false);
+      setUnlinkConfirmation('');
+    }
+  };
+
+  const handleCreateNewTenant = () => {
+    setShowCreateTenantModal(true);
+  };
+
+  const handleLinkTenant = () => {
+    setShowLinkTenantModal(true);
+  };
+
+  const handleCreateTenantConfirm = (formData: any) => {
+    // Generate dummy tenant data based on form input
+    const newTenantData = {
+      domain: formData.domain,
+      tenantId: `tenant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      globalAdmins: [`${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@${formData.domain}`, 'admin@' + formData.domain],
+      billingAdmins: [`billing.${formData.firstName.toLowerCase()}@${formData.domain}`, 'finance@' + formData.domain],
+      agreementDate: new Date().toLocaleDateString('en-GB')
+    };
+    
+    setTenantData(newTenantData);
+    setIsTenantLinked(true);
+    setShowCreateTenantModal(false);
+  };
+
+  const handleLinkTenantConfirm = (domain: string) => {
+    // Generate dummy tenant data for linked tenant
+    const newTenantData = {
+      domain: domain,
+      tenantId: `linked-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      globalAdmins: ['admin@' + domain, 'global.admin@' + domain],
+      billingAdmins: ['billing@' + domain, 'finance@' + domain],
+      agreementDate: new Date().toLocaleDateString('en-GB')
+    };
+    
+    setTenantData(newTenantData);
+    setIsTenantLinked(true);
+    setShowLinkTenantModal(false);
   };
 
   // Azure Management Permissions component
@@ -626,164 +994,243 @@ export const MicrosoftSection = () => {
   return (
     <div className="mb-8">
       <h3 className="text-lg font-bold text-gray-800 mb-2">Microsoft</h3>
-      {/* Section 1: Customer Tenant Information */}
-      <ExpandableSection title="Customer Tenant Information" defaultOpen={true}>
-        <div className="mb-4 py-2">
-          <div className="flex items-center justify-between mb-1">
-            <div className="font-semibold text-gray-700">appdirectdemonstration5.onmicrosoft.com</div>
-            <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-          </div>
-          <div className="text-xs text-gray-500 mb-2">Tenant UUID: 408f194e-dc4a-4a2e-ac65-d1d6b0c11a8a</div>
-          <div className="flex justify-end">
-            <button className="px-3 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100">Unlink Tenant</button>
-          </div>
-        </div>
-        <div className="mb-4 py-2">
-          <div className="font-semibold text-gray-700 mb-1">Microsoft Customer Agreement</div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm">Last Agreement Date: 25/06/2025</span>
-            <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-          </div>
-        </div>
-      </ExpandableSection>
-      {/* Section 2: GDAP */}
-      <ExpandableSection
-        open={gdapSectionOpen}
-        onToggle={setGdapSectionOpen}
-        title={
-          <div className="flex items-center w-full justify-between">
-            <span>GDAP Relationships</span>
-            <div className="flex items-center">
-              <ActionButton onClick={handleGdapNew}>New</ActionButton>
-              <ActionButton onClick={handleGdapSync}>Sync</ActionButton>
-            </div>
-          </div>
-        }
-      >
-        {gdapRelationships.map((rel, idx) => (
-          <ExpandableSection
-            key={rel.name}
-            title={
-              <div className="flex items-center justify-between w-full">
-                <span>{rel.name}</span>
-                {rel.active ? (
-                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1 ml-2">Active</span>
-                ) : (
-                  <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1 ml-2">Pending</span>
-                )}
-              </div>
-            }
-            defaultOpen={false}
-            className="mb-3 ml-4 border border-gray-200 bg-gray-50"
-          >
-            {rel.name.startsWith('Default_') ? (
-              <div className="text-xs text-gray-600 mb-2">This is a Default GDAP relationship and assigned when the tenant was created.</div>
-            ) : !rel.active ? (
-              <div className="text-xs text-gray-600 mb-2">This GDAP relationship request has been sent to the customer and is awaiting approval.</div>
-            ) : (
-              <div className="text-xs text-gray-600 mb-2">This GDAP relationship was explicitly requested by &lt;partner&gt; and accepted by the customer.</div>
-            )}
-            <div className="text-xs text-gray-500 mb-2">
-              {!rel.active ? (
-                'Request sent to customer - awaiting approval'
-              ) : rel.autoExtend ? (
-                `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]}`
-              ) : (
-                `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]} and will NOT renew`
-              )}
-            </div>
-            {rel.active && (
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex-1"></div>
-                <div className="flex items-center">
-                  <span className="text-xs text-gray-700 mr-2">Renew every 180 days</span>
-                  <Toggle enabled={rel.autoExtend} onChange={(val) => handleAutoExtendToggle(idx, val)} size="sm" />
+      
+      {isTenantLinked ? (
+        <>
+          {/* Section 1: Customer Tenant Information */}
+          <ExpandableSection title="Customer Tenant Information" defaultOpen={true}>
+            {/* Tenant Domain Subsection */}
+            <ExpandableSection 
+              title="Tenant Domain" 
+              open={tenantDomainSectionOpen}
+              onToggle={setTenantDomainSectionOpen}
+              className="mb-3"
+            >
+              <div className="mb-4 py-2">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-semibold text-gray-700">{tenantData.domain}</div>
+                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+                </div>
+                <div className="text-xs text-gray-500 mb-2">Tenant UUID: {tenantData.tenantId}</div>
+                <div className="flex justify-end">
+                  <button 
+                    className="px-3 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+                    onClick={handleUnlinkTenant}
+                  >
+                    Unlink Tenant
+                  </button>
                 </div>
               </div>
-            )}
-            <ul className="text-xs text-gray-700 space-y-1">
-              {rel.roles.map((role) => (
-                <li key={role} className="flex items-center py-2">
-                  <span className="mr-2 text-green-400">✔</span> {role}
-                </li>
-              ))}
-            </ul>
+            </ExpandableSection>
+
+            {/* Admin Subsection */}
+            <ExpandableSection 
+              title="Admin" 
+              open={adminSectionOpen}
+              onToggle={setAdminSectionOpen}
+              className="mb-3"
+            >
+              <div className="mb-4 py-2">
+                <div className="font-semibold text-gray-700 mb-2">Global Admin</div>
+                <ul className="text-sm text-gray-700 space-y-1 mb-3">
+                  {tenantData.globalAdmins.map((admin, index) => (
+                    <li key={index} className="flex items-center">
+                      <span className="mr-2 text-green-400">•</span>
+                      {admin}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="mb-4 py-2">
+                <div className="font-semibold text-gray-700 mb-2">Billing Admin</div>
+                <ul className="text-sm text-gray-700 space-y-1 mb-3">
+                  {tenantData.billingAdmins.map((admin, index) => (
+                    <li key={index} className="flex items-center">
+                      <span className="mr-2 text-green-400">•</span>
+                      {admin}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mb-4 py-2">
+                <div className="font-semibold text-gray-700 mb-1">Microsoft Customer Agreement</div>
+                <ul className="text-sm text-gray-700 space-y-1 mb-2">
+                  <li className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <span className="mr-2 text-green-400">•</span>
+                      Last Agreement Date: {tenantData.agreementDate}
+                    </span>
+                    <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+                  </li>
+                </ul>
+              </div>
+            </ExpandableSection>
           </ExpandableSection>
-        ))}
-      </ExpandableSection>
-      {/* Section 3: Special Qualifications */}
-      <ExpandableSection
-        open={specialQualificationsSectionOpen}
-        onToggle={setSpecialQualificationsSectionOpen}
-        title={
-          <div className="flex items-center w-full justify-between">
-            <span>Special Qualifications</span>
-            <div className="flex items-center">
-              <ActionButton onClick={handleQualificationNew}>New</ActionButton>
-              <ActionButton onClick={handleSpecialQualificationsSync}>Sync</ActionButton>
-            </div>
-          </div>
-        }
-      >
-        {specialQualifications.map((qual, idx) => (
-          <div key={`${qual.name}-${qual.domain}-${idx}`} className="mb-3 py-2">
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-semibold text-gray-700">{qual.name}</div>
-              {qual.active ? (
-                <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-              ) : (
-                <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1">Pending</span>
-              )}
-            </div>
-            {!qual.active && (
-              <div className="text-xs text-gray-600 mb-1">Domain: {qual.domain}</div>
-            )}
-            <div className="text-xs text-gray-500">
-              {!qual.active ? (
-                'Request sent to Microsoft - awaiting approval'
-              ) : (
-                `Last modified on ${qual.lastModified}`
-              )}
-            </div>
-          </div>
-        ))}
-      </ExpandableSection>
-      {/* Section 4: Azure */}
-      <ExpandableSection title="Azure">
-        <div className="mb-4 py-2">
-          <div className="font-semibold text-gray-700 mb-1">Microsoft Purchase Permissions</div>
-          <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-xs">Azure Reservations</div>
-              <div className="text-xs text-gray-500">Enabling this setting allows customers to purchase Azure Reservations. Please follow the guidelines before you enable this feature for your customer.</div>
-            </div>
-            <div className="flex items-center">
-              <Toggle enabled={azureReservations} onChange={setAzureReservations} size="sm" />
-              <span className={`text-xs ml-2 ${azureReservations ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureReservations ? 'Enabled' : 'Disabled'}</span>
-            </div>
+        </>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+          <div className="text-lg font-semibold text-gray-700 mb-4">No tenant linked</div>
+          <div className="flex justify-center space-x-4">
+            <button
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              onClick={handleCreateNewTenant}
+            >
+              Create New Tenant
+            </button>
+            <button
+              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition-colors"
+              onClick={handleLinkTenant}
+            >
+              Link Tenant
+            </button>
           </div>
         </div>
-        <div className="mb-4 py-2">
-          <div className="font-semibold text-gray-700 mb-1">Microsoft Cost Management</div>
-          <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-xs">Azure Subscription Usage</div>
-              <div className="text-xs text-gray-500">Enabling this setting updates the customer's billing policy to allow users with the proper role and access to the subscription, visibility into their consumption and the associated retail pay-as-you-go rates in the Azure portal.</div>
+      )}
+
+      {isTenantLinked && (
+        <>
+          {/* Section 2: GDAP */}
+          <ExpandableSection
+            open={gdapSectionOpen}
+            onToggle={setGdapSectionOpen}
+            title={
+              <div className="flex items-center w-full justify-between">
+                <span>GDAP Relationships</span>
+                <div className="flex items-center">
+                  <ActionButton onClick={handleGdapNew}>New</ActionButton>
+                  <ActionButton onClick={handleGdapSync}>Sync</ActionButton>
+                </div>
+              </div>
+            }
+          >
+            {gdapRelationships.map((rel, idx) => (
+              <ExpandableSection
+                key={rel.name}
+                title={
+                  <div className="flex items-center justify-between w-full">
+                    <span>{rel.name}</span>
+                    {rel.active ? (
+                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1 ml-2">Active</span>
+                    ) : (
+                      <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1 ml-2">Pending</span>
+                    )}
+                  </div>
+                }
+                defaultOpen={false}
+                className="mb-3 ml-4 border border-gray-200 bg-gray-50"
+              >
+                {rel.name.startsWith('Default_') ? (
+                  <div className="text-xs text-gray-600 mb-2">This is a Default GDAP relationship and assigned when the tenant was created.</div>
+                ) : !rel.active ? (
+                  <div className="text-xs text-gray-600 mb-2">This GDAP relationship request has been sent to the customer and is awaiting approval.</div>
+                ) : (
+                  <div className="text-xs text-gray-600 mb-2">This GDAP relationship was explicitly requested by &lt;partner&gt; and accepted by the customer.</div>
+                )}
+                <div className="text-xs text-gray-500 mb-2">
+                  {!rel.active ? (
+                    'Request sent to customer - awaiting approval'
+                  ) : rel.autoExtend ? (
+                    `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]}`
+                  ) : (
+                    `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]} and will NOT renew`
+                  )}
+                </div>
+                {rel.active && (
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex-1"></div>
+                    <div className="flex items-center">
+                      <span className="text-xs text-gray-700 mr-2">Renew every 180 days</span>
+                      <Toggle enabled={rel.autoExtend} onChange={(val) => handleAutoExtendToggle(idx, val)} size="sm" />
+                    </div>
+                  </div>
+                )}
+                <ul className="text-xs text-gray-700 space-y-1">
+                  {rel.roles.map((role) => (
+                    <li key={role} className="flex items-center py-2">
+                      <span className="mr-2 text-green-400">✔</span> {role}
+                    </li>
+                  ))}
+                </ul>
+              </ExpandableSection>
+            ))}
+          </ExpandableSection>
+          {/* Section 3: Special Qualifications */}
+          <ExpandableSection
+            open={specialQualificationsSectionOpen}
+            onToggle={setSpecialQualificationsSectionOpen}
+            title={
+              <div className="flex items-center w-full justify-between">
+                <span>Special Qualifications</span>
+                <div className="flex items-center">
+                  <ActionButton onClick={handleQualificationNew}>New</ActionButton>
+                  <ActionButton onClick={handleSpecialQualificationsSync}>Sync</ActionButton>
+                </div>
+              </div>
+            }
+          >
+            {specialQualifications.map((qual, idx) => (
+              <div key={`${qual.name}-${qual.domain}-${idx}`} className="mb-3 py-2">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="font-semibold text-gray-700">{qual.name}</div>
+                  {qual.active ? (
+                    <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+                  ) : (
+                    <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1">Pending</span>
+                  )}
+                </div>
+                {!qual.active && (
+                  <div className="text-xs text-gray-600 mb-1">Domain: {qual.domain}</div>
+                )}
+                <div className="text-xs text-gray-500">
+                  {!qual.active ? (
+                    'Request sent to Microsoft - awaiting approval'
+                  ) : (
+                    `Last modified on ${qual.lastModified}`
+                  )}
+                </div>
+              </div>
+            ))}
+          </ExpandableSection>
+          {/* Section 4: Azure */}
+          <ExpandableSection title="Azure">
+            <div className="mb-4 py-2">
+              <div className="font-semibold text-gray-700 mb-1">Microsoft Purchase Permissions</div>
+              <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-xs">Azure Reservations</div>
+                  <div className="text-xs text-gray-500">Enabling this setting allows customers to purchase Azure Reservations. Please follow the guidelines before you enable this feature for your customer.</div>
+                </div>
+                <div className="flex items-center">
+                  <Toggle enabled={azureReservations} onChange={setAzureReservations} size="sm" />
+                  <span className={`text-xs ml-2 ${azureReservations ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureReservations ? 'Enabled' : 'Disabled'}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center">
-              <Toggle enabled={azureUsage} onChange={setAzureUsage} size="sm" />
-              <span className={`text-xs ml-2 ${azureUsage ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureUsage ? 'Enabled' : 'Disabled'}</span>
+            <div className="mb-4 py-2">
+              <div className="font-semibold text-gray-700 mb-1">Microsoft Cost Management</div>
+              <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-xs">Azure Subscription Usage</div>
+                  <div className="text-xs text-gray-500">Enabling this setting updates the customer's billing policy to allow users with the proper role and access to the subscription, visibility into their consumption and the associated retail pay-as-you-go rates in the Azure portal.</div>
+                </div>
+                <div className="flex items-center">
+                  <Toggle enabled={azureUsage} onChange={setAzureUsage} size="sm" />
+                  <span className={`text-xs ml-2 ${azureUsage ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureUsage ? 'Enabled' : 'Disabled'}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="mb-4 py-2">
-          <div className="font-semibold text-gray-700 mb-1">Azure Management Permissions</div>
-          <div className="bg-gray-50 border border-gray-200 rounded p-3">
-            <div className="text-xs text-gray-500 mb-3">Partners are required to have certain permissions to manage customers with Azure subscriptions.</div>
-            <AzureManagementPermissions />
-          </div>
-        </div>
-      </ExpandableSection>
+            <div className="mb-4 py-2">
+              <div className="font-semibold text-gray-700 mb-1">Azure Management Permissions</div>
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                <div className="text-xs text-gray-500 mb-3">Partners are required to have certain permissions to manage customers with Azure subscriptions.</div>
+                <AzureManagementPermissions />
+              </div>
+            </div>
+          </ExpandableSection>
+        </>
+      )}
 
       {/* GDAP Options Modal */}
       <GdapOptionsModal
@@ -840,6 +1287,27 @@ export const MicrosoftSection = () => {
         onConfirm={handleSpecialQualificationsSyncConfirm}
         title="Syncing Special Qualifications"
         message="Now syncing Special Qualification statuses from Microsoft"
+      />
+
+      {/* Tenant Management Modals */}
+      <UnlinkWarningModal
+        open={showUnlinkWarning}
+        onClose={() => setShowUnlinkWarning(false)}
+        onConfirm={handleUnlinkConfirm}
+        confirmation={unlinkConfirmation}
+        onConfirmationChange={setUnlinkConfirmation}
+      />
+
+      <CreateTenantModal
+        open={showCreateTenantModal}
+        onClose={() => setShowCreateTenantModal(false)}
+        onConfirm={handleCreateTenantConfirm}
+      />
+
+      <LinkTenantModal
+        open={showLinkTenantModal}
+        onClose={() => setShowLinkTenantModal(false)}
+        onConfirm={handleLinkTenantConfirm}
       />
     </div>
   );
