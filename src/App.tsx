@@ -8,7 +8,7 @@ import CompanyDetails from './pages/CompanyDetails';
 export function App() {
   return (
     <MantineProvider>
-      <Notifications position="top-right" />
+      <Notifications position="bottom-right" />
       <Router>
         <Routes>
           <Route path="/settings" element={<ComponentLibrary />} />
