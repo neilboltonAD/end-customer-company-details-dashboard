@@ -6,7 +6,7 @@ import { ExpandableSection } from '../layout/ExpandableSection';
 const GoogleSection = () => (
   <div className="mb-8">
     <div className="text-lg font-bold text-gray-800 mb-2">Google</div>
-    <ExpandableSection title="Google" defaultOpen>
+    <ExpandableSection title="Google" sectionId="vendor-google">
       {/* Placeholder for Google content */}
       <div className="text-gray-500 text-sm">No Google data available.</div>
     </ExpandableSection>

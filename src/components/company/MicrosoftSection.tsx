@@ -1077,7 +1077,7 @@ export const MicrosoftSection = () => {
       {isTenantLinked ? (
         <>
           {/* Section 1: Customer Tenant Information */}
-          <ExpandableSection title="Customer Tenant Information" defaultOpen={true} className="bg-gray-100 border border-gray-300 rounded-lg p-4">
+          <ExpandableSection title="Customer Tenant Information" sectionId="microsoft-tenant-info" className="bg-gray-100 border border-gray-300 rounded-lg p-4">
             {/* Tenant Domain Subsection */}
             <ExpandableSection 
               title="Tenant Domain Details" 
@@ -1263,6 +1263,7 @@ export const MicrosoftSection = () => {
             {/* Azure Subsection */}
             <ExpandableSection 
               title="Azure Settings" 
+              sectionId="microsoft-azure-settings"
               className="mb-3"
             >
               <div className="mb-4 py-2">

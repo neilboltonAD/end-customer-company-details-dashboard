@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 
 interface ExpandableSectionProps {
   title: ReactNode;
@@ -7,6 +7,7 @@ interface ExpandableSectionProps {
   open?: boolean;
   onToggle?: (open: boolean) => void;
   className?: string;
+  sectionId?: string; // Unique identifier for localStorage
 }
 
 export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
@@ -16,11 +17,39 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   open: controlledOpen,
   onToggle,
   className = '',
+  sectionId,
 }) => {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  // Generate a unique ID if not provided
+  const uniqueId = sectionId || `section-${typeof title === 'string' ? title.toLowerCase().replace(/\s+/g, '-') : Math.random().toString(36).substr(2, 9)}`;
+  
+  // Get initial state from localStorage or default to false (collapsed)
+  const getInitialState = (): boolean => {
+    if (typeof window === 'undefined') return false; // SSR safety
+    
+    try {
+      const saved = localStorage.getItem(`expandable-section-${uniqueId}`);
+      return saved ? JSON.parse(saved) : false; // Default to collapsed
+    } catch (error) {
+      console.warn('Failed to load expandable section state from localStorage:', error);
+      return false; // Default to collapsed on error
+    }
+  };
+
+  const [internalOpen, setInternalOpen] = useState(getInitialState);
   
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return; // SSR safety
+    
+    try {
+      localStorage.setItem(`expandable-section-${uniqueId}`, JSON.stringify(isOpen));
+    } catch (error) {
+      console.warn('Failed to save expandable section state to localStorage:', error);
+    }
+  }, [isOpen, uniqueId]);
   
   const handleToggle = () => {
     const newOpen = !isOpen;
@@ -30,6 +59,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       setInternalOpen(newOpen);
     }
   };
+
   return (
     <div className={`border-2 border-gray-300 rounded-lg bg-white mb-4 py-2 shadow-sm ${className}`}>
       <button

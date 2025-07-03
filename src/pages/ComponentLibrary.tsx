@@ -98,7 +98,7 @@ export const ComponentLibrary = () => {
       </div>
       {/* Marketplace Wide Settings */}
       <Section title="Marketplace Wide Settings">
-        <ExpandableSection title="Company Sync" defaultOpen={true}>
+        <ExpandableSection title="Company Sync" sectionId="company-sync">
           <SettingItem
             title="Company Sync"
             description="When enabled Company Sync will discover companies that don't exist on the marketplace and sync them into the marketplace based on the below settings."
@@ -142,7 +142,7 @@ export const ComponentLibrary = () => {
       </Section>
       {/* Microsoft Settings */}
       <Section title="Microsoft Settings">
-        <ExpandableSection title="Tenant Linking" defaultOpen={true}>
+        <ExpandableSection title="Tenant Linking" sectionId="tenant-linking">
           <SettingItem
             title="Tenant Linking"
             description="When enabled, the Marketplace will allow tenant linking, by sending customers a Reseller Relationship link within an email notification. NOTE: Requires Company Sync to be enabled."
@@ -155,7 +155,7 @@ export const ComponentLibrary = () => {
             </div>
           </SettingItem>
         </ExpandableSection>
-        <ExpandableSection title="Sync Tool">
+        <ExpandableSection title="Sync Tool" sectionId="sync-tool">
           <SettingItem
             title="Sync Tool"
             description="Enable or disable the Microsoft Sync Tool."
@@ -168,7 +168,7 @@ export const ComponentLibrary = () => {
             </div>
           </SettingItem>
         </ExpandableSection>
-        <ExpandableSection title="User Sync">
+        <ExpandableSection title="User Sync" sectionId="user-sync">
           <SettingItem
             title="User Sync"
             description="When enabled User Sync will sync user information from the Microsoft Online Portal to the marketplace. It will create new users if required on the marketplace."
@@ -206,7 +206,7 @@ export const ComponentLibrary = () => {
       </Section>
       {/* Google Settings */}
       <Section title="Google Settings">
-        <ExpandableSection title="Google User Sync">
+        <ExpandableSection title="Google User Sync" sectionId="google-user-sync">
           <SettingItem
             title="Google User Sync"
             description="Enable or disable Google User Sync."

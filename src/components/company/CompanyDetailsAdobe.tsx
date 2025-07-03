@@ -6,9 +6,9 @@ const adobeLogo = '/adobelogo.png';
 export const CompanyDetailsAdobe = () => (
   <div className="mb-8">
     <div className="text-lg font-bold text-gray-800 mb-2">Adobe</div>
-    <ExpandableSection title="Adobe" defaultOpen>
+    <ExpandableSection title="Adobe" sectionId="adobe-main">
       {/* Company Information */}
-      <ExpandableSection title="Company Information" defaultOpen>
+              <ExpandableSection title="Company Information" sectionId="adobe-company-info">
         <div className="w-full">
           <div className="flex items-center mb-6">
             <img src={adobeLogo} alt="Adobe Logo" className="w-12 h-12 mr-4 rounded" />
@@ -68,7 +68,7 @@ export const CompanyDetailsAdobe = () => (
       </ExpandableSection>
 
       {/* VIP Program Status */}
-      <ExpandableSection title="VIP Program Status" defaultOpen>
+              <ExpandableSection title="VIP Program Status" sectionId="adobe-vip-status">
         <div className="w-full space-y-4">
           <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded p-4 w-full">
             <div>
@@ -96,7 +96,7 @@ export const CompanyDetailsAdobe = () => (
       </ExpandableSection>
 
       {/* Update & Schedule New Products at Renewal */}
-      <ExpandableSection title="Update & Schedule New Products at Renewal" defaultOpen>
+              <ExpandableSection title="Update & Schedule New Products at Renewal" sectionId="adobe-renewal-products">
         <div className="w-full space-y-4">
           <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded p-4 w-full">
             <div>
