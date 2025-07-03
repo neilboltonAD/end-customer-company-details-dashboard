@@ -6,9 +6,17 @@ const adobeLogo = '/adobelogo.png';
 export const CompanyDetailsAdobe = () => (
   <div className="mb-8">
     <div className="text-lg font-bold text-gray-800 mb-2">Adobe</div>
-    <ExpandableSection title="Adobe" sectionId="adobe-main">
+    <ExpandableSection 
+      title="Adobe" 
+      sectionId="adobe-main"
+      helpContent="Adobe Creative Cloud and Document Cloud services provide access to creative tools, document management, and digital media solutions. This section displays your Adobe subscription details and program status."
+    >
       {/* Company Information */}
-              <ExpandableSection title="Company Information" sectionId="adobe-company-info">
+              <ExpandableSection 
+          title="Company Information" 
+          sectionId="adobe-company-info"
+          helpContent="Company Information displays your organization's details as registered with Adobe, including contact information, billing details, and account status. This information is used for licensing and support purposes."
+        >
         <div className="w-full">
           <div className="flex items-center mb-6">
             <img src={adobeLogo} alt="Adobe Logo" className="w-12 h-12 mr-4 rounded" />
@@ -68,7 +76,11 @@ export const CompanyDetailsAdobe = () => (
       </ExpandableSection>
 
       {/* VIP Program Status */}
-              <ExpandableSection title="VIP Program Status" sectionId="adobe-vip-status">
+              <ExpandableSection 
+          title="VIP Program Status" 
+          sectionId="adobe-vip-status"
+          helpContent="The Adobe VIP (Value Incentive Plan) program provides volume licensing options for organizations. This section shows your current VIP status, available benefits, and program eligibility requirements."
+        >
         <div className="w-full space-y-4">
           <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded p-4 w-full">
             <div>
@@ -96,7 +108,11 @@ export const CompanyDetailsAdobe = () => (
       </ExpandableSection>
 
       {/* Update & Schedule New Products at Renewal */}
-              <ExpandableSection title="Update & Schedule New Products at Renewal" sectionId="adobe-renewal-products">
+              <ExpandableSection 
+          title="Update & Schedule New Products at Renewal" 
+          sectionId="adobe-renewal-products"
+          helpContent="This section allows you to manage product updates and schedule new Adobe products to be added to your subscription at renewal time. This helps ensure you have access to the latest tools and features."
+        >
         <div className="w-full space-y-4">
           <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded p-4 w-full">
             <div>

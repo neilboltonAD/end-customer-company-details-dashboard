@@ -1077,7 +1077,12 @@ export const MicrosoftSection = () => {
       {isTenantLinked ? (
         <>
           {/* Section 1: Customer Tenant Information */}
-          <ExpandableSection title="Customer Tenant Information" sectionId="microsoft-tenant-info" className="bg-gray-100 border border-gray-300 rounded-lg p-4">
+          <ExpandableSection 
+            title="Customer Tenant Information" 
+            sectionId="microsoft-tenant-info" 
+            className="bg-gray-100 border border-gray-300 rounded-lg p-4"
+            helpContent="Customer Tenant Information displays details about your connected Microsoft 365 or Azure tenant, including domain information, admin users, and relationship status. This data is essential for managing licenses and user access."
+          >
             {/* Tenant Domain Subsection */}
             <ExpandableSection 
               title="Tenant Domain Details" 
@@ -1265,6 +1270,7 @@ export const MicrosoftSection = () => {
               title="Azure Settings" 
               sectionId="microsoft-azure-settings"
               className="mb-3"
+              helpContent="Azure Settings configure permissions and access levels for Azure services, including reservations, cost management, and subscription usage. These settings determine what Azure resources your organization can manage and purchase."
             >
               <div className="mb-4 py-2">
                 <div className="font-semibold text-gray-700 mb-1">Microsoft Purchase Permissions</div>

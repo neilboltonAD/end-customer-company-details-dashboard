@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ReactNode } from 'react';
+import { LearnMoreLink } from '../misc/LearnMoreLink';
 
 interface ExpandableSectionProps {
   title: ReactNode;
@@ -8,6 +9,7 @@ interface ExpandableSectionProps {
   onToggle?: (open: boolean) => void;
   className?: string;
   sectionId?: string; // Unique identifier for localStorage
+  helpContent?: string; // Help content for the Learn more link
 }
 
 export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
@@ -18,6 +20,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   onToggle,
   className = '',
   sectionId,
+  helpContent,
 }) => {
   // Generate a unique ID if not provided
   const uniqueId = sectionId || `section-${typeof title === 'string' ? title.toLowerCase().replace(/\s+/g, '-') : Math.random().toString(36).substr(2, 9)}`;
@@ -67,7 +70,12 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <div className="flex-1 font-semibold text-gray-800">{title}</div>
+        <div className="flex-1 font-semibold text-gray-800 flex items-center">
+          {title}
+          {helpContent && (
+            <LearnMoreLink content={helpContent} className="ml-2" />
+          )}
+        </div>
         <span className="ml-2">
           {isOpen ? (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>

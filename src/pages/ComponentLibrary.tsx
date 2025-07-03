@@ -98,7 +98,11 @@ export const ComponentLibrary = () => {
       </div>
       {/* Marketplace Wide Settings */}
       <Section title="Marketplace Wide Settings">
-        <ExpandableSection title="Company Sync" sectionId="company-sync">
+        <ExpandableSection 
+          title="Company Sync" 
+          sectionId="company-sync"
+          helpContent="Company Sync automatically discovers and imports companies from your connected platforms. When enabled, it will create new company records in your marketplace based on the settings below. This feature helps streamline the onboarding process for new customers."
+        >
           <SettingItem
             title="Company Sync"
             description="When enabled Company Sync will discover companies that don't exist on the marketplace and sync them into the marketplace based on the below settings."
@@ -142,7 +146,11 @@ export const ComponentLibrary = () => {
       </Section>
       {/* Microsoft Settings */}
       <Section title="Microsoft Settings">
-        <ExpandableSection title="Tenant Linking" sectionId="tenant-linking">
+        <ExpandableSection 
+          title="Tenant Linking" 
+          sectionId="tenant-linking"
+          helpContent="Tenant Linking allows you to establish a direct relationship with your customers' Microsoft 365 or Azure environments. This enables automated user synchronization, license management, and billing integration. Requires Company Sync to be enabled."
+        >
           <SettingItem
             title="Tenant Linking"
             description="When enabled, the Marketplace will allow tenant linking, by sending customers a Reseller Relationship link within an email notification. NOTE: Requires Company Sync to be enabled."
@@ -155,7 +163,11 @@ export const ComponentLibrary = () => {
             </div>
           </SettingItem>
         </ExpandableSection>
-        <ExpandableSection title="Sync Tool" sectionId="sync-tool">
+        <ExpandableSection 
+          title="Sync Tool" 
+          sectionId="sync-tool"
+          helpContent="The Microsoft Sync Tool provides a comprehensive interface for managing synchronization between your marketplace and Microsoft Partner Center. It handles user data, license assignments, and relationship management automatically."
+        >
           <SettingItem
             title="Sync Tool"
             description="Enable or disable the Microsoft Sync Tool."
@@ -168,7 +180,11 @@ export const ComponentLibrary = () => {
             </div>
           </SettingItem>
         </ExpandableSection>
-        <ExpandableSection title="User Sync" sectionId="user-sync">
+        <ExpandableSection 
+          title="User Sync" 
+          sectionId="user-sync"
+          helpContent="User Sync automatically imports user accounts from Microsoft 365 and Azure Active Directory into your marketplace. This ensures user data is always up-to-date and enables seamless license management across platforms."
+        >
           <SettingItem
             title="User Sync"
             description="When enabled User Sync will sync user information from the Microsoft Online Portal to the marketplace. It will create new users if required on the marketplace."
@@ -206,7 +222,11 @@ export const ComponentLibrary = () => {
       </Section>
       {/* Google Settings */}
       <Section title="Google Settings">
-        <ExpandableSection title="Google User Sync" sectionId="google-user-sync">
+        <ExpandableSection 
+          title="Google User Sync" 
+          sectionId="google-user-sync"
+          helpContent="Google User Sync connects your marketplace to Google Workspace (formerly G Suite) to automatically synchronize user accounts, groups, and organizational units. This enables unified user management across Google and your marketplace."
+        >
           <SettingItem
             title="Google User Sync"
             description="Enable or disable Google User Sync."

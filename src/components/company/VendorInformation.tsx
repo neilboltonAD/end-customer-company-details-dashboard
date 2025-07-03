@@ -6,7 +6,11 @@ import { ExpandableSection } from '../layout/ExpandableSection';
 const GoogleSection = () => (
   <div className="mb-8">
     <div className="text-lg font-bold text-gray-800 mb-2">Google</div>
-    <ExpandableSection title="Google" sectionId="vendor-google">
+    <ExpandableSection 
+      title="Google" 
+      sectionId="vendor-google"
+      helpContent="Google Workspace integration provides access to user management, email services, and collaboration tools. This section displays your current Google Workspace configuration and connection status."
+    >
       {/* Placeholder for Google content */}
       <div className="text-gray-500 text-sm">No Google data available.</div>
     </ExpandableSection>
