@@ -37,7 +37,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <span className="font-semibold text-gray-800">{title}</span>
+        <div className="flex-1 font-semibold text-gray-800">{title}</div>
         <span className="ml-2">
           {isOpen ? (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
