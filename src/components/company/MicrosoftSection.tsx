@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { notifications } from '@mantine/notifications';
 import { ExpandableSection } from '../layout/ExpandableSection';
 import { Toggle } from '../form/Toggle';
 
@@ -705,22 +706,45 @@ export const MicrosoftSection = () => {
   };
 
   const handleSendRequest = () => {
-    // Create a new pending GDAP relationship
-    const newGdapRelationship = {
-      name: selectedOption,
-      dateRange: 'Pending - Pending',
-      autoExtend: true,
-      active: false, // This will show as pending instead of active
-      roles: getRolesForOption(selectedOption),
-    };
+    // Show waiting notification
+    notifications.show({
+      id: 'gdap-request-waiting',
+      title: 'Waiting',
+      message: 'Waiting for GDAP relationship request to be completed...',
+      color: 'yellow',
+      autoClose: 3000,
+    });
 
-    // Add the new relationship to the list
-    setGdapRelationships((prev) => [...prev, newGdapRelationship]);
-    
-    // Keep the GDAP section open and close the modal
-    setGdapSectionOpen(true);
-    setShowConfirmation(false);
-    setSelectedOption('');
+    // Simulate async request
+    setTimeout(() => {
+      // Close waiting notification
+      notifications.hide('gdap-request-waiting');
+      
+      // Create a new pending GDAP relationship
+      const newGdapRelationship = {
+        name: selectedOption,
+        dateRange: 'Pending - Pending',
+        autoExtend: true,
+        active: false, // This will show as pending instead of active
+        roles: getRolesForOption(selectedOption),
+      };
+
+      // Add the new relationship to the list
+      setGdapRelationships((prev) => [...prev, newGdapRelationship]);
+      
+      // Show success notification
+      notifications.show({
+        title: 'Completed!',
+        message: `GDAP relationship request for "${selectedOption}" has been sent successfully. The request is now pending customer approval.`,
+        color: 'green',
+        autoClose: 5000,
+      });
+      
+      // Keep the GDAP section open and close the modal
+      setGdapSectionOpen(true);
+      setShowConfirmation(false);
+      setSelectedOption('');
+    }, 2000);
   };
 
   // Special Qualifications handlers
@@ -741,22 +765,45 @@ export const MicrosoftSection = () => {
   };
 
   const handleQualificationConfirm = () => {
-    // Create a new pending special qualification
-    const newQualification = {
-      name: selectedQualification,
-      domain: selectedDomain,
-      active: false, // This will show as pending instead of active
-      lastModified: new Date().toLocaleDateString('en-GB'),
-    };
+    // Show waiting notification
+    notifications.show({
+      id: 'qualification-request-waiting',
+      title: 'Waiting',
+      message: 'Waiting for special qualification request to be completed...',
+      color: 'yellow',
+      autoClose: 3000,
+    });
 
-    // Add the new qualification to the list
-    setSpecialQualifications((prev) => [...prev, newQualification]);
-    
-    // Keep the Special Qualifications section open and close the modal
-    setSpecialQualificationsSectionOpen(true);
-    setShowQualificationConfirmation(false);
-    setSelectedQualification('');
-    setSelectedDomain('');
+    // Simulate async request
+    setTimeout(() => {
+      // Close waiting notification
+      notifications.hide('qualification-request-waiting');
+      
+      // Create a new pending special qualification
+      const newQualification = {
+        name: selectedQualification,
+        domain: selectedDomain,
+        active: false, // This will show as pending instead of active
+        lastModified: new Date().toLocaleDateString('en-GB'),
+      };
+
+      // Add the new qualification to the list
+      setSpecialQualifications((prev) => [...prev, newQualification]);
+      
+      // Show success notification
+      notifications.show({
+        title: 'Completed!',
+        message: `Special qualification request for "${selectedQualification}" has been submitted successfully. The request is now pending Microsoft approval.`,
+        color: 'green',
+        autoClose: 5000,
+      });
+      
+      // Keep the Special Qualifications section open and close the modal
+      setSpecialQualificationsSectionOpen(true);
+      setShowQualificationConfirmation(false);
+      setSelectedQualification('');
+      setSelectedDomain('');
+    }, 2000);
   };
 
   // Sync handlers
@@ -765,21 +812,44 @@ export const MicrosoftSection = () => {
   };
 
   const handleGdapSyncConfirm = () => {
-    // Create a new dummy GDAP relationship
-    const newGdapRelationship = {
-      name: `Synced_GDAP_${Date.now()}`,
-      dateRange: '06/25/2025 - 12/25/2025',
-      autoExtend: true,
-      active: true,
-      roles: ['User administrator', 'License administrator'],
-    };
+    // Show waiting notification
+    notifications.show({
+      id: 'gdap-sync-waiting',
+      title: 'Waiting',
+      message: 'Now syncing GDAP relationships from Microsoft Partner Centre...',
+      color: 'yellow',
+      autoClose: 3000,
+    });
 
-    // Add the new relationship to the list
-    setGdapRelationships((prev) => [...prev, newGdapRelationship]);
-    
-    // Keep the GDAP section open and close the modal
-    setGdapSectionOpen(true);
-    setShowGdapSyncModal(false);
+    // Simulate async sync
+    setTimeout(() => {
+      // Close waiting notification
+      notifications.hide('gdap-sync-waiting');
+      
+      // Create a new dummy GDAP relationship
+      const newGdapRelationship = {
+        name: `Synced_GDAP_${Date.now()}`,
+        dateRange: '06/25/2025 - 12/25/2025',
+        autoExtend: true,
+        active: true,
+        roles: ['User administrator', 'License administrator'],
+      };
+
+      // Add the new relationship to the list
+      setGdapRelationships((prev) => [...prev, newGdapRelationship]);
+      
+      // Show success notification
+      notifications.show({
+        title: 'Completed!',
+        message: 'GDAP relationships have been successfully synced from Microsoft Partner Centre. New relationships have been added to your list.',
+        color: 'green',
+        autoClose: 5000,
+      });
+      
+      // Keep the GDAP section open and close the modal
+      setGdapSectionOpen(true);
+      setShowGdapSyncModal(false);
+    }, 2000);
   };
 
   const handleSpecialQualificationsSync = () => {
@@ -787,31 +857,54 @@ export const MicrosoftSection = () => {
   };
 
   const handleSpecialQualificationsSyncConfirm = () => {
-    // Find a qualification option that's not already present
-    const existingQualifications = specialQualifications.map(q => q.name);
-    const availableOptions = qualificationOptions.filter(option => 
-      !existingQualifications.some(existing => existing.includes(option.split(' - ')[0]))
-    );
-    
-    // If no new options available, use a default one
-    const newQualificationType = availableOptions.length > 0 
-      ? availableOptions[0] 
-      : 'Education - K12';
+    // Show waiting notification
+    notifications.show({
+      id: 'qualifications-sync-waiting',
+      title: 'Waiting',
+      message: 'Now syncing Special Qualification statuses from Microsoft...',
+      color: 'yellow',
+      autoClose: 3000,
+    });
 
-    // Create a new dummy special qualification
-    const newQualification = {
-      name: newQualificationType,
-      domain: 'synced-domain.edu',
-      active: true,
-      lastModified: new Date().toLocaleDateString('en-GB'),
-    };
+    // Simulate async sync
+    setTimeout(() => {
+      // Close waiting notification
+      notifications.hide('qualifications-sync-waiting');
+      
+      // Find a qualification option that's not already present
+      const existingQualifications = specialQualifications.map(q => q.name);
+      const availableOptions = qualificationOptions.filter(option => 
+        !existingQualifications.some(existing => existing.includes(option.split(' - ')[0]))
+      );
+      
+      // If no new options available, use a default one
+      const newQualificationType = availableOptions.length > 0 
+        ? availableOptions[0] 
+        : 'Education - K12';
 
-    // Add the new qualification to the list
-    setSpecialQualifications((prev) => [...prev, newQualification]);
-    
-    // Keep the Special Qualifications section open and close the modal
-    setSpecialQualificationsSectionOpen(true);
-    setShowSpecialQualificationsSyncModal(false);
+      // Create a new dummy special qualification
+      const newQualification = {
+        name: newQualificationType,
+        domain: 'synced-domain.edu',
+        active: true,
+        lastModified: new Date().toLocaleDateString('en-GB'),
+      };
+
+      // Add the new qualification to the list
+      setSpecialQualifications((prev) => [...prev, newQualification]);
+      
+      // Show success notification
+      notifications.show({
+        title: 'Completed!',
+        message: 'Special Qualification statuses have been successfully synced from Microsoft. Updated qualification information is now available.',
+        color: 'green',
+        autoClose: 5000,
+      });
+      
+      // Keep the Special Qualifications section open and close the modal
+      setSpecialQualificationsSectionOpen(true);
+      setShowSpecialQualificationsSyncModal(false);
+    }, 2000);
   };
 
   // Tenant management handlers
