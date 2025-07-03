@@ -2,4 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL */ 
+/* DO NOT DELETE THESE TAILWIND IMPORTS, OTHERWISE THE STYLING WILL NOT RENDER AT ALL */
+
+/* Mantine CSS imports */
+@import '@mantine/core/styles.css';
+@import '@mantine/notifications/styles.css'; 
