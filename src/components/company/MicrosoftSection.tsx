@@ -1089,6 +1089,7 @@ export const MicrosoftSection = () => {
               open={tenantDomainSectionOpen}
               onToggle={setTenantDomainSectionOpen}
               className="mb-3"
+              helpContent="Tenant Domain Details shows your organization's primary domain and tenant ID information. This includes the domain used for user authentication, email addresses, and Microsoft 365 services. The tenant ID is a unique identifier for your organization in Microsoft's cloud."
             >
               <div className="flex items-center mb-6">
                 <img src={microsoftLogo} alt="Microsoft Logo" className="w-16 h-16 mr-4 rounded" />
@@ -1120,6 +1121,7 @@ export const MicrosoftSection = () => {
               open={adminSectionOpen}
               onToggle={setAdminSectionOpen}
               className="mb-3"
+              helpContent="Administration Information displays the users with administrative privileges in your Microsoft 365 tenant. This includes Global Administrators who have full control, Billing Administrators who manage subscriptions, and the status of your Microsoft Customer Agreement which governs your relationship with Microsoft."
             >
               <div className="mb-4 py-2">
                 <div className="font-semibold text-gray-700 mb-2">Global Admin User(s)</div>
@@ -1173,6 +1175,7 @@ export const MicrosoftSection = () => {
               open={gdapSectionOpen}
               onToggle={setGdapSectionOpen}
               className="mb-3"
+              helpContent="GDAP (Granular Delegated Admin Privileges) Relationships define the specific permissions your organization has to manage your customer's Microsoft 365 environment. These relationships specify which administrative roles you can perform, such as user management, license assignment, and security settings. Each relationship has a defined scope and expiration date."
             >
               {gdapRelationships.map((rel, idx) => (
                 <ExpandableSection
@@ -1240,6 +1243,7 @@ export const MicrosoftSection = () => {
               open={specialQualificationsSectionOpen}
               onToggle={setSpecialQualificationsSectionOpen}
               className="mb-3"
+              helpContent="Special Qualification Status shows your organization's eligibility for specific Microsoft programs and benefits. These qualifications can include government contracts, educational status, nonprofit status, or other specialized programs that provide additional benefits, discounts, or access to specific Microsoft services and features."
             >
               {specialQualifications.map((qual, idx) => (
                 <div key={`${qual.name}-${qual.domain}-${idx}`} className="mb-3 py-2">
@@ -1313,6 +1317,7 @@ export const MicrosoftSection = () => {
               open={deploymentUsageSectionOpen}
               onToggle={setDeploymentUsageSectionOpen}
               className="mb-3"
+              helpContent="Deployment and Usage Data provides comprehensive analytics on how your Microsoft 365 licenses are being utilized. This includes metrics on license entitlements, active user engagement, deployment rates, and overall usage patterns. These insights help optimize your Microsoft 365 investment and identify opportunities for improvement."
             >
               {/* Entitlements Subsection */}
               <ExpandableSection 

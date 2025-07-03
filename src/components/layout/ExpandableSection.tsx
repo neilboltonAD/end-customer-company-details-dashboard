@@ -71,9 +71,20 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         aria-expanded={isOpen}
       >
         <div className="flex-1 font-semibold text-gray-800 flex items-center">
-          {title}
-          {helpContent && (
-            <LearnMoreLink content={helpContent} className="ml-2" />
+          {typeof title === 'string' ? (
+            <>
+              {title}
+              {helpContent && (
+                <LearnMoreLink content={helpContent} className="ml-2" />
+              )}
+            </>
+          ) : (
+            <>
+              {title}
+              {helpContent && (
+                <LearnMoreLink content={helpContent} className="ml-2" />
+              )}
+            </>
           )}
         </div>
         <span className="ml-2">
