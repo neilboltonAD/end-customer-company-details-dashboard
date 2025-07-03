@@ -70,7 +70,7 @@ export const HelpTooltip: React.FC<HelpTooltipProps> = ({
           style={{ pointerEvents: 'none' }}
         >
           <div
-            className={`bg-gray-800 text-white text-sm rounded-lg p-3 shadow-lg max-w-xs transition-all duration-200 ease-in-out ${
+            className={`bg-gray-800 text-white text-sm rounded-lg p-3 shadow-lg max-w-sm min-w-64 transition-all duration-200 ease-in-out ${
               showTooltip 
                 ? 'opacity-100 translate-x-0' 
                 : 'opacity-0 translate-x-2'
