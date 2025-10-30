@@ -1,7 +1,7 @@
 {
-  "name": "appsettings-from-magic-patterns",
+  "name": "end-customer-company-details-dashboard",
   "version": "1.0.0",
-  "description": "App Settings interface built with React and Tailwind CSS",
+  "description": "End Customer - Company Details Dashboard built with React and Tailwind CSS",
   "main": "index.js",
   "scripts": {
     "start": "react-scripts start",
@@ -17,6 +17,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://appdirect.jira.com/browse/PRODUCT-2282"
+  },
   "dependencies": {
     "@mantine/core": "^8.1.2",
     "@mantine/hooks": "^8.1.2",

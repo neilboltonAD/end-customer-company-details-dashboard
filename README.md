@@ -1,6 +1,12 @@
-# AppSettings from Magic Patterns
+# End Customer - Company Details Dashboard
 
-A modern React application showcasing a comprehensive settings interface built with TypeScript and Tailwind CSS. This project serves as a baseline for AppSettings implementations.
+A modern React application for viewing and managing end customer company details, built with TypeScript and Tailwind CSS. This dashboard provides comprehensive insights from Adobe and Microsoft Partner Center.
+
+## 🔗 Project Links
+
+- **Jira Ticket**: [PRODUCT-2282](https://appdirect.jira.com/browse/PRODUCT-2282)
+- **Product Requirements Document (PRD)**: See [PRD.md](./PRD.md) for detailed requirements and specifications
+- **Partner Center Insights Summary**: See [PARTNER_CENTER_INSIGHTS_SUMMARY.md](./PARTNER_CENTER_INSIGHTS_SUMMARY.md) for the latest feature implementation
 
 ## Features
 
@@ -47,7 +53,7 @@ A modern React application showcasing a comprehensive settings interface built w
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd appsettings-from-magic-patterns
+cd end-customer-company-details-dashboard
 ```
 
 2. Install dependencies:

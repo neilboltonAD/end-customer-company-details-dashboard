@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import { ExpandableSection } from '../layout/ExpandableSection';
 import { Toggle } from '../form/Toggle';
+import { PartnerCenterInsights } from './PartnerCenterInsights';
 
 const initialGdapRelationships = [
   {
@@ -680,12 +681,6 @@ export const MicrosoftSection = () => {
   const [showCreateTenantModal, setShowCreateTenantModal] = useState(false);
   const [showLinkTenantModal, setShowLinkTenantModal] = useState(false);
 
-  // Deployment and Usage Data section state
-  const [deploymentUsageSectionOpen, setDeploymentUsageSectionOpen] = useState(true);
-  const [entitlementSectionOpen, setEntitlementSectionOpen] = useState(true);
-  const [activeSectionOpen, setActiveSectionOpen] = useState(true);
-  const [deploymentSectionOpen, setDeploymentSectionOpen] = useState(true);
-  const [usageSectionOpen, setUsageSectionOpen] = useState(true);
 
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
     setGdapRelationships((prev) =>
@@ -958,75 +953,6 @@ export const MicrosoftSection = () => {
     setShowLinkTenantModal(false);
   };
 
-  // Deployment and Usage Data
-  const deploymentData = {
-    entitlements: {
-      total: 150,
-      active: 142,
-      percentage: 94.7,
-      status: 'good' // good, warning, poor
-    },
-    active: {
-      total: 142,
-      active: 98,
-      percentage: 69.0,
-      status: 'warning'
-    },
-    deployment: {
-      assigned: 142,
-      sold: 150,
-      percentage: 94.7,
-      status: 'good'
-    },
-    usage: {
-      activeUsers: 98,
-      totalUsers: 142,
-      percentage: 69.0,
-      status: 'warning'
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good': return 'text-green-700 bg-green-100';
-      case 'warning': return 'text-yellow-700 bg-yellow-100';
-      case 'poor': return 'text-red-700 bg-red-100';
-      default: return 'text-gray-700 bg-gray-100';
-    }
-  };
-
-  const getRecommendations = (metric: string) => {
-    switch (metric) {
-      case 'entitlements':
-        return [
-          'Review license assignments monthly to ensure optimal allocation',
-          'Consider license optimization tools to identify unused licenses',
-          'Implement automated license management processes'
-        ];
-      case 'active':
-        return [
-          'Offer training courses to increase user adoption',
-          'Create case studies and user testimonials for specific scenarios',
-          'Provide tutorial blogs and videos for common tasks',
-          'Consider in-person or online training sessions'
-        ];
-      case 'deployment':
-        return [
-          'Ensure all purchased licenses are properly assigned',
-          'Review assignment policies and automate where possible',
-          'Monitor for license assignment delays or issues'
-        ];
-      case 'usage':
-        return [
-          'Promote self-service options to reduce support calls',
-          'Update support site with self-service resources',
-          'Offer dual strategy: training + self-service promotion',
-          'Create user onboarding programs for new employees'
-        ];
-      default:
-        return [];
-    }
-  };
 
   // Azure Management Permissions component
   const AzureManagementPermissions = () => {
@@ -1404,182 +1330,8 @@ export const MicrosoftSection = () => {
               </div>
             </ExpandableSection>
 
-            {/* Deployment and Usage Data Subsection */}
-            <ExpandableSection 
-              title="Deployment and Usage Data" 
-              open={deploymentUsageSectionOpen}
-              onToggle={setDeploymentUsageSectionOpen}
-              className="mb-3"
-              helpContent="Deployment and Usage Data provides comprehensive analytics on how your Microsoft 365 licenses are being utilized. This includes metrics on license entitlements, active user engagement, deployment rates, and overall usage patterns. These insights help optimize your Microsoft 365 investment and identify opportunities for improvement."
-            >
-              {/* Entitlements Subsection */}
-              <ExpandableSection 
-                title={
-                  <div className="flex items-center justify-between w-full">
-                    <span>Entitlements</span>
-                    <span className={`text-xs font-bold uppercase rounded px-2 py-1 ${getStatusColor(deploymentData.entitlements.status)}`}>
-                      {deploymentData.entitlements.percentage}%
-                    </span>
-                  </div>
-                }
-                open={entitlementSectionOpen}
-                onToggle={setEntitlementSectionOpen}
-                className="mb-3"
-              >
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-700">License Utilization</div>
-                    <div className="text-sm text-gray-500">{deploymentData.entitlements.active} of {deploymentData.entitlements.total} licenses active</div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${deploymentData.entitlements.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-600 mb-3">
-                    <strong>Definition:</strong> A license that the user is entitled to use (not suspended for fraud or non-payment, not upgraded to a different license, not canceled by the user, or other issues).
-                  </div>
-                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                    <div className="text-sm font-medium text-blue-800 mb-2">💡 Recommendations to improve:</div>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                      {getRecommendations('entitlements').map((rec, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mr-2">•</span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </ExpandableSection>
-
-              {/* Active Users Subsection */}
-              <ExpandableSection 
-                title={
-                  <div className="flex items-center justify-between w-full">
-                    <span>Active Users</span>
-                    <span className={`text-xs font-bold uppercase rounded px-2 py-1 ${getStatusColor(deploymentData.active.status)}`}>
-                      {deploymentData.active.percentage}%
-                    </span>
-                  </div>
-                }
-                open={activeSectionOpen}
-                onToggle={setActiveSectionOpen}
-                className="mb-3"
-              >
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-700">User Activity (Last 28 Days)</div>
-                    <div className="text-sm text-gray-500">{deploymentData.active.active} of {deploymentData.active.total} users active</div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${deploymentData.active.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-600 mb-3">
-                    <strong>Definition:</strong> If the subscribed user has used the entitlement for a task in the last 28 calendar days.
-                  </div>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <div className="text-sm font-medium text-yellow-800 mb-2">💡 Recommendations to improve:</div>
-                    <ul className="text-xs text-yellow-700 space-y-1">
-                      {getRecommendations('active').map((rec, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mr-2">•</span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </ExpandableSection>
-
-              {/* Deployment Subsection */}
-              <ExpandableSection 
-                title={
-                  <div className="flex items-center justify-between w-full">
-                    <span>Deployment</span>
-                    <span className={`text-xs font-bold uppercase rounded px-2 py-1 ${getStatusColor(deploymentData.deployment.status)}`}>
-                      {deploymentData.deployment.percentage}%
-                    </span>
-                  </div>
-                }
-                open={deploymentSectionOpen}
-                onToggle={setDeploymentSectionOpen}
-                className="mb-3"
-              >
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-700">License Assignment</div>
-                    <div className="text-sm text-gray-500">{deploymentData.deployment.assigned} of {deploymentData.deployment.sold} licenses assigned</div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div 
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${deploymentData.deployment.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-600 mb-3">
-                    <strong>Definition:</strong> Deployment % = assigned licenses / sold licenses
-                  </div>
-                  <div className="bg-green-50 border border-green-200 rounded p-3">
-                    <div className="text-sm font-medium text-green-800 mb-2">💡 Recommendations to improve:</div>
-                    <ul className="text-xs text-green-700 space-y-1">
-                      {getRecommendations('deployment').map((rec, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mr-2">•</span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </ExpandableSection>
-
-              {/* Usage Subsection */}
-              <ExpandableSection 
-                title={
-                  <div className="flex items-center justify-between w-full">
-                    <span>Usage</span>
-                    <span className={`text-xs font-bold uppercase rounded px-2 py-1 ${getStatusColor(deploymentData.usage.status)}`}>
-                      {deploymentData.usage.percentage}%
-                    </span>
-                  </div>
-                }
-                open={usageSectionOpen}
-                onToggle={setUsageSectionOpen}
-                className="mb-3"
-              >
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-700">User Engagement</div>
-                    <div className="text-sm text-gray-500">{deploymentData.usage.activeUsers} of {deploymentData.usage.totalUsers} users engaged</div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                    <div 
-                      className="bg-orange-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${deploymentData.usage.percentage}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-600 mb-3">
-                    <strong>Definition:</strong> Usage % = active users / total users. Note: Usage % can sometimes exceed 100% due to license transfers, trial subscriptions, or multiple subscriptions for the same SKU.
-                  </div>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <div className="text-sm font-medium text-yellow-800 mb-2">💡 Recommendations to improve:</div>
-                    <ul className="text-xs text-yellow-700 space-y-1">
-                      {getRecommendations('usage').map((rec, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mr-2">•</span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </ExpandableSection>
-            </ExpandableSection>
+            {/* Partner Center Insights - NEW Enhanced Section */}
+            <PartnerCenterInsights />
           </ExpandableSection>
         </>
       ) : (
