@@ -160,6 +160,7 @@ export const MarketplaceHome = () => {
                     </div>
                   }
                   buttonText="Edit Credentials"
+                  onButtonClick={() => navigate('/integrations/td-synnex')}
                 />
                 <VendorItem
                   name="Ingram Micro"
