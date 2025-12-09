@@ -59,7 +59,9 @@ export const Sidebar = ({ activeItem = 'Sync Settings' }: SidebarProps) => {
   // Determine active item based on current path
   const getActiveItem = () => {
     if (location.pathname === '/settings/vendor-integrations') return 'Vendor Integrations'
-    if (location.pathname === '/settings') return 'Sync Settings'
+    if (location.pathname === '/settings/vendor-integrations/microsoft') return 'Vendor Integrations'
+    if (location.pathname === '/settings/sync') return 'Sync Settings'
+    if (location.pathname === '/settings' || location.pathname === '/settings/general') return 'General Settings'
     return activeItem
   }
 
@@ -69,7 +71,16 @@ export const Sidebar = ({ activeItem = 'Sync Settings' }: SidebarProps) => {
     <div className="w-64 border-r border-gray-200 h-full bg-white overflow-y-auto">
       <div className="py-2">
         <SidebarCategory title="SETTINGS">
-          <SidebarItem label="General Settings" isActive={currentActive === 'General Settings'} />
+          <SidebarItem 
+            label="General Settings" 
+            isActive={currentActive === 'General Settings'} 
+            path="/settings/general"
+          />
+          <SidebarItem 
+            label="Sync Settings" 
+            isActive={currentActive === 'Sync Settings'} 
+            path="/settings/sync"
+          />
           <SidebarItem label="Developers" isActive={currentActive === 'Developers'} />
           <SidebarItem label="Marketplace Functionality" isActive={currentActive === 'Marketplace Functionality'} />
           <SidebarItem label="Roles" isActive={currentActive === 'Roles'} />
