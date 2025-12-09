@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Package,
   Layers,
@@ -68,11 +68,13 @@ const VendorItem = ({
   url,
   logo,
   buttonText,
+  onButtonClick,
 }: {
   name: string;
   url: string;
   logo: React.ReactNode;
   buttonText: string;
+  onButtonClick?: () => void;
 }) => (
   <div className="flex items-center justify-between py-3">
     <div className="flex items-center space-x-3">
@@ -87,13 +89,18 @@ const VendorItem = ({
         </a>
       </div>
     </div>
-    <button className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50">
+    <button 
+      className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50 hover:border-gray-400 transition-colors"
+      onClick={onButtonClick}
+    >
       {buttonText}
     </button>
   </div>
 );
 
 export const MarketplaceHome = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gray-100">
       <TopNavbar />
@@ -163,6 +170,7 @@ export const MarketplaceHome = () => {
                     </div>
                   }
                   buttonText="Edit Credentials"
+                  onButtonClick={() => navigate('/integrations/ingram-micro')}
                 />
               </div>
               <a href="#" className="flex items-center text-sm text-blue-600 mt-4 hover:underline">

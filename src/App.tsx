@@ -6,6 +6,7 @@ import { ComponentLibrary } from './pages/ComponentLibrary';
 import CompanyDetails from './pages/CompanyDetails';
 import { MarketplaceHome } from './pages/MarketplaceHome';
 import { ProductCatalog } from './pages/ProductCatalog';
+import { IngramMicroCredentials } from './pages/IngramMicroCredentials';
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
           <Route path="/products" element={<ProductCatalog />} />
           <Route path="/settings" element={<ComponentLibrary />} />
           <Route path="/company-details" element={<CompanyDetails />} />
+          <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           {/* Placeholder routes for other navigation items */}
           <Route path="/operations" element={<MarketplaceHome />} />
           <Route path="/reports" element={<MarketplaceHome />} />
