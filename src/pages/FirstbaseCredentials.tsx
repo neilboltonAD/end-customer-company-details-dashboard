@@ -34,6 +34,7 @@ import {
   Info,
   Key,
   Building2,
+  Hash,
 } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
 
@@ -352,6 +353,37 @@ export const FirstbaseCredentials = () => {
             All API credentials are encrypted at rest and in transit using industry-standard encryption.
           </Text>
         </Alert>
+
+        {/* Markup Configuration */}
+        <Paper withBorder radius="lg" p="xl" mb="lg" shadow="sm">
+          <Group mb="lg">
+            <ThemeIcon size="lg" radius="md" variant="light" color="cyan">
+              <Hash size={18} />
+            </ThemeIcon>
+            <div>
+              <Title order={4}>Markup Configuration</Title>
+              <Text size="sm" c="dimmed">Set the default markup for products imported from Firstbase</Text>
+            </div>
+          </Group>
+
+          <div className="mb-4">
+            <Text size="sm" fw={500} mb={8}>Markup fee for physical products</Text>
+            <Group gap="xs">
+              <TextInput
+                type="number"
+                min={0}
+                max={100}
+                defaultValue="12"
+                style={{ width: 80 }}
+                styles={{ input: { textAlign: 'center' } }}
+              />
+              <Text size="sm" c="dimmed" fw={500}>%</Text>
+            </Group>
+            <Text size="xs" c="dimmed" mt={8}>
+              A markup fee applies to all products selected for publishing from this distributor.
+            </Text>
+          </div>
+        </Paper>
 
         {/* Demo Toggle */}
         <Paper withBorder radius="lg" p="lg" mb="lg" shadow="sm" bg="yellow.0">

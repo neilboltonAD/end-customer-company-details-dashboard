@@ -439,6 +439,37 @@ export const TDSynnexCredentials = () => {
           </Text>
         </Alert>
 
+        {/* Markup Configuration */}
+        <Paper withBorder radius="lg" p="xl" mb="lg" shadow="sm">
+          <Group mb="lg">
+            <ThemeIcon size="lg" radius="md" variant="light" color="teal">
+              <Hash size={18} />
+            </ThemeIcon>
+            <div>
+              <Title order={4}>Markup Configuration</Title>
+              <Text size="sm" c="dimmed">Set the default markup for products imported from TD SYNNEX</Text>
+            </div>
+          </Group>
+
+          <div className="mb-4">
+            <Text size="sm" fw={500} mb={8}>Markup fee for physical products</Text>
+            <Group gap="xs">
+              <TextInput
+                type="number"
+                min={0}
+                max={100}
+                defaultValue="15"
+                style={{ width: 80 }}
+                styles={{ input: { textAlign: 'center' } }}
+              />
+              <Text size="sm" c="dimmed" fw={500}>%</Text>
+            </Group>
+            <Text size="xs" c="dimmed" mt={8}>
+              A markup fee applies to all products selected for publishing from this distributor.
+            </Text>
+          </div>
+        </Paper>
+
         {/* Demo Toggle */}
         <Paper withBorder radius="lg" p="lg" mb="lg" shadow="sm" bg="yellow.0">
           <Group justify="space-between" align="center">
