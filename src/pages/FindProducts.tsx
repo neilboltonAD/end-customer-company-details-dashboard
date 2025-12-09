@@ -33,27 +33,115 @@ const SidebarItem = ({
   label,
   active = false,
   hasArrow = false,
+  expanded = false,
+  indent = 0,
   onClick,
 }: {
   label: string;
   active?: boolean;
   hasArrow?: boolean;
+  expanded?: boolean;
+  indent?: number;
   onClick?: () => void;
 }) => (
   <button
     onClick={onClick}
-    className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center ${
+    className={`w-full text-left py-2 text-sm transition-colors flex items-center justify-between ${
       active
         ? 'bg-teal-700 text-white font-medium'
         : 'text-gray-700 hover:bg-gray-50'
     }`}
+    style={{ paddingLeft: `${16 + indent * 12}px`, paddingRight: '16px' }}
   >
-    {hasArrow && (
-      <span className="mr-1">▶</span>
+    <span className="flex items-center">
+      {hasArrow && (
+        <span className="mr-1 text-xs">{expanded ? '▼' : '▶'}</span>
+      )}
+      {label}
+    </span>
+    {!active && !hasArrow && indent === 0 && (
+      <ChevronRight className="h-4 w-4 text-gray-400" />
     )}
+  </button>
+);
+
+// Category Item Component
+const CategoryItem = ({
+  label,
+  hasChildren = false,
+  expanded = false,
+  onClick,
+}: {
+  label: string;
+  hasChildren?: boolean;
+  expanded?: boolean;
+  onClick?: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left pl-8 pr-4 py-1.5 text-sm text-gray-600 hover:bg-gray-50 flex items-center justify-between"
+  >
+    <span>{label}</span>
+    {hasChildren && (
+      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+    )}
+  </button>
+);
+
+// Subcategory Item Component
+const SubcategoryItem = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick?: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left pl-12 pr-4 py-1.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+  >
     {label}
   </button>
 );
+
+// Product categories data
+const productCategories = [
+  { id: 'accessories', label: 'Accessories / Cables', hasChildren: true },
+  { id: 'appliances', label: 'Appliances', hasChildren: true },
+  { id: 'audio-video', label: 'Audio / Video / Output Devices', hasChildren: true },
+  { id: 'computer-components', label: 'Computer Components', hasChildren: true },
+  { id: 'computers', label: 'Computers / Portables', hasChildren: true },
+  { id: 'digital-cameras', label: 'Digital Cameras / Keyboards / Input Device', hasChildren: true },
+  { id: 'digital-signage', label: 'Digital Signage', hasChildren: true },
+  { id: 'drones', label: 'Drones', hasChildren: true },
+  { id: 'gaming', label: 'Gaming', hasChildren: true },
+  { id: 'home-audio', label: 'Home Audio', hasChildren: true },
+  { id: 'monitor-display', label: 'Monitor / Display / Projector', hasChildren: true },
+  { id: 'network-hardware', label: 'Network Hardware', hasChildren: true },
+  { id: 'office-machines', label: 'Office Machines & Supplies', hasChildren: true },
+  { id: 'photo', label: 'Photo', hasChildren: true },
+  { id: 'portable-electronics', label: 'Portable Electronics', hasChildren: true },
+  { id: 'power-equipment', label: 'Power Equipment', hasChildren: true },
+  { id: 'printers', label: 'Printers', hasChildren: true },
+  { id: 'projectors', label: 'Projectors', hasChildren: true },
+  { id: 'security', label: 'Security', hasChildren: true },
+  { id: 'sony', label: 'Sony', hasChildren: true },
+  { id: 'storage-devices', label: 'Storage Devices', hasChildren: true },
+  { id: 'tv-video', label: 'TV & Video', hasChildren: true },
+  { id: 'ucc-mobility', label: 'UCC/Mobility/Telecom', hasChildren: true, 
+    subcategories: [
+      '2-Way Radios',
+      'Cell Phone Accessory',
+      'Cellular Phones',
+      'Corded Phones',
+      'Cordless Phones',
+      'Hardware Others',
+      'Hardware UCC/Audio',
+      'Hardware UCC/Video',
+      'Phone Accessories',
+    ]
+  },
+];
 
 // Distributor Tab Component
 const DistributorTab = ({
@@ -204,6 +292,8 @@ export const FindProducts = () => {
   const initialTab = searchParams.get('distributor') as Distributor || 'firstbase';
   const [activeTab, setActiveTab] = useState<Distributor>(initialTab);
   const [currentPage, setCurrentPage] = useState(1);
+  const [findProductsExpanded, setFindProductsExpanded] = useState(true);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>('ucc-mobility');
 
   const getProducts = () => {
     switch (activeTab) {
@@ -224,13 +314,50 @@ export const FindProducts = () => {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
+        <aside className="w-64 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200 overflow-y-auto">
           <SidebarSection title="IMPORT PRODUCTS">
             <SidebarItem 
               label="Find Products" 
               active 
               hasArrow
+              expanded={findProductsExpanded}
+              onClick={() => setFindProductsExpanded(!findProductsExpanded)}
             />
+            
+            {/* Expandable Categories */}
+            {findProductsExpanded && (
+              <div className="bg-gray-50 border-y border-gray-100">
+                {productCategories.map((category) => (
+                  <div key={category.id}>
+                    <CategoryItem
+                      label={category.label}
+                      hasChildren={category.hasChildren}
+                      expanded={expandedCategory === category.id}
+                      onClick={() => setExpandedCategory(
+                        expandedCategory === category.id ? null : category.id
+                      )}
+                    />
+                    
+                    {/* Subcategories */}
+                    {expandedCategory === category.id && category.subcategories && (
+                      <div className="bg-white border-t border-gray-100">
+                        <div className="pl-8 pr-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                          Categories
+                        </div>
+                        {category.subcategories.map((sub) => (
+                          <SubcategoryItem
+                            key={sub}
+                            label={sub}
+                            onClick={() => {/* Filter by subcategory */}}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <SidebarItem label="Product Imports" />
             <SidebarItem label="Settings" />
           </SidebarSection>
