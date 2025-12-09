@@ -47,6 +47,32 @@ const AddDistiProductButton = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [configuredIds, setConfiguredIds] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper to show tooltip
+  const handleShowTooltip = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    setShowTooltip(true);
+  };
+
+  // Helper to hide tooltip with delay
+  const handleHideTooltip = () => {
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setShowTooltip(false);
+    }, 150); // Small delay to allow moving to tooltip
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Check configured distributors on mount and when dropdown is shown
   useEffect(() => {
@@ -97,8 +123,8 @@ const AddDistiProductButton = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleClick}
-        onMouseEnter={() => configuredDistis.length === 0 && setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={() => configuredDistis.length === 0 && handleShowTooltip()}
+        onMouseLeave={handleHideTooltip}
         className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center"
       >
         Add Disti Product
@@ -106,27 +132,47 @@ const AddDistiProductButton = () => {
       </button>
 
       {/* Tooltip for no configured distributors */}
-      {showTooltip && configuredDistis.length === 0 && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-gray-900 text-white text-sm rounded-lg shadow-lg p-3 z-50">
+      {configuredDistis.length === 0 && (
+        <div 
+          onMouseEnter={handleShowTooltip}
+          onMouseLeave={handleHideTooltip}
+          className={`absolute right-0 top-full mt-2 w-72 bg-gray-900 text-white text-sm rounded-lg shadow-lg p-3 z-50 
+            transition-all duration-200 ease-out transform
+            ${showTooltip 
+              ? 'opacity-100 translate-y-0 visible' 
+              : 'opacity-0 -translate-y-1 invisible pointer-events-none'
+            }`}
+        >
           <div className="flex items-start space-x-2">
             <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">No Distributor Configured</p>
               <p className="text-gray-300 mt-1">
                 You need a Disti connection.{' '}
-                <span className="text-teal-400 cursor-pointer hover:underline">
+                <button
+                  onClick={() => navigate('/settings/vendor-integrations')}
+                  className="text-teal-400 cursor-pointer hover:underline hover:text-teal-300 transition-colors"
+                >
                   Click here to configure one
-                </span>
+                </button>
               </p>
             </div>
           </div>
-          <div className="absolute -top-2 right-4 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent border-b-gray-900"></div>
+          <div className={`absolute -top-2 right-4 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent border-b-gray-900
+            transition-opacity duration-200 ${showTooltip ? 'opacity-100' : 'opacity-0'}`}></div>
         </div>
       )}
 
       {/* Dropdown for multiple configured distributors */}
-      {showDropdown && configuredDistis.length > 1 && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+      {configuredDistis.length > 1 && (
+        <div 
+          className={`absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50
+            transition-all duration-150 ease-out transform origin-top
+            ${showDropdown 
+              ? 'opacity-100 scale-100 visible' 
+              : 'opacity-0 scale-95 invisible pointer-events-none'
+            }`}
+        >
           <div className="py-1">
             {configuredDistis.map((disti) => (
               <button
