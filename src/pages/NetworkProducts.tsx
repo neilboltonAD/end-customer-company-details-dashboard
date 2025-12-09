@@ -285,7 +285,7 @@ export const NetworkProducts = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   // Get unique developers for filter
-  const developers = [...new Set(networkProducts.map(p => p.developer))].sort();
+  const developers = Array.from(new Set(networkProducts.map(p => p.developer))).sort();
 
   // Filter products
   const filteredProducts = products.filter(product => {
