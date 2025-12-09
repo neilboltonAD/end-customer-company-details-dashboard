@@ -359,7 +359,10 @@ export const FindProducts = () => {
             )}
             
             <SidebarItem label="Product Imports" />
-            <SidebarItem label="Settings" />
+            <SidebarItem 
+              label="Settings" 
+              onClick={() => navigate('/products/import-settings')}
+            />
           </SidebarSection>
         </aside>
 
