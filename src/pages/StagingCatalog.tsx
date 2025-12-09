@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -8,8 +8,116 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
+
+// Simulated configured distributors (in real app, this would come from API/state)
+// Change this array to test different scenarios:
+// [] = none configured, ['tdsynnex'] = one configured, ['tdsynnex', 'ingrammicro', 'firstbase'] = all configured
+const CONFIGURED_DISTRIBUTORS = ['tdsynnex', 'ingrammicro', 'firstbase'];
+
+type Distributor = {
+  id: string;
+  name: string;
+  color: string;
+};
+
+const DISTRIBUTORS: Distributor[] = [
+  { id: 'firstbase', name: 'Firstbase', color: 'bg-cyan-500' },
+  { id: 'tdsynnex', name: 'TD SYNNEX', color: 'bg-teal-600' },
+  { id: 'ingrammicro', name: 'Ingram Micro', color: 'bg-gray-500' },
+];
+
+// Add Disti Product Button Component
+const AddDistiProductButton = () => {
+  const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const configuredDistis = DISTRIBUTORS.filter(d => CONFIGURED_DISTRIBUTORS.includes(d.id));
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleClick = () => {
+    if (configuredDistis.length === 0) {
+      setShowTooltip(true);
+      setTimeout(() => {
+        navigate('/settings/vendor-integrations');
+      }, 2000);
+    } else if (configuredDistis.length === 1) {
+      navigate(`/products/find?distributor=${configuredDistis[0].id}`);
+    } else {
+      setShowDropdown(!showDropdown);
+    }
+  };
+
+  const handleSelectDisti = (distiId: string) => {
+    setShowDropdown(false);
+    navigate(`/products/find?distributor=${distiId}`);
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={handleClick}
+        onMouseEnter={() => configuredDistis.length === 0 && setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className="px-4 py-2 text-sm bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center"
+      >
+        Add Disti Product
+        {configuredDistis.length > 1 && <ChevronDown className="h-4 w-4 ml-1" />}
+      </button>
+
+      {/* Tooltip for no configured distributors */}
+      {showTooltip && configuredDistis.length === 0 && (
+        <div className="absolute right-0 top-full mt-2 w-72 bg-gray-900 text-white text-sm rounded-lg shadow-lg p-3 z-50">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">No Distributor Configured</p>
+              <p className="text-gray-300 mt-1">
+                You need a Disti connection.{' '}
+                <span className="text-teal-400 cursor-pointer hover:underline">
+                  Click here to configure one
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="absolute -top-2 right-4 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent border-b-gray-900"></div>
+        </div>
+      )}
+
+      {/* Dropdown for multiple configured distributors */}
+      {showDropdown && configuredDistis.length > 1 && (
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="py-1">
+            {configuredDistis.map((disti) => (
+              <button
+                key={disti.id}
+                onClick={() => handleSelectDisti(disti.id)}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+              >
+                <span className={`h-2 w-2 rounded-full ${disti.color}`}></span>
+                <span>{disti.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Sidebar Section Component
 const SidebarSection = ({
@@ -328,6 +436,7 @@ export const StagingCatalog = () => {
               <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
                 Add Network Product
               </button>
+              <AddDistiProductButton />
             </div>
           </div>
 
