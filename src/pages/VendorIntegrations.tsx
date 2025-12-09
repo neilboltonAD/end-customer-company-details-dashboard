@@ -28,6 +28,7 @@ const vendors = [
         <path fill="#FFB900" d="M13 13h10v10H13z"/>
       </svg>
     ),
+    path: '/settings/vendor-integrations/microsoft',
   },
   {
     id: 'adobe',

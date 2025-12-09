@@ -9,6 +9,7 @@ import { ProductCatalog } from './pages/ProductCatalog';
 import { IngramMicroCredentials } from './pages/IngramMicroCredentials';
 import { TDSynnexCredentials } from './pages/TDSynnexCredentials';
 import { VendorIntegrations } from './pages/VendorIntegrations';
+import { MicrosoftOnboarding } from './pages/MicrosoftOnboarding';
 
 export function App() {
   return (
@@ -23,6 +24,7 @@ export function App() {
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/settings/vendor-integrations" element={<VendorIntegrations />} />
+          <Route path="/settings/vendor-integrations/microsoft" element={<MicrosoftOnboarding />} />
           {/* Placeholder routes for other navigation items */}
           <Route path="/operations" element={<MarketplaceHome />} />
           <Route path="/reports" element={<MarketplaceHome />} />
