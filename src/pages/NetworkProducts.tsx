@@ -18,8 +18,48 @@ import {
   Checkbox,
   Stack,
 } from '@mantine/core';
-import { Search, Filter, ChevronDown, ChevronUp, Star, ArrowLeft } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
+
+// Sidebar Section Component
+const SidebarSection = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <div className="mb-1">
+    <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
+      <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+        {title}
+      </h3>
+    </div>
+    <div className="py-1">{children}</div>
+  </div>
+);
+
+// Sidebar Item Component
+const SidebarItem = ({
+  label,
+  active = false,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+      active
+        ? 'bg-teal-700 text-white font-medium'
+        : 'text-gray-700 hover:bg-gray-50'
+    }`}
+  >
+    {label}
+  </button>
+);
 
 // Product status type
 type ProductStatus = 'available' | 'added' | 'request';
@@ -306,40 +346,69 @@ export const NetworkProducts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <TopNavbar />
-      
-      <main className="p-6 max-w-7xl mx-auto">
-        {/* Back button */}
-        <Button
-          variant="subtle"
-          color="gray"
-          leftSection={<ArrowLeft size={16} />}
-          onClick={() => navigate('/products')}
-          mb="md"
-          px={0}
-        >
-          Back to Staging Catalog
-        </Button>
 
-        {/* Breadcrumb */}
-        <div className="flex items-center text-sm text-gray-500 mb-2">
-          <Anchor 
-            component="button"
-            onClick={() => navigate('/products')}
-            c="teal"
-            size="sm"
-          >
-            Catalog
-          </Anchor>
-          <span className="mx-2">›</span>
-          <span>Appdirect Network Products</span>
-        </div>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
+          <SidebarSection title="CATALOG">
+            <SidebarItem 
+              label="Production Catalog" 
+              onClick={() => navigate('/products')}
+            />
+            <SidebarItem 
+              label="Staging Catalog" 
+              onClick={() => navigate('/products')}
+            />
+            <SidebarItem label="Product Uploader" />
+          </SidebarSection>
 
-        {/* Title */}
-        <Title order={2} fw={400} mb="lg" className="text-gray-800">
-          Add from the Network Catalog
-        </Title>
+          <SidebarSection title="IMPORT PRODUCTS">
+            <SidebarItem label="Find & Import Distributor Products" active />
+          </SidebarSection>
+
+          <SidebarSection title="PRICE MANAGEMENT">
+            <SidebarItem label="Price Books" />
+            <SidebarItem label="Discounts" />
+          </SidebarSection>
+
+          <SidebarSection title="PROMOTIONS">
+            <SidebarItem label="Promotional Products" />
+            <SidebarItem label="Merchandising Options" />
+          </SidebarSection>
+
+          <SidebarSection title="GROUPS">
+            <SidebarItem label="Product Groups" />
+            <SidebarItem label="Segments" />
+          </SidebarSection>
+
+          <SidebarSection title="PRODUCT CONTENT">
+            <SidebarItem label="Media Sources" />
+            <SidebarItem label="Featured Customers" />
+          </SidebarSection>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {/* Breadcrumb */}
+          <div className="flex items-center text-sm text-gray-500 mb-2">
+            <Anchor 
+              component="button"
+              onClick={() => navigate('/products')}
+              c="teal"
+              size="sm"
+            >
+              Catalog
+            </Anchor>
+            <span className="mx-2">›</span>
+            <span>Appdirect Network Products</span>
+          </div>
+
+          {/* Title */}
+          <Title order={2} fw={400} mb="lg" className="text-gray-800">
+            Add from the Network Catalog
+          </Title>
 
           {/* Filters and Search Row */}
           <Group justify="space-between" mb="md">
@@ -464,11 +533,12 @@ export const NetworkProducts = () => {
             </Table>
           </Paper>
 
-        {/* Results count */}
-        <Text size="sm" c="dimmed" mt="md">
-          Showing {filteredProducts.length} of {products.length} products
-        </Text>
-      </main>
+          {/* Results count */}
+          <Text size="sm" c="dimmed" mt="md">
+            Showing {filteredProducts.length} of {products.length} products
+          </Text>
+        </main>
+      </div>
     </div>
   );
 };
