@@ -162,9 +162,9 @@ export const TDSynnexCredentials = () => {
     });
   };
 
-  // Handle cancel
+  // Handle cancel - go back to previous page
   const handleCancel = () => {
-    navigate('/home');
+    navigate(-1);
   };
 
   // Get status badge
@@ -220,11 +220,11 @@ export const TDSynnexCredentials = () => {
           variant="subtle"
           color="gray"
           leftSection={<ArrowLeft size={16} />}
-          onClick={() => navigate('/home')}
+          onClick={() => navigate(-1)}
           mb="lg"
           px={0}
         >
-          Back to Home
+          Back
         </Button>
 
         {/* Header */}
