@@ -65,6 +65,72 @@ const StatusBadge = ({ published }: { published: boolean }) => (
   </div>
 );
 
+// Product placeholder images (inline SVG icons)
+const ProductImages = {
+  rack: (
+    <div className="h-10 w-10 bg-gray-700 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm0 6h14M5 15h14" />
+      </svg>
+    </div>
+  ),
+  cable: (
+    <div className="h-10 w-10 bg-pink-100 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+  ),
+  power: (
+    <div className="h-10 w-10 bg-yellow-100 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+  ),
+  monitor: (
+    <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    </div>
+  ),
+  inverter: (
+    <div className="h-10 w-10 bg-green-100 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    </div>
+  ),
+  phone: (
+    <div className="h-10 w-10 bg-purple-100 rounded flex items-center justify-center">
+      <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+      </svg>
+    </div>
+  ),
+  adobe: (
+    <div className="h-10 w-10 bg-red-600 rounded flex items-center justify-center">
+      <span className="text-white text-xs font-bold">Pr</span>
+    </div>
+  ),
+  dimension: (
+    <div className="h-10 w-10 bg-teal-600 rounded flex items-center justify-center">
+      <span className="text-white text-xs font-bold">Dn</span>
+    </div>
+  ),
+  adobeDimension: (
+    <div className="h-10 w-10 bg-purple-600 rounded flex items-center justify-center">
+      <span className="text-white text-xs font-bold">Dn</span>
+    </div>
+  ),
+  indesign: (
+    <div className="h-10 w-10 bg-pink-600 rounded flex items-center justify-center">
+      <span className="text-white text-xs font-bold">Id</span>
+    </div>
+  ),
+};
+
 // Product Row Component
 const ProductRow = ({
   name,
@@ -73,7 +139,7 @@ const ProductRow = ({
   isStaging,
   published,
   profile,
-  image,
+  imageComponent,
 }: {
   name: string;
   vendor: string;
@@ -81,7 +147,7 @@ const ProductRow = ({
   isStaging?: boolean;
   published: boolean;
   profile: string;
-  image?: string;
+  imageComponent?: React.ReactNode;
 }) => (
   <tr className="border-b border-gray-100 hover:bg-gray-50">
     <td className="py-3 px-4">
@@ -89,9 +155,7 @@ const ProductRow = ({
         <button className="text-gray-300 hover:text-yellow-400">
           <Star className="h-5 w-5" />
         </button>
-        {image ? (
-          <img src={image} alt={name} className="h-10 w-10 object-contain" />
-        ) : (
+        {imageComponent || (
           <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
             <Star className="h-5 w-5 text-gray-300" />
           </div>
@@ -128,6 +192,7 @@ const products = [
     productId: '646355',
     published: true,
     profile: '22%',
+    imageComponent: ProductImages.rack,
   },
   {
     name: '7FT PINK SLIM CAT6 ETHERNET CABLE, SNAGLESS, 100W POE, UTP, LSZH, 28AWG BARE COP',
@@ -135,6 +200,7 @@ const products = [
     productId: '646262',
     published: true,
     profile: '22%',
+    imageComponent: ProductImages.cable,
   },
   {
     name: '1.5M C14/C15 PWR CBL 250V',
@@ -142,6 +208,7 @@ const products = [
     productId: '646260',
     published: true,
     profile: '18%',
+    imageComponent: ProductImages.power,
   },
   {
     name: 'Dimension for teams - Multiple Platforms - Multi NorthAmerican Language',
@@ -149,6 +216,7 @@ const products = [
     productId: '646250',
     published: true,
     profile: '18%',
+    imageComponent: ProductImages.dimension,
   },
   {
     name: 'Adobe Dimension for enterprise - Multiple Platforms - Multi NorthAmerican Language',
@@ -157,6 +225,7 @@ const products = [
     isStaging: true,
     published: false,
     profile: '18%',
+    imageComponent: ProductImages.adobeDimension,
   },
   {
     name: 'Single Monitor Desk Mount',
@@ -164,6 +233,7 @@ const products = [
     productId: '646247',
     published: true,
     profile: '22%',
+    imageComponent: ProductImages.monitor,
   },
   {
     name: 'IT SERIES PURE SINE WAVE POWER INVERTER WITH 12VDC INPUT & 3000W AC OUTPUT',
@@ -171,6 +241,7 @@ const products = [
     productId: '646195',
     published: true,
     profile: '18%',
+    imageComponent: ProductImages.inverter,
   },
   {
     name: 'FANVIL X7C ENTERPRISE VOIP PHONE, 5-INCH COLOR TOUCH SCREEN, 20 SIP LINES, DUAL-',
@@ -178,6 +249,7 @@ const products = [
     productId: '646193',
     published: true,
     profile: '18%',
+    imageComponent: ProductImages.phone,
   },
   {
     name: 'Premiere Pro for teams - Multiple Platforms - Multi NorthAmerican Language',
@@ -185,6 +257,7 @@ const products = [
     productId: '646191',
     published: true,
     profile: '18%',
+    imageComponent: ProductImages.adobe,
   },
   {
     name: 'InDesign Server for enterprise - Multiple Platforms (PREMIUM ONLINE) - Multi NorthAmerican Language',
@@ -193,6 +266,7 @@ const products = [
     isStaging: true,
     published: false,
     profile: '18%',
+    imageComponent: ProductImages.indesign,
   },
 ];
 
@@ -300,6 +374,7 @@ export const StagingCatalog = () => {
                     isStaging={product.isStaging}
                     published={product.published}
                     profile={product.profile}
+                    imageComponent={product.imageComponent}
                   />
                 ))}
               </tbody>
