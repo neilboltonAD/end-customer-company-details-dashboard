@@ -1,78 +1,126 @@
 import React from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+
 type SidebarCategoryProps = {
   title: string
   children: React.ReactNode
 }
+
 export const SidebarCategory = ({ title, children }: SidebarCategoryProps) => {
   return (
-    <div className="mb-4">
-      <h3 className="text-xs font-semibold text-gray-500 px-4 py-2">{title}</h3>
-      <div className="space-y-1">{children}</div>
+    <div className="mb-2">
+      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2">
+        {title}
+      </h3>
+      <div className="space-y-0.5">{children}</div>
     </div>
   )
 }
+
 type SidebarItemProps = {
   label: string
   isActive?: boolean
+  onClick?: () => void
+  path?: string
 }
-export const SidebarItem = ({ label, isActive = false }: SidebarItemProps) => {
+
+export const SidebarItem = ({ label, isActive = false, onClick, path }: SidebarItemProps) => {
+  const navigate = useNavigate()
+  
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    } else if (path) {
+      navigate(path)
+    }
+  }
+
   return (
-    <div
-      className={`px-4 py-2 text-sm ${isActive ? 'bg-gray-100 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+    <button
+      onClick={handleClick}
+      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+        isActive 
+          ? 'bg-blue-600 text-white font-medium' 
+          : 'text-gray-700 hover:bg-gray-100'
+      }`}
     >
       {label}
+    </button>
+  )
+}
+
+type SidebarProps = {
+  activeItem?: string
+}
+
+export const Sidebar = ({ activeItem = 'Sync Settings' }: SidebarProps) => {
+  const location = useLocation()
+  
+  // Determine active item based on current path
+  const getActiveItem = () => {
+    if (location.pathname === '/settings/vendor-integrations') return 'Vendor Integrations'
+    if (location.pathname === '/settings') return 'Sync Settings'
+    return activeItem
+  }
+
+  const currentActive = getActiveItem()
+
+  return (
+    <div className="w-64 border-r border-gray-200 h-full bg-white overflow-y-auto">
+      <div className="py-2">
+        <SidebarCategory title="SETTINGS">
+          <SidebarItem label="General Settings" isActive={currentActive === 'General Settings'} />
+          <SidebarItem label="Developers" isActive={currentActive === 'Developers'} />
+          <SidebarItem label="Marketplace Functionality" isActive={currentActive === 'Marketplace Functionality'} />
+          <SidebarItem label="Roles" isActive={currentActive === 'Roles'} />
+          <SidebarItem label="Assisted Sales" isActive={currentActive === 'Assisted Sales'} />
+          <SidebarItem label="Security" isActive={currentActive === 'Security'} />
+          <SidebarItem label="Product Search" isActive={currentActive === 'Product Search'} />
+          <SidebarItem label="Shipping" isActive={currentActive === 'Shipping'} />
+          <SidebarItem label="Usage Analytics Accounts" isActive={currentActive === 'Usage Analytics Accounts'} />
+          <SidebarItem label="Data Removal" isActive={currentActive === 'Data Removal'} />
+        </SidebarCategory>
+
+        <SidebarCategory title="BILLING SETTINGS">
+          <SidebarItem label="Billing Functionality" isActive={currentActive === 'Billing Functionality'} />
+          <SidebarItem label="Payment Methods" isActive={currentActive === 'Payment Methods'} />
+          <SidebarItem label="Invoice Settings" isActive={currentActive === 'Invoice Settings'} />
+          <SidebarItem label="Revenue Shares Settings" isActive={currentActive === 'Revenue Shares Settings'} />
+        </SidebarCategory>
+
+        <SidebarCategory title="CUSTOM UI">
+          <SidebarItem label="Extensions" isActive={currentActive === 'Extensions'} />
+          <SidebarItem label="FAQs" isActive={currentActive === 'FAQs'} />
+          <SidebarItem label="Notifications" isActive={currentActive === 'Notifications'} />
+          <SidebarItem label="Custom Attributes" isActive={currentActive === 'Custom Attributes'} />
+          <SidebarItem label="Customize Translations" isActive={currentActive === 'Customize Translations'} />
+          <SidebarItem label="Navigation Manager" isActive={currentActive === 'Navigation Manager'} />
+        </SidebarCategory>
+
+        <SidebarCategory title="INTEGRATION">
+          <SidebarItem label="GraphQL Explorer" isActive={currentActive === 'GraphQL Explorer'} />
+          <SidebarItem label="API Clients" isActive={currentActive === 'API Clients'} />
+          <SidebarItem label="Migration" isActive={currentActive === 'Migration'} />
+          <SidebarItem label="Webhooks" isActive={currentActive === 'Webhooks'} />
+          <SidebarItem label="Functions" isActive={currentActive === 'Functions'} />
+          <SidebarItem label="Google Transfer Tool" isActive={currentActive === 'Google Transfer Tool'} />
+          <SidebarItem 
+            label="Vendor Integrations" 
+            isActive={currentActive === 'Vendor Integrations'} 
+            path="/settings/vendor-integrations"
+          />
+        </SidebarCategory>
+
+        <SidebarCategory title="REPORTS">
+          <SidebarItem label="Destinations" isActive={currentActive === 'Destinations'} />
+          <SidebarItem label="Advanced Settings" isActive={currentActive === 'Advanced Settings'} />
+        </SidebarCategory>
+
+        <SidebarCategory title="DOCUMENT BUILDER">
+          <SidebarItem label="Manage Templates" isActive={currentActive === 'Manage Templates'} />
+          <SidebarItem label="Template Settings" isActive={currentActive === 'Template Settings'} />
+        </SidebarCategory>
+      </div>
     </div>
   )
 }
-export const Sidebar = () => {
-  return (
-    <div className="w-64 border-r border-gray-200 h-full bg-white">
-      <SidebarCategory title="SETTINGS">
-        <SidebarItem label="General Settings" />
-        <SidebarItem label="Developers" />
-        <SidebarItem label="Marketplace Functionality" />
-        <SidebarItem label="Roles" />
-        <SidebarItem label="Assisted Sales" />
-        <SidebarItem label="Security" />
-        <SidebarItem label="Product Search" />
-        <SidebarItem label="Shipping" />
-        <SidebarItem label="Usage Analytics Accounts" />
-        <SidebarItem label="Data Removal" />
-      </SidebarCategory>
-      <SidebarCategory title="BILLING SETTINGS">
-        <SidebarItem label="Billing Functionality" />
-        <SidebarItem label="Payment Methods" />
-        <SidebarItem label="Invoice Settings" />
-        <SidebarItem label="Revenue Shares Settings" />
-      </SidebarCategory>
-      <SidebarCategory title="CUSTOM UI">
-        <SidebarItem label="Extensions" />
-        <SidebarItem label="FAQs" />
-        <SidebarItem label="Notifications" />
-        <SidebarItem label="Custom Attributes" />
-        <SidebarItem label="Customize Translations" />
-        <SidebarItem label="Navigation Manager" />
-      </SidebarCategory>
-      <SidebarCategory title="INTEGRATION">
-        <SidebarItem label="GraphQL Explorer" />
-        <SidebarItem label="API Clients" />
-        <SidebarItem label="Migration" />
-        <SidebarItem label="Webhooks" />
-        <SidebarItem label="Functions" />
-        <SidebarItem label="Google Transfer Tool" />
-        <SidebarItem label="Vendor Integrations" />
-      </SidebarCategory>
-      <SidebarCategory title="DATA SYNC">
-        <SidebarItem label="Sync Settings" isActive={true} />
-      </SidebarCategory>
-      <SidebarCategory title="REPORTS">
-        <SidebarItem label="Destinations" />
-        <SidebarItem label="Advanced Settings" />
-      </SidebarCategory>
-      <SidebarCategory title="DOCUMENT BUILDER">
-        <SidebarItem label="Manage Templates" />
-        <SidebarItem label="Template Settings" />
-      </SidebarCategory>
-    </div>
-  )
-} 
