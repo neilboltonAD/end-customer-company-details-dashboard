@@ -88,7 +88,46 @@ const vendors = [
       </div>
     ),
   },
+  {
+    id: 'td-synnex',
+    name: 'TD SYNNEX',
+    logo: (
+      <div className="h-10 w-10 bg-teal-600 rounded flex items-center justify-center">
+        <span className="text-white text-xs font-bold">TD</span>
+      </div>
+    ),
+    path: '/integrations/td-synnex',
+  },
+  {
+    id: 'ingram-micro',
+    name: 'Ingram Micro',
+    logo: (
+      <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center border border-gray-300">
+        <span className="text-gray-600 text-[8px] font-bold">INGRAM</span>
+      </div>
+    ),
+    path: '/integrations/ingram-micro',
+  },
+  {
+    id: 'firstbase',
+    name: 'Firstbase',
+    logo: (
+      <div className="h-10 w-10 bg-cyan-100 rounded flex items-center justify-center">
+        <svg viewBox="0 0 24 24" className="h-6 w-6 text-cyan-600" fill="currentColor">
+          <path d="M13 3L4 14h7v7l9-11h-7V3z" />
+        </svg>
+      </div>
+    ),
+  },
 ];
+
+// Vendor type
+type Vendor = {
+  id: string;
+  name: string;
+  logo: React.ReactNode;
+  path?: string;
+};
 
 // Vendor Row Component
 const VendorRow = ({
@@ -119,11 +158,13 @@ const VendorRow = ({
 export const VendorIntegrations = () => {
   const navigate = useNavigate();
 
-  const handleConfigure = (vendorId: string) => {
-    // Navigate to vendor-specific configuration page
-    // For now, show an alert. In future, route to specific vendor config pages
-    console.log(`Configure ${vendorId}`);
-    // Could route to: navigate(`/settings/vendor-integrations/${vendorId}`)
+  const handleConfigure = (vendor: Vendor) => {
+    if (vendor.path) {
+      navigate(vendor.path);
+    } else {
+      // For vendors without a dedicated page yet, log to console
+      console.log(`Configure ${vendor.id}`);
+    }
   };
 
   const handleContactUs = () => {
@@ -154,12 +195,12 @@ export const VendorIntegrations = () => {
 
         {/* Vendor List */}
         <div className="space-y-3">
-          {vendors.map((vendor) => (
+          {(vendors as Vendor[]).map((vendor) => (
             <VendorRow
               key={vendor.id}
               name={vendor.name}
               logo={vendor.logo}
-              onConfigure={() => handleConfigure(vendor.id)}
+              onConfigure={() => handleConfigure(vendor)}
             />
           ))}
         </div>
