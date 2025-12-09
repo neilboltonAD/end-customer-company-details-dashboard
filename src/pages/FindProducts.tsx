@@ -6,8 +6,54 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  ChevronDown,
 } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
+
+// Sidebar Section Component
+const SidebarSection = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <div className="mb-1">
+    <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
+      <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+        {title}
+      </h3>
+    </div>
+    <div className="py-1">{children}</div>
+  </div>
+);
+
+// Sidebar Item Component
+const SidebarItem = ({
+  label,
+  active = false,
+  hasArrow = false,
+  onClick,
+}: {
+  label: string;
+  active?: boolean;
+  hasArrow?: boolean;
+  onClick?: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center ${
+      active
+        ? 'bg-teal-700 text-white font-medium'
+        : 'text-gray-700 hover:bg-gray-50'
+    }`}
+  >
+    {hasArrow && (
+      <span className="mr-1">▶</span>
+    )}
+    {label}
+  </button>
+);
 
 // Distributor Tab Component
 const DistributorTab = ({
@@ -176,40 +222,55 @@ export const FindProducts = () => {
     <div className="min-h-screen bg-gray-100">
       <TopNavbar />
 
-      <div className="p-6">
-        {/* Back Link */}
-        <button
-          onClick={() => navigate('/products/staging')}
-          className="flex items-center text-sm text-teal-700 hover:text-teal-800 mb-4"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Product Imports</span>
-        </button>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
+          <SidebarSection title="IMPORT PRODUCTS">
+            <SidebarItem 
+              label="Find Products" 
+              active 
+              hasArrow
+            />
+            <SidebarItem label="Product Imports" />
+            <SidebarItem label="Settings" />
+          </SidebarSection>
+        </aside>
 
-        {/* Header */}
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Find Products</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          Connect with distributor accounts, import and configure more product catalogs.
-        </p>
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {/* Back Link */}
+          <button
+            onClick={() => navigate('/products')}
+            className="flex items-center text-sm text-teal-700 hover:text-teal-800 mb-4"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Product Imports</span>
+          </button>
 
-        {/* Distributor Tabs */}
-        <div className="flex space-x-4 border-b border-gray-200 mb-6">
-          <DistributorTab
-            name="Firstbase"
-            active={activeTab === 'firstbase'}
-            onClick={() => setActiveTab('firstbase')}
-          />
-          <DistributorTab
-            name="TD SYNNEX"
-            active={activeTab === 'tdsynnex'}
-            onClick={() => setActiveTab('tdsynnex')}
-          />
-          <DistributorTab
-            name="Ingram Micro"
-            active={activeTab === 'ingrammicro'}
-            onClick={() => setActiveTab('ingrammicro')}
-          />
-        </div>
+          {/* Header */}
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Find Products</h1>
+          <p className="text-sm text-gray-600 mb-6">
+            Connect with distributor accounts, import and configure more product catalogs.
+          </p>
+
+          {/* Distributor Tabs */}
+          <div className="flex space-x-4 border-b border-gray-200 mb-6">
+            <DistributorTab
+              name="Firstbase"
+              active={activeTab === 'firstbase'}
+              onClick={() => setActiveTab('firstbase')}
+            />
+            <DistributorTab
+              name="TD SYNNEX"
+              active={activeTab === 'tdsynnex'}
+              onClick={() => setActiveTab('tdsynnex')}
+            />
+            <DistributorTab
+              name="Ingram Micro"
+              active={activeTab === 'ingrammicro'}
+              onClick={() => setActiveTab('ingrammicro')}
+            />
+          </div>
 
         {/* Info Banner (for TD SYNNEX and Ingram Micro) */}
         {(activeTab === 'tdsynnex' || activeTab === 'ingrammicro') && (
@@ -321,8 +382,9 @@ export const FindProducts = () => {
                 <ChevronRight className="h-5 w-5 text-gray-600" />
               </button>
             </div>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* Help Button */}
