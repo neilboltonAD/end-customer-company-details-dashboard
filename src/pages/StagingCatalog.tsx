@@ -17,7 +17,7 @@ const getConfiguredDistributors = (): string[] => {
   const config = localStorage.getItem('configuredDistributors');
   if (!config) {
     // Default: all enabled
-    return ['firstbase', 'tdsynnex', 'ingrammicro'];
+    return ['firstbase', 'tdsynnex', 'ingrammicro', 'microsoftmarketplace'];
   }
   const parsed = JSON.parse(config);
   const configured: string[] = [];
@@ -25,6 +25,7 @@ const getConfiguredDistributors = (): string[] => {
   if (parsed.firstbase !== false) configured.push('firstbase');
   if (parsed.tdsynnex !== false) configured.push('tdsynnex');
   if (parsed.ingrammicro !== false) configured.push('ingrammicro');
+  if (parsed.microsoftmarketplace !== false) configured.push('microsoftmarketplace');
   return configured;
 };
 
@@ -38,6 +39,7 @@ const DISTRIBUTORS: Distributor[] = [
   { id: 'firstbase', name: 'Firstbase', color: 'bg-cyan-500' },
   { id: 'tdsynnex', name: 'TD SYNNEX', color: 'bg-teal-600' },
   { id: 'ingrammicro', name: 'Ingram Micro', color: 'bg-gray-500' },
+  { id: 'microsoftmarketplace', name: 'Microsoft Marketplace', color: 'bg-blue-600' },
 ];
 
 // Add Disti Product Button Component
@@ -456,6 +458,7 @@ const setAllDistisConfig = (enabled: boolean) => {
     firstbase: enabled,
     tdsynnex: enabled,
     ingrammicro: enabled,
+    microsoftmarketplace: enabled,
   };
   localStorage.setItem('configuredDistributors', JSON.stringify(config));
 };
@@ -465,7 +468,7 @@ const areAllDistisEnabled = (): boolean => {
   const config = localStorage.getItem('configuredDistributors');
   if (!config) return true;
   const parsed = JSON.parse(config);
-  return parsed.firstbase !== false && parsed.tdsynnex !== false && parsed.ingrammicro !== false;
+  return parsed.firstbase !== false && parsed.tdsynnex !== false && parsed.ingrammicro !== false && parsed.microsoftmarketplace !== false;
 };
 
 export const StagingCatalog = () => {

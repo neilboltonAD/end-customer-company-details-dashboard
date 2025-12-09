@@ -16,6 +16,7 @@ import { FindProducts } from './pages/FindProducts';
 import { FirstbaseCredentials } from './pages/FirstbaseCredentials';
 import { NetworkProducts } from './pages/NetworkProducts';
 import { ImportSettings } from './pages/ImportSettings';
+import { MicrosoftMarketplaceCredentials } from './pages/MicrosoftMarketplaceCredentials';
 
 export function App() {
   return (
@@ -36,6 +37,7 @@ export function App() {
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
+          <Route path="/integrations/microsoft-marketplace" element={<MicrosoftMarketplaceCredentials />} />
           <Route path="/settings/vendor-integrations" element={<VendorIntegrations />} />
           <Route path="/settings/vendor-integrations/microsoft" element={<MicrosoftOnboarding />} />
           {/* Placeholder routes for other navigation items */}

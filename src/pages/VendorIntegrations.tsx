@@ -121,6 +121,18 @@ const vendors = [
     ),
     path: '/integrations/firstbase',
   },
+  {
+    id: 'microsoft-marketplace',
+    name: 'Microsoft Marketplace',
+    logo: (
+      <div className="h-10 w-10 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)' }}>
+        <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="currentColor">
+          <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+        </svg>
+      </div>
+    ),
+    path: '/integrations/microsoft-marketplace',
+  },
 ];
 
 // Vendor type

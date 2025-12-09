@@ -57,6 +57,7 @@ const defaultDistributorSettings: DistributorSettings[] = [
   { id: 'firstbase', name: 'Firstbase', markupPercentage: 12 },
   { id: 'tdsynnex', name: 'TD SYNNEX', markupPercentage: 15 },
   { id: 'ingrammicro', name: 'Ingram Micro', markupPercentage: 18 },
+  { id: 'microsoftmarketplace', name: 'Microsoft Marketplace', markupPercentage: 20 },
 ];
 
 export const ImportSettings = () => {

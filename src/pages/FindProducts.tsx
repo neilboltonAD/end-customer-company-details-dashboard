@@ -284,7 +284,21 @@ const ingramMicroProducts = [
   { name: 'Acrobat Studio for teams - Multiple Platforms (25 Pack. Order qua...', vendor: 'Adobe', profile: 'Basic' as const, partNumber: '30013359CA01112', msrp: '$298.68', image: ProductImages.adobe },
 ];
 
-type Distributor = 'firstbase' | 'tdsynnex' | 'ingrammicro';
+// Microsoft Marketplace Products
+const microsoftMarketplaceProducts = [
+  { name: 'Windows Server 2022 Datacenter', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-WS2022-DC', pricing: 'PayAsYouGo', image: ProductImages.laptop },
+  { name: 'Ubuntu Server 22.04 LTS', vendor: 'Canonical', profile: 'Enriched' as const, productId: 'CAN-UBU-2204', pricing: 'Free', image: ProductImages.lenovo },
+  { name: 'Dynamics 365 Sales', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-D365-SALES', pricing: 'Subscription', image: ProductImages.laptop },
+  { name: 'Power BI Pro', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-PBI-PRO', pricing: 'Subscription', image: ProductImages.laptop },
+  { name: 'Red Hat Enterprise Linux 9', vendor: 'Red Hat', profile: 'Basic' as const, productId: 'RH-RHEL9', pricing: 'PayAsYouGo', image: ProductImages.lenovo },
+  { name: 'SQL Server 2022 Enterprise', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-SQL2022-ENT', pricing: 'BYOL', image: ProductImages.laptop },
+  { name: 'NGINX Plus', vendor: 'F5 Networks', profile: 'Basic' as const, productId: 'F5-NGINX-PLUS', pricing: 'PayAsYouGo', image: ProductImages.cable },
+  { name: 'Microsoft 365 E5', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-M365-E5', pricing: 'Subscription', image: ProductImages.laptop },
+  { name: 'Azure Kubernetes Service (AKS)', vendor: 'Microsoft', profile: 'Enriched' as const, productId: 'MS-AKS', pricing: 'PayAsYouGo', image: ProductImages.laptop },
+  { name: 'Datadog Monitoring', vendor: 'Datadog', profile: 'Basic' as const, productId: 'DD-MONITOR', pricing: 'Subscription', image: ProductImages.cable },
+];
+
+type Distributor = 'firstbase' | 'tdsynnex' | 'ingrammicro' | 'microsoftmarketplace';
 
 export const FindProducts = () => {
   const navigate = useNavigate();
@@ -303,6 +317,8 @@ export const FindProducts = () => {
         return { products: tdSynnexProducts, total: 69096, columns: 'tdsynnex' };
       case 'ingrammicro':
         return { products: ingramMicroProducts, total: 624, columns: 'ingrammicro' };
+      case 'microsoftmarketplace':
+        return { products: microsoftMarketplaceProducts, total: 15420, columns: 'microsoftmarketplace' };
     }
   };
 
@@ -400,10 +416,15 @@ export const FindProducts = () => {
               active={activeTab === 'ingrammicro'}
               onClick={() => setActiveTab('ingrammicro')}
             />
+            <DistributorTab
+              name="Microsoft Marketplace"
+              active={activeTab === 'microsoftmarketplace'}
+              onClick={() => setActiveTab('microsoftmarketplace')}
+            />
           </div>
 
-        {/* Info Banner (for TD SYNNEX and Ingram Micro) */}
-        {(activeTab === 'tdsynnex' || activeTab === 'ingrammicro') && (
+        {/* Info Banner (for TD SYNNEX, Ingram Micro and Microsoft Marketplace) */}
+        {(activeTab === 'tdsynnex' || activeTab === 'ingrammicro' || activeTab === 'microsoftmarketplace') && (
           <div className="bg-teal-50 border-l-4 border-teal-500 p-4 mb-6">
             <p className="text-sm text-gray-700">
               Browse the Distributor catalog and select products to import to marketplace catalog with a 15% default markup. Click{' '}
@@ -454,10 +475,17 @@ export const FindProducts = () => {
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
                   </>
+                ) : columns === 'microsoftmarketplace' ? (
+                  <>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Product ID</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Pricing</th>
+                  </>
                 ) : (
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Part Number</th>
                 )}
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">MSRP</th>
+                {columns !== 'microsoftmarketplace' && (
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">MSRP</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -487,10 +515,26 @@ export const FindProducts = () => {
                       <td className="py-3 px-4 text-sm text-gray-600">{(product as any).id}</td>
                       <td className="py-3 px-4 text-sm text-gray-600">{(product as any).availability}</td>
                     </>
+                  ) : columns === 'microsoftmarketplace' ? (
+                    <>
+                      <td className="py-3 px-4 text-sm text-gray-600">{(product as any).productId}</td>
+                      <td className="py-3 px-4 text-sm text-gray-600">
+                        <span className={`px-2 py-0.5 text-xs rounded ${
+                          (product as any).pricing === 'Free' ? 'bg-green-100 text-green-800' :
+                          (product as any).pricing === 'Subscription' ? 'bg-blue-100 text-blue-800' :
+                          (product as any).pricing === 'PayAsYouGo' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {(product as any).pricing}
+                        </span>
+                      </td>
+                    </>
                   ) : (
                     <td className="py-3 px-4 text-sm text-gray-600">{(product as any).partNumber}</td>
                   )}
-                  <td className="py-3 px-4 text-sm text-gray-900">{product.msrp}</td>
+                  {columns !== 'microsoftmarketplace' && (
+                    <td className="py-3 px-4 text-sm text-gray-900">{(product as any).msrp}</td>
+                  )}
                 </tr>
               ))}
             </tbody>
