@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Star,
@@ -19,11 +19,13 @@ const SidebarSection = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="mb-6">
-    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
-      {title}
-    </h3>
-    <div className="space-y-0.5">{children}</div>
+  <div className="mb-1">
+    <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
+      <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+        {title}
+      </h3>
+    </div>
+    <div className="py-1">{children}</div>
   </div>
 );
 
@@ -41,43 +43,44 @@ const SidebarItem = ({
     onClick={onClick}
     className={`w-full text-left px-4 py-2 text-sm transition-colors ${
       active
-        ? 'bg-blue-600 text-white'
-        : 'text-gray-700 hover:bg-gray-100'
+        ? 'bg-teal-700 text-white font-medium'
+        : 'text-gray-700 hover:bg-gray-50'
     }`}
   >
     {label}
   </button>
 );
 
-// Product Type Badge Component
-const ProductBadge = ({ type }: { type: string }) => {
-  const styles: Record<string, string> = {
-    'PHYSICAL PRODUCT': 'bg-gray-100 text-gray-600',
-    'STACKABLE': 'bg-gray-100 text-gray-600',
-    'WEB APP': 'bg-gray-100 text-gray-600',
-  };
-
-  return (
+// Status Badge Component
+const StatusBadge = ({ published }: { published: boolean }) => (
+  <div className="flex items-center space-x-2">
     <span
-      className={`px-2 py-0.5 text-[10px] font-medium rounded ${
-        styles[type] || 'bg-gray-100 text-gray-600'
+      className={`h-2.5 w-2.5 rounded-full ${
+        published ? 'bg-green-500' : 'bg-gray-400'
       }`}
-    >
-      {type}
+    ></span>
+    <span className={`text-sm ${published ? 'text-gray-700' : 'text-gray-500'}`}>
+      {published ? 'Published' : 'Not Published'}
     </span>
-  );
-};
+  </div>
+);
 
 // Product Row Component
 const ProductRow = ({
   name,
+  vendor,
   productId,
-  types,
+  isStaging,
+  published,
+  profile,
   image,
 }: {
   name: string;
+  vendor: string;
   productId: string;
-  types: string[];
+  isStaging?: boolean;
+  published: boolean;
+  profile: string;
   image?: string;
 }) => (
   <tr className="border-b border-gray-100 hover:bg-gray-50">
@@ -94,20 +97,20 @@ const ProductRow = ({
           </div>
         )}
         <div>
-          <a href="#" className="text-sm text-blue-600 hover:underline font-medium">
+          <a href="#" className="text-sm text-teal-700 hover:underline font-medium">
             {name}
           </a>
-          <div className="text-xs text-gray-500">Product ID: {productId}</div>
+          <div className="text-xs text-gray-500">{vendor}</div>
+          <div className="text-xs text-gray-500">
+            {isStaging ? 'Staging ID' : 'Product ID'}: {productId}
+          </div>
         </div>
       </div>
     </td>
     <td className="py-3 px-4">
-      <div className="flex items-center space-x-2">
-        {types.map((type, index) => (
-          <ProductBadge key={index} type={type} />
-        ))}
-      </div>
+      <StatusBadge published={published} />
     </td>
+    <td className="py-3 px-4 text-sm text-gray-600">{profile}</td>
     <td className="py-3 px-4 text-right">
       <button className="text-gray-400 hover:text-gray-600">
         <Settings className="h-4 w-4 inline" />
@@ -121,62 +124,82 @@ const ProductRow = ({
 const products = [
   {
     name: '2U 19IN 2 POST NETWORK RACK SHELF',
+    vendor: 'DISTI',
     productId: '646355',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
-    image: '/rack-shelf.png',
+    published: true,
+    profile: '22%',
   },
   {
     name: '7FT PINK SLIM CAT6 ETHERNET CABLE, SNAGLESS, 100W POE, UTP, LSZH, 28AWG BARE COP',
+    vendor: 'DISTI',
     productId: '646262',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
-    image: '/ethernet-cable.png',
+    published: true,
+    profile: '22%',
   },
   {
     name: '1.5M C14/C15 PWR CBL 250V',
+    vendor: 'DISTI',
     productId: '646260',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
+    published: true,
+    profile: '18%',
   },
   {
     name: 'Dimension for teams - Multiple Platforms - Multi NorthAmerican Language',
+    vendor: 'DISTI',
     productId: '646250',
-    types: ['WEB APP'],
+    published: true,
+    profile: '18%',
+  },
+  {
+    name: 'Adobe Dimension for enterprise - Multiple Platforms - Multi NorthAmerican Language',
+    vendor: 'DISTI',
+    productId: '646248',
+    isStaging: true,
+    published: false,
+    profile: '18%',
   },
   {
     name: 'Single Monitor Desk Mount',
+    vendor: 'DISTI',
     productId: '646247',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
+    published: true,
+    profile: '22%',
   },
   {
     name: 'IT SERIES PURE SINE WAVE POWER INVERTER WITH 12VDC INPUT & 3000W AC OUTPUT',
+    vendor: 'DISTI',
     productId: '646195',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
+    published: true,
+    profile: '18%',
   },
   {
     name: 'FANVIL X7C ENTERPRISE VOIP PHONE, 5-INCH COLOR TOUCH SCREEN, 20 SIP LINES, DUAL-',
+    vendor: 'DISTI',
     productId: '646193',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
+    published: true,
+    profile: '18%',
   },
   {
     name: 'Premiere Pro for teams - Multiple Platforms - Multi NorthAmerican Language',
+    vendor: 'DISTI',
     productId: '646191',
-    types: ['WEB APP'],
+    published: true,
+    profile: '18%',
   },
   {
-    name: 'TS SERIES PURE SINE WAVE POWER INVERTER WITH 12VDC INPUT & 2000W AC OUTPUT',
-    productId: '646007',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
-  },
-  {
-    name: '16GB 1RX8 PC5-5600 ECC UDIMM-A',
-    productId: '646005',
-    types: ['PHYSICAL PRODUCT', 'STACKABLE'],
+    name: 'InDesign Server for enterprise - Multiple Platforms (PREMIUM ONLINE) - Multi NorthAmerican Language',
+    vendor: 'DISTI',
+    productId: '646189',
+    isStaging: true,
+    published: false,
+    profile: '18%',
   },
 ];
 
-export const ProductCatalog = () => {
+export const StagingCatalog = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const totalProducts = 2250;
+  const totalProducts = 4278;
   const productsPerPage = 10;
 
   return (
@@ -186,49 +209,52 @@ export const ProductCatalog = () => {
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-          <div className="py-4">
-            <SidebarSection title="Catalog">
-              <SidebarItem label="Production Catalog" active />
-              <SidebarItem label="Staging Catalog" />
-              <SidebarItem label="Product Uploader" />
-            </SidebarSection>
+          <SidebarSection title="CATALOG">
+            <SidebarItem 
+              label="Production Catalog" 
+              onClick={() => navigate('/products')}
+            />
+            <SidebarItem label="Staging Catalog" active />
+            <SidebarItem label="Product Uploader" />
+          </SidebarSection>
 
-            <SidebarSection title="Import Products">
-              <SidebarItem label="Find & Import Distributor Products" />
-            </SidebarSection>
+          <SidebarSection title="IMPORT PRODUCTS">
+            <SidebarItem label="Find & Import Distributor Products" />
+          </SidebarSection>
 
-            <SidebarSection title="Price Management">
-              <SidebarItem label="Price Books" />
-              <SidebarItem label="Discounts" />
-            </SidebarSection>
+          <SidebarSection title="PRICE MANAGEMENT">
+            <SidebarItem label="Price Books" />
+            <SidebarItem label="Discounts" />
+          </SidebarSection>
 
-            <SidebarSection title="Promotions">
-              <SidebarItem label="Promotional Products" />
-              <SidebarItem label="Merchandising Options" />
-            </SidebarSection>
+          <SidebarSection title="PROMOTIONS">
+            <SidebarItem label="Promotional Products" />
+            <SidebarItem label="Merchandising Options" />
+          </SidebarSection>
 
-            <SidebarSection title="Groups">
-              <SidebarItem label="Product Groups" />
-              <SidebarItem label="Segments" />
-            </SidebarSection>
+          <SidebarSection title="GROUPS">
+            <SidebarItem label="Product Groups" />
+            <SidebarItem label="Segments" />
+          </SidebarSection>
 
-            <SidebarSection title="Product Content">
-              <SidebarItem label="Media Sources" />
-              <SidebarItem label="Featured Customers" />
-            </SidebarSection>
-          </div>
+          <SidebarSection title="PRODUCT CONTENT">
+            <SidebarItem label="Media Sources" />
+            <SidebarItem label="Featured Customers" />
+          </SidebarSection>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-normal text-gray-900">Production Catalog</h1>
-            <button 
-              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              onClick={() => navigate('/products/staging')}
-            >
-              Add Staging Product
-            </button>
+            <h1 className="text-2xl font-normal text-gray-900">Staging Catalog</h1>
+            <div className="flex items-center space-x-3">
+              <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Create Product
+              </button>
+              <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                Add Network Product
+              </button>
+            </div>
           </div>
 
           {/* Product Table */}
@@ -242,7 +268,7 @@ export const ProductCatalog = () => {
                 <input
                   type="text"
                   placeholder="Search product names and IDs"
-                  className="w-72 pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-72 pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               </div>
@@ -253,10 +279,13 @@ export const ProductCatalog = () => {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
+                    Application
                   </th>
                   <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
+                    Status
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Profile
                   </th>
                   <th className="py-3 px-4"></th>
                 </tr>
@@ -266,9 +295,11 @@ export const ProductCatalog = () => {
                   <ProductRow
                     key={index}
                     name={product.name}
+                    vendor={product.vendor}
                     productId={product.productId}
-                    types={product.types}
-                    image={product.image}
+                    isStaging={product.isStaging}
+                    published={product.published}
+                    profile={product.profile}
                   />
                 ))}
               </tbody>
@@ -306,7 +337,7 @@ export const ProductCatalog = () => {
       </div>
 
       {/* Help Button */}
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
+      <button className="fixed bottom-6 right-6 h-10 w-10 bg-teal-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-teal-700">
         <HelpCircle className="h-5 w-5" />
       </button>
     </div>
