@@ -53,6 +53,15 @@ const AddDistiProductButton = () => {
     setConfiguredIds(getConfiguredDistributors());
   }, [showDropdown]);
 
+  // Listen for storage changes (from demo toggle)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setConfiguredIds(getConfiguredDistributors());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const configuredDistis = DISTRIBUTORS.filter(d => configuredIds.includes(d.id));
 
   // Close dropdown when clicking outside
@@ -395,11 +404,44 @@ const products = [
   },
 ];
 
+// Helper to set all distributors enabled/disabled
+const setAllDistisConfig = (enabled: boolean) => {
+  const config = {
+    firstbase: enabled,
+    tdsynnex: enabled,
+    ingrammicro: enabled,
+  };
+  localStorage.setItem('configuredDistributors', JSON.stringify(config));
+};
+
+// Check if all distis are enabled
+const areAllDistisEnabled = (): boolean => {
+  const config = localStorage.getItem('configuredDistributors');
+  if (!config) return true;
+  const parsed = JSON.parse(config);
+  return parsed.firstbase !== false && parsed.tdsynnex !== false && parsed.ingrammicro !== false;
+};
+
 export const StagingCatalog = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [allDistisEnabled, setAllDistisEnabled] = useState(true);
   const totalProducts = 4278;
   const productsPerPage = 10;
+
+  // Load demo state on mount
+  useEffect(() => {
+    setAllDistisEnabled(areAllDistisEnabled());
+  }, []);
+
+  // Handle demo toggle
+  const handleDemoToggleAll = () => {
+    const newState = !allDistisEnabled;
+    setAllDistisEnabled(newState);
+    setAllDistisConfig(newState);
+    // Force re-render of AddDistiProductButton by updating its state
+    window.dispatchEvent(new Event('storage'));
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -450,10 +492,38 @@ export const StagingCatalog = () => {
               <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
                 Create Product
               </button>
-              <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">
+              <button 
+                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                onClick={() => navigate('/products/network')}
+              >
                 Add Network Product
               </button>
               <AddDistiProductButton />
+            </div>
+          </div>
+
+          {/* Demo Toggle Panel */}
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 text-xs font-medium bg-yellow-400 text-yellow-900 rounded">DEMO</span>
+                <span className="text-sm font-medium text-gray-700">Demo Mode: All Disti Connections</span>
+                <span className="text-xs text-gray-500">
+                  (Toggle off to simulate no distributors configured)
+                </span>
+              </div>
+              <button
+                onClick={handleDemoToggleAll}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  allDistisEnabled ? 'bg-teal-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    allDistisEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

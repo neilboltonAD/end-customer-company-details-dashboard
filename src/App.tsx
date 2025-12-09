@@ -14,6 +14,7 @@ import { GeneralSettings } from './pages/GeneralSettings';
 import { StagingCatalog } from './pages/StagingCatalog';
 import { FindProducts } from './pages/FindProducts';
 import { FirstbaseCredentials } from './pages/FirstbaseCredentials';
+import { NetworkProducts } from './pages/NetworkProducts';
 
 export function App() {
   return (
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/products" element={<ProductCatalog />} />
           <Route path="/products/staging" element={<StagingCatalog />} />
           <Route path="/products/find" element={<FindProducts />} />
+          <Route path="/products/network" element={<NetworkProducts />} />
           <Route path="/settings" element={<GeneralSettings />} />
           <Route path="/settings/general" element={<GeneralSettings />} />
           <Route path="/settings/sync" element={<ComponentLibrary />} />
