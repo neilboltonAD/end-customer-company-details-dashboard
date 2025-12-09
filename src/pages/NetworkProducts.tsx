@@ -18,9 +18,8 @@ import {
   Checkbox,
   Stack,
 } from '@mantine/core';
-import { Search, Filter, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { Search, Filter, ChevronDown, ChevronUp, Star, ArrowLeft } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
-import { Sidebar } from '../components/navigation/Sidebar';
 
 // Product status type
 type ProductStatus = 'available' | 'added' | 'request';
@@ -307,30 +306,40 @@ export const NetworkProducts = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <TopNavbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        
-        <main className="flex-1 overflow-auto p-6">
-          {/* Breadcrumb */}
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <Anchor 
-              component="button"
-              onClick={() => navigate('/products')}
-              c="teal"
-              size="sm"
-            >
-              Catalog
-            </Anchor>
-            <span className="mx-2">›</span>
-            <span>Appdirect Network Products</span>
-          </div>
+      
+      <main className="p-6 max-w-7xl mx-auto">
+        {/* Back button */}
+        <Button
+          variant="subtle"
+          color="gray"
+          leftSection={<ArrowLeft size={16} />}
+          onClick={() => navigate('/products')}
+          mb="md"
+          px={0}
+        >
+          Back to Staging Catalog
+        </Button>
 
-          {/* Title */}
-          <Title order={2} fw={400} mb="lg" className="text-gray-800">
-            Add from the Network Catalog
-          </Title>
+        {/* Breadcrumb */}
+        <div className="flex items-center text-sm text-gray-500 mb-2">
+          <Anchor 
+            component="button"
+            onClick={() => navigate('/products')}
+            c="teal"
+            size="sm"
+          >
+            Catalog
+          </Anchor>
+          <span className="mx-2">›</span>
+          <span>Appdirect Network Products</span>
+        </div>
+
+        {/* Title */}
+        <Title order={2} fw={400} mb="lg" className="text-gray-800">
+          Add from the Network Catalog
+        </Title>
 
           {/* Filters and Search Row */}
           <Group justify="space-between" mb="md">
@@ -455,12 +464,11 @@ export const NetworkProducts = () => {
             </Table>
           </Paper>
 
-          {/* Results count */}
-          <Text size="sm" c="dimmed" mt="md">
-            Showing {filteredProducts.length} of {products.length} products
-          </Text>
-        </main>
-      </div>
+        {/* Results count */}
+        <Text size="sm" c="dimmed" mt="md">
+          Showing {filteredProducts.length} of {products.length} products
+        </Text>
+      </main>
     </div>
   );
 };
