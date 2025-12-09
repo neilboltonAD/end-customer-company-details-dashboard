@@ -73,7 +73,7 @@ const AddDistiProductButton = () => {
         onClick={handleClick}
         onMouseEnter={() => configuredDistis.length === 0 && setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        className="px-4 py-2 text-sm bg-teal-600 text-white rounded hover:bg-teal-700 flex items-center"
+        className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center"
       >
         Add Disti Product
         {configuredDistis.length > 1 && <ChevronDown className="h-4 w-4 ml-1" />}
