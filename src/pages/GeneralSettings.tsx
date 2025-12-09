@@ -28,7 +28,7 @@ const FormField = ({
 }: {
   label: string;
   required?: boolean;
-  description?: string;
+  description?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div>
