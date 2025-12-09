@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -23,6 +23,21 @@ import {
   Collapse,
   Progress,
 } from '@mantine/core';
+
+// Helper to get/set distributor config in localStorage
+const getDistiConfig = (distiId: string): boolean => {
+  const config = localStorage.getItem('configuredDistributors');
+  if (!config) return true; // Default to enabled
+  const parsed = JSON.parse(config);
+  return parsed[distiId] !== false;
+};
+
+const setDistiConfig = (distiId: string, enabled: boolean) => {
+  const config = localStorage.getItem('configuredDistributors');
+  const parsed = config ? JSON.parse(config) : {};
+  parsed[distiId] = enabled;
+  localStorage.setItem('configuredDistributors', JSON.stringify(parsed));
+};
 import { notifications } from '@mantine/notifications';
 import {
   ArrowLeft,
@@ -50,6 +65,20 @@ type ConnectionStatus = 'connected' | 'disconnected' | 'testing' | 'error';
 
 export const IngramMicroCredentials = () => {
   const navigate = useNavigate();
+  
+  // Demo toggle state
+  const [demoEnabled, setDemoEnabled] = useState(true);
+  
+  // Load demo state from localStorage on mount
+  useEffect(() => {
+    setDemoEnabled(getDistiConfig('ingrammicro'));
+  }, []);
+
+  // Handle demo toggle change
+  const handleDemoToggle = (enabled: boolean) => {
+    setDemoEnabled(enabled);
+    setDistiConfig('ingrammicro', enabled);
+  };
   
   // Form state
   const [formData, setFormData] = useState({
@@ -457,6 +486,29 @@ export const IngramMicroCredentials = () => {
             We never store your credentials in plain text.
           </Text>
         </Alert>
+
+        {/* Demo Toggle */}
+        <Paper withBorder radius="lg" p="lg" mb="lg" shadow="sm" bg="yellow.0">
+          <Group justify="space-between" align="center">
+            <div>
+              <Group gap="xs">
+                <Badge color="yellow" variant="filled" size="sm">DEMO</Badge>
+                <Text size="sm" fw={500}>Demo Mode: Connection Enabled</Text>
+              </Group>
+              <Text size="xs" c="dimmed" mt={4}>
+                Toggle off to simulate this distributor not being configured (for testing "Add Disti Product" button)
+              </Text>
+            </div>
+            <Switch
+              checked={demoEnabled}
+              onChange={(e) => handleDemoToggle(e.currentTarget.checked)}
+              color="blue"
+              size="md"
+              onLabel="ON"
+              offLabel="OFF"
+            />
+          </Group>
+        </Paper>
 
         {/* Action Buttons */}
         <Paper withBorder radius="lg" p="lg" shadow="sm">

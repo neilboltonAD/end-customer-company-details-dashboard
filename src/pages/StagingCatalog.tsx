@@ -12,10 +12,21 @@ import {
 } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
 
-// Simulated configured distributors (in real app, this would come from API/state)
-// Change this array to test different scenarios:
-// [] = none configured, ['tdsynnex'] = one configured, ['tdsynnex', 'ingrammicro', 'firstbase'] = all configured
-const CONFIGURED_DISTRIBUTORS = ['tdsynnex', 'ingrammicro', 'firstbase'];
+// Helper to get distributor config from localStorage
+const getConfiguredDistributors = (): string[] => {
+  const config = localStorage.getItem('configuredDistributors');
+  if (!config) {
+    // Default: all enabled
+    return ['firstbase', 'tdsynnex', 'ingrammicro'];
+  }
+  const parsed = JSON.parse(config);
+  const configured: string[] = [];
+  // Check each distributor
+  if (parsed.firstbase !== false) configured.push('firstbase');
+  if (parsed.tdsynnex !== false) configured.push('tdsynnex');
+  if (parsed.ingrammicro !== false) configured.push('ingrammicro');
+  return configured;
+};
 
 type Distributor = {
   id: string;
@@ -34,9 +45,15 @@ const AddDistiProductButton = () => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [configuredIds, setConfiguredIds] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const configuredDistis = DISTRIBUTORS.filter(d => CONFIGURED_DISTRIBUTORS.includes(d.id));
+  // Check configured distributors on mount and when dropdown is shown
+  useEffect(() => {
+    setConfiguredIds(getConfiguredDistributors());
+  }, [showDropdown]);
+
+  const configuredDistis = DISTRIBUTORS.filter(d => configuredIds.includes(d.id));
 
   // Close dropdown when clicking outside
   useEffect(() => {

@@ -149,7 +149,8 @@ export const MarketplaceHome = () => {
                       </svg>
                     </div>
                   }
-                  buttonText="View Catalog"
+                  buttonText="Edit Credentials"
+                  onButtonClick={() => navigate('/integrations/firstbase')}
                 />
                 <VendorItem
                   name="TD SYNNEX"

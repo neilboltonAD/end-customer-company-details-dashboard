@@ -119,6 +119,7 @@ const vendors = [
         </svg>
       </div>
     ),
+    path: '/integrations/firstbase',
   },
 ];
 

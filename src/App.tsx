@@ -13,6 +13,7 @@ import { MicrosoftOnboarding } from './pages/MicrosoftOnboarding';
 import { GeneralSettings } from './pages/GeneralSettings';
 import { StagingCatalog } from './pages/StagingCatalog';
 import { FindProducts } from './pages/FindProducts';
+import { FirstbaseCredentials } from './pages/FirstbaseCredentials';
 
 export function App() {
   return (
@@ -30,6 +31,7 @@ export function App() {
           <Route path="/company-details" element={<CompanyDetails />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
+          <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
           <Route path="/settings/vendor-integrations" element={<VendorIntegrations />} />
           <Route path="/settings/vendor-integrations/microsoft" element={<MicrosoftOnboarding />} />
           {/* Placeholder routes for other navigation items */}
