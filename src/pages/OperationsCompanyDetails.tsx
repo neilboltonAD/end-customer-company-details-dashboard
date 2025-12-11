@@ -975,6 +975,16 @@ const EndCustomerAllSubscriptionsModal: React.FC<{
     hasChurnRisk: subs.some(s => getChurnRisk(s) !== 'low')
   });
 
+  // Calculate overall totals for cost summary
+  const overallTotals = {
+    totalSeats: subscriptions.reduce((sum, s) => sum + s.seats, 0),
+    totalAssigned: subscriptions.reduce((sum, s) => sum + s.assignedSeats, 0),
+    totalActive: subscriptions.reduce((sum, s) => sum + s.activeUsers, 0),
+    totalMonthlyCost: subscriptions.reduce((sum, s) => sum + s.cost, 0),
+    subscriptionCount: subscriptions.length,
+    productCount: Object.keys(groupedSubscriptions).length
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
@@ -986,6 +996,33 @@ const EndCustomerAllSubscriptionsModal: React.FC<{
         </div>
         
         <div className="p-3 overflow-y-auto max-h-[calc(90vh-100px)]">
+          {/* Cost Summary Card */}
+          <div className="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3">Cost Summary</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-teal-700">${overallTotals.totalMonthlyCost.toLocaleString()}</div>
+                <div className="text-xs text-gray-600">Monthly Cost</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-800">{overallTotals.totalSeats}</div>
+                <div className="text-xs text-gray-600">Total Seats</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-800">{overallTotals.subscriptionCount}</div>
+                <div className="text-xs text-gray-600">Subscriptions</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-800">{((overallTotals.totalAssigned / overallTotals.totalSeats) * 100).toFixed(0)}%</div>
+                <div className="text-xs text-gray-600">Seats Assigned</div>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-teal-200 flex items-center justify-between text-xs">
+              <span className="text-gray-600">{overallTotals.productCount} product type{overallTotals.productCount > 1 ? 's' : ''} across {overallTotals.subscriptionCount} subscription{overallTotals.subscriptionCount > 1 ? 's' : ''}</span>
+              <span className="text-teal-700 font-medium">${(overallTotals.totalMonthlyCost * 12).toLocaleString()}/year estimated</span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             {Object.entries(groupedSubscriptions).map(([productName, subs]) => {
               const isExpanded = expandedGroups.has(productName);
