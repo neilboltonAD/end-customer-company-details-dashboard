@@ -1005,12 +1005,12 @@ const EndCustomerAllSubscriptionsModal: React.FC<{
                 <div className="text-xs text-gray-600">Monthly Cost</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{overallTotals.totalSeats}</div>
-                <div className="text-xs text-gray-600">Total Seats</div>
-              </div>
-              <div className="text-center">
                 <div className="text-2xl font-bold text-gray-800">{overallTotals.subscriptionCount}</div>
                 <div className="text-xs text-gray-600">Subscriptions</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-800">{overallTotals.totalSeats}</div>
+                <div className="text-xs text-gray-600">Total Seats</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-800">{((overallTotals.totalAssigned / overallTotals.totalSeats) * 100).toFixed(0)}%</div>
