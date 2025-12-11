@@ -69,19 +69,26 @@ const VendorItem = ({
   logo,
   buttonText,
   onButtonClick,
+  isNew,
 }: {
   name: string;
   url: string;
   logo: React.ReactNode;
   buttonText: string;
   onButtonClick?: () => void;
+  isNew?: boolean;
 }) => (
-  <div className="flex items-center justify-between py-3">
+  <div className={`flex items-center justify-between py-3 ${isNew ? 'bg-gradient-to-r from-emerald-50 to-cyan-50 -mx-5 px-5 border-l-4 border-emerald-400' : ''}`}>
     <div className="flex items-center space-x-3">
       {logo}
       <div>
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-gray-900">{name}</span>
+          {isNew && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide">
+              New
+            </span>
+          )}
           <span className="h-2 w-2 bg-green-500 rounded-full"></span>
         </div>
         <a href="#" className="text-xs text-blue-600 hover:underline">
@@ -186,6 +193,7 @@ export const MarketplaceHome = () => {
                   }
                   buttonText="Edit Credentials"
                   onButtonClick={() => navigate('/integrations/microsoft-marketplace')}
+                  isNew
                 />
               </div>
               <a href="#" className="flex items-center text-sm text-blue-600 mt-4 hover:underline">
@@ -209,6 +217,119 @@ export const MarketplaceHome = () => {
 
           {/* Right Column */}
           <div className="col-span-8 space-y-6">
+            {/* What's New Demo Card */}
+            <div className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 rounded-lg shadow-lg p-1">
+              <div className="bg-white rounded-lg p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg">
+                      <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-gray-900">What's New — Demo Guide</h2>
+                      <p className="text-xs text-gray-500">Click any feature below to explore</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
+                    Demo Mode
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Product Catalog */}
+                  <Link 
+                    to="/products" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                  >
+                    <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                      <Package className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Product Catalog</div>
+                      <div className="text-xs text-gray-500">Full catalog management</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Staging Catalog */}
+                  <Link 
+                    to="/products/staging" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                  >
+                    <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
+                      <Layers className="h-4 w-4 text-orange-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Staging Catalog</div>
+                      <div className="text-xs text-gray-500">Add products from distributors</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Find & Import Products */}
+                  <Link 
+                    to="/products/find" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                  >
+                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                      <Download className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Find & Import Products</div>
+                      <div className="text-xs text-gray-500">Browse distributor catalogs</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Microsoft Marketplace */}
+                  <Link 
+                    to="/integrations/microsoft-marketplace" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 hover:border-emerald-400 transition-all group relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-[10px] font-bold text-gray-900 rounded-bl-lg uppercase">
+                      Featured
+                    </div>
+                    <div className="p-2 rounded-lg group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)' }}>
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-white" fill="currentColor">
+                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Microsoft Marketplace</div>
+                      <div className="text-xs text-gray-500">Live API catalog browser</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Vendor Integrations */}
+                  <Link 
+                    to="/settings/vendor-integrations" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                  >
+                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                      <Puzzle className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Vendor Integrations</div>
+                      <div className="text-xs text-gray-500">Configure distributor APIs</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Import Settings */}
+                  <Link 
+                    to="/products/import-settings" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+                  >
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                      <Settings className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Import Settings</div>
+                      <div className="text-xs text-gray-500">Per-distributor markup fees</div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* Marketplace Tasks */}
             <div className="bg-white rounded-lg shadow p-5">
               <h2 className="text-base font-semibold text-gray-900 mb-4">Marketplace tasks</h2>

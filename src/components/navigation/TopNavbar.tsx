@@ -3,14 +3,21 @@ import { Link, useLocation } from 'react-router-dom'
 import { SearchIcon, PlusIcon, BellIcon, Settings2Icon } from 'lucide-react'
 import { Avatar } from '../misc/Avatar'
 
-const NavLink = ({ to, children, active }: { to: string; children: React.ReactNode; active?: boolean }) => (
+const NavLink = ({ to, children, active, isNew }: { to: string; children: React.ReactNode; active?: boolean; isNew?: boolean }) => (
   <Link
     to={to}
     className={`text-sm font-medium px-1 py-1 relative ${
       active ? 'text-white' : 'text-gray-300 hover:text-white'
     }`}
   >
-    {children}
+    <span className="flex items-center gap-1.5">
+      {children}
+      {isNew && (
+        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
+          New
+        </span>
+      )}
+    </span>
     {active && (
       <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 -mb-3"></span>
     )}
@@ -53,10 +60,10 @@ export const TopNavbar = () => {
             <NavLink to="/operations" active={currentPath === '/operations'}>
               Operations
             </NavLink>
-            <NavLink to="/products" active={currentPath === '/products'}>
+            <NavLink to="/products" active={currentPath === '/products' || currentPath.startsWith('/products/')} isNew>
               Products
             </NavLink>
-            <NavLink to="/settings" active={currentPath === '/settings'}>
+            <NavLink to="/settings" active={currentPath === '/settings' || currentPath.startsWith('/settings/')} isNew>
               Settings
             </NavLink>
             <NavLink to="/reports" active={currentPath === '/reports'}>
