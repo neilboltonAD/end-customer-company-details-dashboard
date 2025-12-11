@@ -34,14 +34,14 @@ export function App() {
           <Route path="/settings/general" element={<GeneralSettings />} />
           <Route path="/settings/sync" element={<ComponentLibrary />} />
           <Route path="/company-details" element={<CompanyDetails />} />
+          <Route path="/operations" element={<CompanyDetails />} />
+          <Route path="/operations/company-details" element={<CompanyDetails />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
           <Route path="/integrations/microsoft-marketplace" element={<MicrosoftMarketplaceCredentials />} />
           <Route path="/settings/vendor-integrations" element={<VendorIntegrations />} />
           <Route path="/settings/vendor-integrations/microsoft" element={<MicrosoftOnboarding />} />
-          {/* Placeholder routes for other navigation items */}
-          <Route path="/operations" element={<MarketplaceHome />} />
           <Route path="/reports" element={<MarketplaceHome />} />
           <Route path="/themes" element={<MarketplaceHome />} />
           <Route path="/programs" element={<MarketplaceHome />} />

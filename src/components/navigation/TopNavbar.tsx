@@ -57,7 +57,7 @@ export const TopNavbar = () => {
             <NavLink to="/home" active={currentPath === '/home'}>
               Home
             </NavLink>
-            <NavLink to="/operations" active={currentPath === '/operations'}>
+            <NavLink to="/operations" active={currentPath === '/operations' || currentPath.startsWith('/operations/')} isNew>
               Operations
             </NavLink>
             <NavLink to="/products" active={currentPath === '/products' || currentPath.startsWith('/products/')} isNew>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Package,
@@ -14,6 +14,7 @@ import {
   BarChart3,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   HelpCircle,
 } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
@@ -107,6 +108,7 @@ const VendorItem = ({
 
 export const MarketplaceHome = () => {
   const navigate = useNavigate();
+  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(true);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -220,7 +222,10 @@ export const MarketplaceHome = () => {
             {/* What's New Demo Card */}
             <div className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 rounded-lg shadow-lg p-1">
               <div className="bg-white rounded-lg p-5">
-                <div className="flex items-center justify-between mb-4">
+                <button 
+                  onClick={() => setIsDemoGuideOpen(!isDemoGuideOpen)}
+                  className="flex items-center justify-between w-full text-left"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg">
                       <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,15 +234,22 @@ export const MarketplaceHome = () => {
                     </div>
                     <div>
                       <h2 className="text-base font-semibold text-gray-900">What's New — Demo Guide</h2>
-                      <p className="text-xs text-gray-500">Click any feature below to explore</p>
+                      <p className="text-xs text-gray-500">{isDemoGuideOpen ? 'Click any feature below to explore' : 'Click to expand'}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
-                    Demo Mode
-                  </span>
-                </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
+                      Demo Mode
+                    </span>
+                    {isDemoGuideOpen ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                </button>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid grid-cols-2 gap-3 overflow-hidden transition-all duration-300 ${isDemoGuideOpen ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0 mt-0'}`}>
                   {/* Product Catalog */}
                   <Link 
                     to="/products" 
@@ -324,6 +336,23 @@ export const MarketplaceHome = () => {
                     <div>
                       <div className="text-sm font-medium text-gray-900">Import Settings</div>
                       <div className="text-xs text-gray-500">Per-distributor markup fees</div>
+                    </div>
+                  </Link>
+                  
+                  {/* Company Details (Operations) */}
+                  <Link 
+                    to="/operations" 
+                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 hover:border-emerald-400 transition-all group relative overflow-hidden col-span-2"
+                  >
+                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-[10px] font-bold text-gray-900 rounded-bl-lg uppercase">
+                      Operations
+                    </div>
+                    <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                      <Building2 className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">Company Details</div>
+                      <div className="text-xs text-gray-500">Microsoft Partner Center, GDAP, Special Qualifications & more</div>
                     </div>
                   </Link>
                 </div>
