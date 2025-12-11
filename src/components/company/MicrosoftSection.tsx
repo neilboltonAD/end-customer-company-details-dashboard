@@ -637,6 +637,169 @@ const SyncModal = ({
   );
 };
 
+const McaAttestationModal = ({
+  open,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: { firstName: string; lastName: string; email: string; phone: string }) => void;
+}) => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+  const [step, setStep] = useState(1);
+
+  if (!open) return null;
+
+  const isStep1Valid = formData.firstName && formData.lastName && formData.email && formData.phone;
+
+  const handleShareAgreement = () => {
+    onSubmit(formData);
+    // Reset form
+    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+    setStep(1);
+  };
+
+  const handleClose = () => {
+    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+    setStep(1);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
+        {/* Header */}
+        <div className="bg-gray-100 px-6 py-4 flex items-center justify-between border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">Accept Microsoft Customer Agreement</h2>
+          <button
+            onClick={handleClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-1">Generate Microsoft Customer Agreement</h3>
+          <p className="text-gray-600 mb-6">The customer needs to accept the Microsoft Customer Agreement.</p>
+
+          {/* Step 1 */}
+          <div className="flex mb-6">
+            <div className="mr-4">
+              <div className={`w-10 h-10 rounded flex items-center justify-center text-lg font-bold ${
+                step >= 1 ? 'bg-lime-400 text-lime-900' : 'bg-gray-200 text-gray-500'
+              }`} style={{ clipPath: 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)' }}>
+                1
+              </div>
+              <div className="w-0.5 h-full bg-gray-200 mx-auto mt-1"></div>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-lg font-semibold text-gray-800 mb-1">Customer information</h4>
+              <p className="text-sm text-gray-600 mb-4">Enter your primary contact information to generate the agreement.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="text-red-500">*</span> First name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    placeholder="First name"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="text-red-500">*</span> Last name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    placeholder="Last name"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="text-red-500">*</span> Email address
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Email address"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <span className="text-red-500">*</span> Phone number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Phone number"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex">
+            <div className="mr-4">
+              <div className={`w-10 h-10 rounded border-2 flex items-center justify-center text-lg font-bold ${
+                isStep1Valid ? 'border-gray-400 text-gray-700' : 'border-gray-200 text-gray-400'
+              }`}>
+                2
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-1">Send the agreement to customer</h4>
+                  <p className="text-sm text-gray-600">
+                    The Microsoft Customer Agreement has been generated and is ready to share. You can now send the acceptance request to your customer.
+                  </p>
+                </div>
+                <button
+                  onClick={handleShareAgreement}
+                  disabled={!isStep1Valid}
+                  className={`ml-4 px-4 py-2 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap ${
+                    isStep1Valid
+                      ? 'bg-cyan-500 text-white hover:bg-cyan-600'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Share Agreement
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200"></div>
+      </div>
+    </div>
+  );
+};
+
 export const MicrosoftSection = () => {
   const [gdapRelationships, setGdapRelationships] = useState(initialGdapRelationships);
   const [specialQualifications, setSpecialQualifications] = useState(initialSpecialQualifications);
@@ -679,6 +842,20 @@ export const MicrosoftSection = () => {
   const [unlinkConfirmation, setUnlinkConfirmation] = useState('');
   const [showCreateTenantModal, setShowCreateTenantModal] = useState(false);
   const [showLinkTenantModal, setShowLinkTenantModal] = useState(false);
+
+  // MCA Authorization state
+  const [mcaStatus, setMcaStatus] = useState<'valid' | 'invalid' | 'pending'>('valid');
+  const [showMcaModal, setShowMcaModal] = useState(false);
+
+  // Toggle MCA status for demo purposes
+  const toggleMcaStatus = () => {
+    setMcaStatus((prev) => {
+      if (prev === 'valid') return 'invalid';
+      if (prev === 'invalid') return 'pending';
+      if (prev === 'pending') return 'valid';
+      return 'valid';
+    });
+  };
 
 
   const handleAutoExtendToggle = (idx: number, value: boolean) => {
@@ -1100,35 +1277,94 @@ export const MicrosoftSection = () => {
               <h4 className="text-sm font-semibold text-gray-800">Customer Tenant Information</h4>
             </div>
             
-            {/* Tenant Domain Details - inline, not collapsible */}
-            <div className="bg-white border border-gray-200 rounded-lg p-3 mb-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <img src={microsoftLogo} alt="Microsoft Logo" className="w-10 h-10 mr-3 rounded" />
-                  <div className="space-y-0.5">
-                    <div>
-                      <span className="text-xs text-gray-500">Tenant Name: </span>
+            {/* Customer Tenant Information */}
+            <div className="bg-white border border-gray-300 rounded-lg w-[37.5%] mb-1 shadow-sm">
+              <div className="flex items-start p-2">
+                <img src={microsoftLogo} alt="Microsoft Logo" className="w-8 h-8 mr-3 rounded flex-shrink-0" />
+                <div className="flex-1">
+                  {/* Tenant Name Row */}
+                  <div className="flex items-center justify-between py-1 border-b border-gray-100">
+                    <div className="flex items-baseline">
+                      <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">Tenant Name</span>
                       <span className="text-sm font-semibold text-gray-800">AppDirect Demonstration 5</span>
                     </div>
-                    <div>
-                      <span className="text-xs text-gray-500">Tenant UUID: </span>
-                      <span className="text-xs text-gray-600 font-mono">{tenantData.tenantId}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-0.5">Active</span>
+                      <button 
+                        className="px-3 py-0.5 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100 w-[100px] text-center whitespace-nowrap"
+                        onClick={handleUnlinkTenant}
+                      >
+                        Unlink Tenant
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
-                  <button 
-                    className="px-2 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-                    onClick={handleUnlinkTenant}
-                  >
-                    Unlink Tenant
-                  </button>
+                  
+                  {/* Tenant UUID Row */}
+                  <div className="flex items-baseline py-1 border-b border-gray-100">
+                    <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">Tenant UUID</span>
+                    <span className="text-xs text-gray-700 font-mono">{tenantData.tenantId}</span>
+                  </div>
+                  
+                  {/* MCA Status Row */}
+                  <div className="flex items-center justify-between py-1">
+                    <div className="flex items-baseline">
+                      <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">MCA Status</span>
+                      <span className="text-xs text-gray-600">
+                        {mcaStatus === 'valid' && `Signed ${tenantData.agreementDate}`}
+                        {mcaStatus === 'pending' && 'Awaiting acceptance'}
+                        {mcaStatus === 'invalid' && 'Agreement required'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={toggleMcaStatus}
+                        className="flex items-center justify-center px-1 py-0.5 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
+                        title="Demo: Cycle through MCA statuses"
+                      >
+                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </button>
+                      {mcaStatus === 'valid' && (
+                        <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-0.5">Valid</span>
+                      )}
+                      {mcaStatus === 'pending' && (
+                        <span className="text-xs font-bold uppercase text-amber-700 bg-amber-100 rounded px-2 py-0.5">Pending</span>
+                      )}
+                      {mcaStatus === 'invalid' && (
+                        <span className="text-xs font-bold uppercase text-red-700 bg-red-100 rounded px-2 py-0.5">Required</span>
+                      )}
+                      {mcaStatus === 'valid' && (
+                        <button 
+                          className="px-3 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 w-[100px] text-center whitespace-nowrap"
+                          onClick={() => setShowMcaModal(true)}
+                        >
+                          Reattest
+                        </button>
+                      )}
+                      {mcaStatus === 'pending' && (
+                        <button 
+                          className="px-3 py-0.5 text-xs rounded border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 w-[100px] text-center whitespace-nowrap"
+                          onClick={() => setMcaStatus('invalid')}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      {mcaStatus === 'invalid' && (
+                        <button 
+                          className="px-3 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 w-[100px] text-center whitespace-nowrap"
+                          onClick={() => setShowMcaModal(true)}
+                        >
+                          Request
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Partner Center Insights - moved above Administration Information */}
+            {/* Partner Center Insights - connects to tab above */}
             <PartnerCenterInsights />
 
             {/* Admin Subsection */}
@@ -1410,6 +1646,24 @@ export const MicrosoftSection = () => {
         open={showLinkTenantModal}
         onClose={() => setShowLinkTenantModal(false)}
         onConfirm={handleLinkTenantConfirm}
+      />
+
+      {/* MCA Attestation Modal */}
+      <McaAttestationModal
+        open={showMcaModal}
+        onClose={() => setShowMcaModal(false)}
+        onSubmit={(data) => {
+          console.log('MCA Attestation submitted:', data);
+          // Set status to pending after sharing agreement
+          setMcaStatus('pending');
+          setShowMcaModal(false);
+          notifications.show({
+            title: 'Agreement Sent',
+            message: `Microsoft Customer Agreement request has been sent to ${data.email}`,
+            color: 'blue',
+            autoClose: 5000,
+          });
+        }}
       />
     </div>
   );
