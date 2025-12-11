@@ -1101,7 +1101,7 @@ export const MicrosoftSection = () => {
             </div>
             
             {/* Tenant Domain Details - inline, not collapsible */}
-            <div className="bg-white border border-gray-200 rounded-lg p-3 mb-2">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 mb-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <img src={microsoftLogo} alt="Microsoft Logo" className="w-10 h-10 mr-3 rounded" />

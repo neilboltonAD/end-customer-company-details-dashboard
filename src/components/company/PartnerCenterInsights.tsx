@@ -743,7 +743,7 @@ export const PartnerCenterInsights: React.FC = () => {
       title="Partner Center Insights" 
       open={overviewOpen}
       onToggle={setOverviewOpen}
-      className="mb-3"
+      className="mb-1"
       helpContent="Partner Center Insights provides comprehensive analytics and metrics from Microsoft Partner Center about your customer's Microsoft 365 usage, deployment, and revenue. These insights help you understand customer engagement, optimize license allocation, and identify upsell opportunities. Data is refreshed daily and includes historical trends for performance tracking."
     >
       {/* Overview Metrics - Compact horizontal layout */}

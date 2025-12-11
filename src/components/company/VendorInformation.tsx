@@ -21,8 +21,8 @@ export const VendorInformation = () => {
   const [selectedVendor, setSelectedVendor] = useState('Microsoft');
 
   return (
-    <div className="mt-8">
-      <div className="mb-6">
+    <div>
+      <div className="mb-4">
         <label htmlFor="vendor-select" className="block text-sm font-medium text-gray-700 mb-1">Select Vendor</label>
         <select
           id="vendor-select"
