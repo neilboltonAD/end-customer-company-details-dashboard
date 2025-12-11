@@ -1017,9 +1017,8 @@ const EndCustomerAllSubscriptionsModal: React.FC<{
                 <div className="text-xs text-gray-600">Seats Assigned</div>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-teal-200 flex items-center justify-between text-xs">
-              <span className="text-gray-600">{overallTotals.productCount} product type{overallTotals.productCount > 1 ? 's' : ''} across {overallTotals.subscriptionCount} subscription{overallTotals.subscriptionCount > 1 ? 's' : ''}</span>
-              <span className="text-teal-700 font-medium">${(overallTotals.totalMonthlyCost * 12).toLocaleString()}/year estimated</span>
+            <div className="mt-3 pt-3 border-t border-teal-200 text-xs text-center">
+              <span className="text-gray-700">You have <span className="font-medium">{overallTotals.productCount} product type{overallTotals.productCount > 1 ? 's' : ''}</span> across <span className="font-medium">{overallTotals.subscriptionCount} subscription{overallTotals.subscriptionCount > 1 ? 's' : ''}</span> that cost <span className="font-medium text-teal-700">${(overallTotals.totalMonthlyCost * 12).toLocaleString()} annually</span></span>
             </div>
           </div>
 
