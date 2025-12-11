@@ -668,7 +668,6 @@ export const MicrosoftSection = () => {
   // Section open/close state
   const [gdapSectionOpen, setGdapSectionOpen] = useState(false);
   const [specialQualificationsSectionOpen, setSpecialQualificationsSectionOpen] = useState(false);
-  const [tenantDomainSectionOpen, setTenantDomainSectionOpen] = useState(true);
   const [adminSectionOpen, setAdminSectionOpen] = useState(true);
 
   // Sync modal state
@@ -1096,19 +1095,14 @@ export const MicrosoftSection = () => {
       {isTenantLinked ? (
         <>
           {/* Section 1: Customer Tenant Information - Always visible, not collapsible */}
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 mb-2">
-            <div className="flex items-center justify-between mb-1">
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <h4 className="text-sm font-semibold text-gray-800">Customer Tenant Information</h4>
             </div>
-            {/* Tenant Domain Subsection */}
-            <ExpandableSection 
-              title="Tenant Domain Details" 
-              open={tenantDomainSectionOpen}
-              onToggle={setTenantDomainSectionOpen}
-              className="mb-1"
-              helpContent="Tenant Domain Details shows your organization's primary domain and tenant ID information. This includes the domain used for user authentication, email addresses, and Microsoft 365 services. The tenant ID is a unique identifier for your organization in Microsoft's cloud."
-            >
-              <div className="flex items-center justify-between py-1">
+            
+            {/* Tenant Domain Details - inline, not collapsible */}
+            <div className="bg-white border border-gray-200 rounded-lg p-3 mb-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <img src={microsoftLogo} alt="Microsoft Logo" className="w-10 h-10 mr-3 rounded" />
                   <div className="space-y-0.5">
@@ -1132,7 +1126,10 @@ export const MicrosoftSection = () => {
                   </button>
                 </div>
               </div>
-            </ExpandableSection>
+            </div>
+
+            {/* Partner Center Insights - moved above Administration Information */}
+            <PartnerCenterInsights />
 
             {/* Admin Subsection */}
             <ExpandableSection 
@@ -1315,9 +1312,6 @@ export const MicrosoftSection = () => {
                 </div>
               </div>
             </ExpandableSection>
-
-            {/* Partner Center Insights - NEW Enhanced Section */}
-            <PartnerCenterInsights />
           </div>
         </>
       ) : (
