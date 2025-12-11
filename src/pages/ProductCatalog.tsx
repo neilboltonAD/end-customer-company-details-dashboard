@@ -265,12 +265,12 @@ export const ProductCatalog = () => {
           <div className="py-4">
             <SidebarSection title="Catalog">
               <SidebarItem label="Production Catalog" active />
-              <SidebarItem label="Staging Catalog" />
+              <SidebarItem label="Staging Catalog" onClick={() => navigate('/products/staging')} />
               <SidebarItem label="Product Uploader" />
             </SidebarSection>
 
             <SidebarSection title="Import Products">
-              <SidebarItem label="Find & Import Distributor Products" />
+              <SidebarItem label="Find & Import Distributor Products" onClick={() => navigate('/products/find')} />
             </SidebarSection>
 
             <SidebarSection title="Price Management">

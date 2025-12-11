@@ -339,9 +339,9 @@ export const MarketplaceHome = () => {
                     </div>
                   </Link>
                   
-                  {/* Company Details (Operations) */}
+                  {/* Operations - Company Details */}
                   <Link 
-                    to="/operations" 
+                    to="/operations/companies/demoresellercustomer1" 
                     className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 hover:border-emerald-400 transition-all group relative overflow-hidden col-span-2"
                   >
                     <div className="absolute top-0 right-0 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-[10px] font-bold text-gray-900 rounded-bl-lg uppercase">
@@ -351,8 +351,8 @@ export const MarketplaceHome = () => {
                       <Building2 className="h-4 w-4 text-indigo-600" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">Company Details</div>
-                      <div className="text-xs text-gray-500">Microsoft Partner Center, GDAP, Special Qualifications & more</div>
+                      <div className="text-sm font-medium text-gray-900">Company Details → Vendor Information</div>
+                      <div className="text-xs text-gray-500">Operations → Companies → Select company → Vendor Information tab</div>
                     </div>
                   </Link>
                 </div>

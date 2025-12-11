@@ -17,6 +17,9 @@ import { FirstbaseCredentials } from './pages/FirstbaseCredentials';
 import { NetworkProducts } from './pages/NetworkProducts';
 import { ImportSettings } from './pages/ImportSettings';
 import { MicrosoftMarketplaceCredentials } from './pages/MicrosoftMarketplaceCredentials';
+import { OperationsUsers } from './pages/OperationsUsers';
+import { OperationsCompanies } from './pages/OperationsCompanies';
+import { OperationsCompanyDetails } from './pages/OperationsCompanyDetails';
 
 export function App() {
   return (
@@ -34,8 +37,9 @@ export function App() {
           <Route path="/settings/general" element={<GeneralSettings />} />
           <Route path="/settings/sync" element={<ComponentLibrary />} />
           <Route path="/company-details" element={<CompanyDetails />} />
-          <Route path="/operations" element={<CompanyDetails />} />
-          <Route path="/operations/company-details" element={<CompanyDetails />} />
+          <Route path="/operations" element={<OperationsUsers />} />
+          <Route path="/operations/companies" element={<OperationsCompanies />} />
+          <Route path="/operations/companies/:companyName" element={<OperationsCompanyDetails />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
