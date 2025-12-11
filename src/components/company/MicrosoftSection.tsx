@@ -70,7 +70,7 @@ const qualificationOptions = [
 
 const ActionButton = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
   <button
-    className="px-4 py-1.5 text-xs rounded border border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors min-w-[60px] text-center font-medium"
+    className="px-2 py-1 text-xs rounded border border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors text-center font-medium"
     type="button"
     onClick={onClick}
   >
@@ -1096,34 +1096,36 @@ export const MicrosoftSection = () => {
       {isTenantLinked ? (
         <>
           {/* Section 1: Customer Tenant Information - Always visible, not collapsible */}
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-base font-semibold text-gray-800">Customer Tenant Information</h4>
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 mb-2">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="text-sm font-semibold text-gray-800">Customer Tenant Information</h4>
             </div>
             {/* Tenant Domain Subsection */}
             <ExpandableSection 
               title="Tenant Domain Details" 
               open={tenantDomainSectionOpen}
               onToggle={setTenantDomainSectionOpen}
-              className="mb-3"
+              className="mb-1"
               helpContent="Tenant Domain Details shows your organization's primary domain and tenant ID information. This includes the domain used for user authentication, email addresses, and Microsoft 365 services. The tenant ID is a unique identifier for your organization in Microsoft's cloud."
             >
-              <div className="flex items-center mb-6">
-                <img src={microsoftLogo} alt="Microsoft Logo" className="w-16 h-16 mr-4 rounded" />
-                <div>
-                  <div className="text-lg font-bold text-gray-800">AppDirect Demonstration 5</div>
-                  <div className="text-xs text-gray-500 font-mono">{tenantData.tenantId}</div>
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center">
+                  <img src={microsoftLogo} alt="Microsoft Logo" className="w-10 h-10 mr-3 rounded" />
+                  <div className="space-y-0.5">
+                    <div>
+                      <span className="text-xs text-gray-500">Tenant Name: </span>
+                      <span className="text-sm font-semibold text-gray-800">AppDirect Demonstration 5</span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500">Tenant UUID: </span>
+                      <span className="text-xs text-gray-600 font-mono">{tenantData.tenantId}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="mb-4 py-2">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="font-semibold text-gray-700">{tenantData.domain}</div>
-                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-                </div>
-                <div className="text-xs text-gray-500 mb-2">Tenant UUID: {tenantData.tenantId}</div>
-                <div className="flex justify-end">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
                   <button 
-                    className="px-3 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+                    className="px-2 py-1 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
                     onClick={handleUnlinkTenant}
                   >
                     Unlink Tenant
@@ -1137,44 +1139,42 @@ export const MicrosoftSection = () => {
               title="Administration Information" 
               open={adminSectionOpen}
               onToggle={setAdminSectionOpen}
-              className="mb-3"
+              className="mb-1"
               helpContent="Administration Information displays the users with administrative privileges in your Microsoft 365 tenant. This includes Global Administrators who have full control, Billing Administrators who manage subscriptions, and the status of your Microsoft Customer Agreement which governs your relationship with Microsoft."
             >
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-2">Global Admin User(s)</div>
-                <ul className="text-sm text-gray-700 space-y-1 mb-3">
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">Global Admin User(s)</div>
+                <ul className="text-xs text-gray-700 space-y-1">
                   {tenantData.globalAdmins.map((admin, index) => (
                     <li key={index} className="flex items-center">
-                      <span className="mr-2 text-green-400">•</span>
+                      <span className="mr-1.5 text-green-400">•</span>
                       {admin}
                     </li>
                   ))}
                 </ul>
               </div>
               
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-2">Billing Admin User(s)</div>
-                <ul className="text-sm text-gray-700 space-y-1 mb-3">
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-gray-700 mb-1">Billing Admin User(s)</div>
+                <ul className="text-xs text-gray-700 space-y-1">
                   {tenantData.billingAdmins.map((admin, index) => (
                     <li key={index} className="flex items-center">
-                      <span className="mr-2 text-green-400">•</span>
+                      <span className="mr-1.5 text-green-400">•</span>
                       {admin}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-1">Microsoft Customer Agreement Status</div>
-                <ul className="text-sm text-gray-700 space-y-1 mb-2">
-                  <li className="flex items-center justify-between">
-                    <span className="flex items-center">
-                      <span className="mr-2 text-green-400">•</span>
-                      Last Agreement Date: {tenantData.agreementDate}
-                    </span>
-                    <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-                  </li>
-                </ul>
+              <div>
+                <div className="text-xs font-semibold text-gray-700 mb-1">Microsoft Customer Agreement Status</div>
+                <div className="flex items-center justify-between text-xs text-gray-700">
+                  <span className="flex items-center">
+                    <span className="mr-1.5 text-green-400">•</span>
+                    Last Agreement Date: {tenantData.agreementDate}
+                  </span>
+                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
+                </div>
               </div>
             </ExpandableSection>
 
@@ -1183,7 +1183,7 @@ export const MicrosoftSection = () => {
               title={
                 <div className="flex items-center w-full">
                   <span className="flex-1">GDAP Relationships</span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <ActionButton onClick={handleGdapNew}>New</ActionButton>
                     <ActionButton onClick={handleGdapSync}>Sync</ActionButton>
                   </div>
@@ -1191,7 +1191,7 @@ export const MicrosoftSection = () => {
               }
               open={gdapSectionOpen}
               onToggle={setGdapSectionOpen}
-              className="mb-3"
+              className="mb-1"
               helpContent="GDAP (Granular Delegated Admin Privileges) Relationships define the specific permissions your organization has to manage your customer's Microsoft 365 environment. These relationships specify which administrative roles you can perform, such as user management, license assignment, and security settings. Each relationship has a defined scope and expiration date."
             >
               {gdapRelationships.map((rel, idx) => (
@@ -1199,49 +1199,48 @@ export const MicrosoftSection = () => {
                   key={rel.name}
                   title={
                     <div className="flex items-center justify-between w-full">
-                      <span>{rel.name}</span>
+                      <span className="text-xs">{rel.name}</span>
                       {rel.active ? (
-                        <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1 ml-2">Active</span>
+                        <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5 ml-1">Active</span>
                       ) : (
-                        <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1 ml-2">Pending</span>
+                        <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-1.5 py-0.5 ml-1">Pending</span>
                       )}
                     </div>
                   }
                   defaultOpen={false}
-                  className="mb-3 ml-4 border border-gray-200 bg-gray-50"
+                  className="mb-1 ml-2 border border-gray-200 bg-gray-50"
                 >
-                  {rel.name.startsWith('Default_') ? (
-                    <div className="text-xs text-gray-600 mb-2">This is a Default GDAP relationship and assigned when the tenant was created.</div>
-                  ) : !rel.active ? (
-                    <div className="text-xs text-gray-600 mb-2">This GDAP relationship request has been sent to the customer and is awaiting approval.</div>
-                  ) : (
-                    <div className="text-xs text-gray-600 mb-2">This GDAP relationship was explicitly requested by &lt;partner&gt; and accepted by the customer.</div>
-                  )}
-                  <div className="text-xs text-gray-500 mb-2">
-                    {!rel.active ? (
-                      'Request sent to customer - awaiting approval'
-                    ) : rel.autoExtend ? (
-                      `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]}`
+                  <div className="space-y-1">
+                    {rel.name.startsWith('Default_') ? (
+                      <div className="text-xs text-gray-600">Default GDAP relationship assigned when tenant was created.</div>
+                    ) : !rel.active ? (
+                      <div className="text-xs text-gray-600">GDAP request sent to customer, awaiting approval.</div>
                     ) : (
-                      `Relationship is valid from ${rel.dateRange.split(' - ')[0]} to ${rel.dateRange.split(' - ')[1]} and will NOT renew`
+                      <div className="text-xs text-gray-600">GDAP relationship requested and accepted by customer.</div>
                     )}
-                  </div>
-                  {rel.active && (
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex-1"></div>
-                      <div className="flex items-center">
-                        <span className="text-xs text-gray-700 mr-2">Renew every 180 days</span>
+                    <div className="text-xs text-gray-500">
+                      {!rel.active ? (
+                        'Awaiting approval'
+                      ) : rel.autoExtend ? (
+                        `Valid: ${rel.dateRange}`
+                      ) : (
+                        `Valid: ${rel.dateRange} (no renewal)`
+                      )}
+                    </div>
+                    {rel.active && (
+                      <div className="flex items-center justify-end py-0.5">
+                        <span className="text-xs text-gray-700 mr-1">Auto-renew</span>
                         <Toggle enabled={rel.autoExtend} onChange={(val) => handleAutoExtendToggle(idx, val)} size="sm" />
                       </div>
-                    </div>
-                  )}
-                  <ul className="text-xs text-gray-700 space-y-1">
-                    {rel.roles.map((role) => (
-                      <li key={role} className="flex items-center py-2">
-                        <span className="mr-2 text-green-400">✔</span> {role}
-                      </li>
-                    ))}
-                  </ul>
+                    )}
+                    <ul className="text-xs text-gray-700 space-y-0.5">
+                      {rel.roles.map((role) => (
+                        <li key={role} className="flex items-center">
+                          <span className="mr-1.5 text-green-400">✔</span> {role}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </ExpandableSection>
               ))}
             </ExpandableSection>
@@ -1251,7 +1250,7 @@ export const MicrosoftSection = () => {
               title={
                 <div className="flex items-center w-full">
                   <span className="flex-1">Special Qualification Status</span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     <ActionButton onClick={handleQualificationNew}>New</ActionButton>
                     <ActionButton onClick={handleSpecialQualificationsSync}>Sync</ActionButton>
                   </div>
@@ -1259,70 +1258,59 @@ export const MicrosoftSection = () => {
               }
               open={specialQualificationsSectionOpen}
               onToggle={setSpecialQualificationsSectionOpen}
-              className="mb-3"
+              className="mb-1"
               helpContent="Special Qualification Status shows your organization's eligibility for specific Microsoft programs and benefits. These qualifications can include government contracts, educational status, nonprofit status, or other specialized programs that provide additional benefits, discounts, or access to specific Microsoft services and features."
             >
-              {specialQualifications.map((qual, idx) => (
-                <div key={`${qual.name}-${qual.domain}-${idx}`} className="mb-3 py-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="font-semibold text-gray-700">{qual.name}</div>
+              <div className="space-y-1">
+                {specialQualifications.map((qual, idx) => (
+                  <div key={`${qual.name}-${qual.domain}-${idx}`} className="flex items-center justify-between py-0.5">
+                    <div>
+                      <span className="text-xs font-semibold text-gray-700">{qual.name}</span>
+                      {!qual.active && <span className="text-xs text-gray-500 ml-2">({qual.domain})</span>}
+                      <span className="text-xs text-gray-500 ml-2">
+                        {!qual.active ? '- Awaiting approval' : `- ${qual.lastModified}`}
+                      </span>
+                    </div>
                     {qual.active ? (
-                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
+                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
                     ) : (
-                      <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-2 py-1">Pending</span>
+                      <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-1.5 py-0.5">Pending</span>
                     )}
                   </div>
-                  {!qual.active && (
-                    <div className="text-xs text-gray-600 mb-1">Domain: {qual.domain}</div>
-                  )}
-                  <div className="text-xs text-gray-500">
-                    {!qual.active ? (
-                      'Request sent to Microsoft - awaiting approval'
-                    ) : (
-                      `Last modified on ${qual.lastModified}`
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </ExpandableSection>
 
             {/* Azure Subsection */}
             <ExpandableSection 
               title="Azure Settings" 
               sectionId="microsoft-azure-settings"
-              className="mb-3"
+              className="mb-1"
               helpContent="Azure Settings configure permissions and access levels for Azure services, including reservations, cost management, and subscription usage. These settings determine what Azure resources your organization can manage and purchase."
             >
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-1">Microsoft Purchase Permissions</div>
-                <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
-                  <div>
+              <div className="space-y-1.5">
+                <div className="bg-gray-50 border border-gray-200 rounded p-2 flex items-center justify-between">
+                  <div className="flex-1 mr-2">
                     <div className="font-semibold text-xs">Azure Reservations</div>
-                    <div className="text-xs text-gray-500">Enabling this setting allows customers to purchase Azure Reservations. Please follow the guidelines before you enable this feature for your customer.</div>
+                    <div className="text-xs text-gray-500">Allow customers to purchase Azure Reservations</div>
                   </div>
                   <div className="flex items-center">
                     <Toggle enabled={azureReservations} onChange={setAzureReservations} size="sm" />
-                    <span className={`text-xs ml-2 ${azureReservations ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureReservations ? 'Enabled' : 'Disabled'}</span>
+                    <span className={`text-xs ml-1.5 w-6 ${azureReservations ? 'text-green-700' : 'text-gray-400'}`}>{azureReservations ? 'On' : 'Off'}</span>
                   </div>
                 </div>
-              </div>
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-1">Microsoft Cost Management</div>
-                <div className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center justify-between">
-                  <div>
+                <div className="bg-gray-50 border border-gray-200 rounded p-2 flex items-center justify-between">
+                  <div className="flex-1 mr-2">
                     <div className="font-semibold text-xs">Azure Subscription Usage</div>
-                    <div className="text-xs text-gray-500">Enabling this setting updates the customer's billing policy to allow users with the proper role and access to the subscription, visibility into their consumption and the associated retail pay-as-you-go rates in the Azure portal.</div>
+                    <div className="text-xs text-gray-500">Show consumption in Azure portal</div>
                   </div>
                   <div className="flex items-center">
                     <Toggle enabled={azureUsage} onChange={setAzureUsage} size="sm" />
-                    <span className={`text-xs ml-2 ${azureUsage ? 'text-green-700' : 'text-gray-400 opacity-60'}`}>{azureUsage ? 'Enabled' : 'Disabled'}</span>
+                    <span className={`text-xs ml-1.5 w-6 ${azureUsage ? 'text-green-700' : 'text-gray-400'}`}>{azureUsage ? 'On' : 'Off'}</span>
                   </div>
                 </div>
-              </div>
-              <div className="mb-4 py-2">
-                <div className="font-semibold text-gray-700 mb-1">Azure Management Permissions</div>
-                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                  <div className="text-xs text-gray-500 mb-3">Partners are required to have certain permissions to manage customers with Azure subscriptions.</div>
+                <div className="bg-gray-50 border border-gray-200 rounded p-2">
+                  <div className="font-semibold text-xs mb-1">Azure Management Permissions</div>
                   <AzureManagementPermissions />
                 </div>
               </div>

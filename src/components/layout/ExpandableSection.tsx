@@ -64,38 +64,38 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   };
 
   return (
-    <div className={`border-2 border-gray-300 rounded-lg bg-white mb-4 py-2 shadow-sm ${className}`}>
+    <div className={`border border-gray-300 rounded-lg bg-white mb-1 shadow-sm ${className}`}>
       <button
-        className="w-full flex items-center justify-between px-4 py-3 text-left focus:outline-none hover:bg-gray-50 rounded-t-lg transition-colors"
+        className="w-full flex items-center justify-between px-3 py-1.5 text-left focus:outline-none hover:bg-gray-50 rounded-t-lg transition-colors"
         onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <div className="flex-1 font-semibold text-gray-800 flex items-center">
+        <div className="flex-1 font-semibold text-gray-800 text-sm flex items-center">
           {typeof title === 'string' ? (
             <>
               {title}
               {helpContent && (
-                <LearnMoreLink content={helpContent} className="ml-2" />
+                <LearnMoreLink content={helpContent} className="ml-1" />
               )}
             </>
           ) : (
             <>
               {title}
               {helpContent && (
-                <LearnMoreLink content={helpContent} className="ml-2" />
+                <LearnMoreLink content={helpContent} className="ml-1" />
               )}
             </>
           )}
         </div>
-        <span className="ml-2">
+        <span className="ml-1">
           {isOpen ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           )}
         </span>
       </button>
-      {isOpen && <div className="px-4 pb-4">{children}</div>}
+      {isOpen && <div className="px-3 pb-2 pt-1">{children}</div>}
     </div>
   );
 }; 
