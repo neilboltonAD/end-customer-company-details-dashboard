@@ -3,6 +3,7 @@ import { notifications } from '@mantine/notifications';
 import { ExpandableSection } from '../layout/ExpandableSection';
 import { Toggle } from '../form/Toggle';
 import { PartnerCenterInsights } from './PartnerCenterInsights';
+import { P2PTransfersPanel } from './p2p';
 
 const initialGdapRelationships = [
   {
@@ -1404,6 +1405,9 @@ export const MicrosoftSection = () => {
 
             {/* Partner Center Insights */}
             <PartnerCenterInsights />
+
+            {/* P2P Subscription Transfers */}
+            <P2PTransfersPanel />
 
             {/* GDAP Relationships Subsection */}
             <ExpandableSection
