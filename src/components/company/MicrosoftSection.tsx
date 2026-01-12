@@ -1277,8 +1277,10 @@ export const MicrosoftSection = () => {
               <h4 className="text-sm font-semibold text-gray-800">Customer Tenant Information</h4>
             </div>
             
-            {/* Customer Tenant Information */}
-            <div className="bg-white border border-gray-300 rounded-lg w-[37.5%] mb-1 shadow-sm">
+            {/* Customer Tenant Information & Administration Information - Side by side */}
+            <div className="flex gap-2 mb-1">
+              {/* Customer Tenant Information */}
+              <div className="bg-white border border-gray-300 rounded-lg flex-1 shadow-sm">
               <div className="flex items-start p-2">
                 <img src={microsoftLogo} alt="Microsoft Logo" className="w-8 h-8 mr-3 rounded flex-shrink-0" />
                 <div className="flex-1">
@@ -1362,54 +1364,46 @@ export const MicrosoftSection = () => {
                   </div>
                 </div>
               </div>
+              </div>
+
+              {/* Administration Information - Right side */}
+              <div className="flex-1">
+                <ExpandableSection 
+                  title="Administration Information" 
+                  open={adminSectionOpen}
+                  onToggle={setAdminSectionOpen}
+                  className="h-full"
+                  helpContent="Administration Information displays the users with administrative privileges in your Microsoft 365 tenant. This includes Global Administrators who have full control and Billing Administrators who manage subscriptions."
+                >
+                  <div className="mb-3">
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Global Admin User(s)</div>
+                    <ul className="text-xs text-gray-700 space-y-1">
+                      {tenantData.globalAdmins.map((admin, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="mr-1.5 text-green-400">•</span>
+                          {admin}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <div className="text-xs font-semibold text-gray-700 mb-1">Billing Admin User(s)</div>
+                    <ul className="text-xs text-gray-700 space-y-1">
+                      {tenantData.billingAdmins.map((admin, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="mr-1.5 text-green-400">•</span>
+                          {admin}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </ExpandableSection>
+              </div>
             </div>
 
-            {/* Partner Center Insights - connects to tab above */}
+            {/* Partner Center Insights */}
             <PartnerCenterInsights />
-
-            {/* Admin Subsection */}
-            <ExpandableSection 
-              title="Administration Information" 
-              open={adminSectionOpen}
-              onToggle={setAdminSectionOpen}
-              className="mb-1"
-              helpContent="Administration Information displays the users with administrative privileges in your Microsoft 365 tenant. This includes Global Administrators who have full control, Billing Administrators who manage subscriptions, and the status of your Microsoft Customer Agreement which governs your relationship with Microsoft."
-            >
-              <div className="mb-3">
-                <div className="text-xs font-semibold text-gray-700 mb-1">Global Admin User(s)</div>
-                <ul className="text-xs text-gray-700 space-y-1">
-                  {tenantData.globalAdmins.map((admin, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="mr-1.5 text-green-400">•</span>
-                      {admin}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="mb-3">
-                <div className="text-xs font-semibold text-gray-700 mb-1">Billing Admin User(s)</div>
-                <ul className="text-xs text-gray-700 space-y-1">
-                  {tenantData.billingAdmins.map((admin, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="mr-1.5 text-green-400">•</span>
-                      {admin}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold text-gray-700 mb-1">Microsoft Customer Agreement Status</div>
-                <div className="flex items-center justify-between text-xs text-gray-700">
-                  <span className="flex items-center">
-                    <span className="mr-1.5 text-green-400">•</span>
-                    Last Agreement Date: {tenantData.agreementDate}
-                  </span>
-                  <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
-                </div>
-              </div>
-            </ExpandableSection>
 
             {/* GDAP Relationships Subsection */}
             <ExpandableSection
