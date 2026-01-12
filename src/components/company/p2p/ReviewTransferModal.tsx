@@ -128,7 +128,7 @@ export const ReviewTransferModal: React.FC<ReviewTransferModalProps> = ({
                 <Table.Th>Qty</Table.Th>
                 <Table.Th>Term</Table.Th>
                 <Table.Th>Billing</Table.Th>
-                <Table.Th>Value/mo</Table.Th>
+                <Table.Th>Est. Value/mo</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -160,8 +160,8 @@ export const ReviewTransferModal: React.FC<ReviewTransferModalProps> = ({
               <Text size="lg" fw={700}>{totalSeats}</Text>
             </div>
             <div className="text-center">
-              <Text size="xs" c="dimmed">Monthly Value</Text>
-              <Text size="lg" fw={700}>{formatCurrency(transfer.totalMonthlyValue)}</Text>
+<Text size="xs" c="dimmed">Est. Monthly Value</Text>
+            <Text size="lg" fw={700}>~{formatCurrency(transfer.totalMonthlyValue)}</Text>
             </div>
           </Group>
         </Card>
@@ -187,7 +187,7 @@ export const ReviewTransferModal: React.FC<ReviewTransferModalProps> = ({
             </Text>
             <Text size="xs" c="dimmed" mb="md">
               You will become the billing partner for {transfer.lineItems.length} subscription(s) 
-              worth {formatCurrency(transfer.totalMonthlyValue)}/month.
+              worth an estimated {formatCurrency(transfer.totalMonthlyValue)}/month.
             </Text>
             <Group justify="flex-end">
               <Button variant="subtle" size="xs" onClick={() => setConfirmAccept(false)}>

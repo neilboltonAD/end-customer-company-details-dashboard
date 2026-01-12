@@ -224,7 +224,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
                 <Table.Th>Qty</Table.Th>
                 <Table.Th>Term</Table.Th>
                 <Table.Th>Billing</Table.Th>
-                <Table.Th>Value/mo</Table.Th>
+                <Table.Th>Est. Value/mo</Table.Th>
                 <Table.Th>Status</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -267,8 +267,8 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
                 <Text size="md" fw={700}>{totalSeats}</Text>
               </div>
               <div className="text-center">
-                <Text size="xs" c="dimmed">Monthly Value</Text>
-                <Text size="md" fw={700}>{formatCurrency(transfer.totalMonthlyValue)}</Text>
+                <Text size="xs" c="dimmed">Est. Monthly Value</Text>
+                <Text size="md" fw={700}>~{formatCurrency(transfer.totalMonthlyValue)}</Text>
               </div>
             </Group>
           </Card>

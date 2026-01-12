@@ -138,7 +138,7 @@ const TransferRow: React.FC<{
             <TransferStatusBadge status={transfer.status} size="xs" />
           </Group>
           <Text size="xs" c="dimmed">
-            {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • {formatCurrency(transfer.totalMonthlyValue)}/mo
+            {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo est.
             {transfer.status === 'Pending' && (
               <span className={isUrgent ? 'text-orange-600 font-medium' : ''}>
                 {' '}• {transfer.direction === 'Incoming' ? 'Expires' : 'Created'}: {formatDate(transfer.direction === 'Incoming' ? transfer.expirationDate : transfer.createdDate)}
@@ -445,7 +445,7 @@ export const P2PTransfersPanel: React.FC = () => {
                     <Table.Th>Qty</Table.Th>
                     <Table.Th>Term</Table.Th>
                     <Table.Th>Billing</Table.Th>
-                    <Table.Th>Value/mo</Table.Th>
+                    <Table.Th>Est. Value/mo</Table.Th>
                     <Table.Th>Eligible</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
