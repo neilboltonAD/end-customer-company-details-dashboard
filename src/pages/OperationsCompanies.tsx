@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, HelpCircle, Plus } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, HelpCircle, Plus, ArrowLeftRight } from 'lucide-react';
+import { Badge } from '@mantine/core';
 import { TopNavbar } from '../components/navigation/TopNavbar';
+import { P2PTransfersManagementModal } from '../components/company/p2p';
 
 // Operations Sidebar Component
 const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
@@ -86,6 +88,10 @@ const companies = [
 export const OperationsCompanies = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [p2pModalOpen, setP2pModalOpen] = useState(false);
+
+  // Mock pending transfer count for the badge
+  const pendingTransferCount = 3;
 
   const handleCompanyClick = (companyName: string) => {
     // Navigate to company details with company name as URL param
@@ -103,6 +109,18 @@ export const OperationsCompanies = () => {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-normal text-gray-900">Companies</h1>
             <div className="flex items-center space-x-3">
+              <button 
+                className="px-4 py-2 text-sm border border-blue-300 rounded hover:bg-blue-50 bg-white text-blue-700 flex items-center relative"
+                onClick={() => setP2pModalOpen(true)}
+              >
+                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                P2P Transfers
+                {pendingTransferCount > 0 && (
+                  <span className="ml-2 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {pendingTransferCount}
+                  </span>
+                )}
+              </button>
               <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 bg-white">
                 New Lead or Purchase
               </button>
@@ -188,6 +206,12 @@ export const OperationsCompanies = () => {
       <button className="fixed bottom-6 right-6 h-10 w-10 bg-teal-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-teal-700">
         <HelpCircle className="h-5 w-5" />
       </button>
+
+      {/* P2P Transfers Management Modal */}
+      <P2PTransfersManagementModal
+        open={p2pModalOpen}
+        onClose={() => setP2pModalOpen(false)}
+      />
     </div>
   );
 };
