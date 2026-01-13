@@ -1,0 +1,80 @@
+{
+  "translation": {
+    "p2p": {
+      "title": "P2P Subscription Transfers",
+      "panel": {
+        "sync": "Sync",
+        "newTransfer": "New Transfer",
+        "incoming": "Incoming",
+        "outgoing": "Outgoing",
+        "completed": "Completed",
+        "failed": "Failed",
+        "pendingReview": "pending review",
+        "awaitingResponse": "awaiting response",
+        "last90Days": "last 90 days",
+        "noActiveTransfers": "No active transfers",
+        "noTransferHistory": "No transfer history"
+      },
+      "accordion": {
+        "availableSubscriptions": "Available Subscriptions for Transfer",
+        "activeTransfers": "Active Transfers",
+        "transferHistory": "Transfer History"
+      },
+      "table": {
+        "product": "Product",
+        "qty": "Qty",
+        "term": "Term",
+        "billing": "Billing",
+        "estValue": "Est. Value/mo",
+        "direction": "Direction",
+        "partner": "Partner",
+        "items": "Items",
+        "status": "Status",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "create": {
+        "title": "Create Outbound Transfer",
+        "selectSubscriptions": "Select Subscriptions to Transfer",
+        "targetPartner": "Target Partner Information",
+        "tenantId": "Target Partner Tenant ID",
+        "mpnId": "MPN ID (optional)",
+        "continue": "Continue",
+        "confirm": "Confirm Transfer",
+        "confirmMessage": "Please confirm you want to transfer these subscriptions. The target partner will have 30 days to accept the transfer."
+      },
+      "review": {
+        "title": "Review Incoming Transfer",
+        "sourcePartner": "Source Partner",
+        "subscriptionsToTransfer": "Subscriptions to be Transferred",
+        "rejectReason": "Reason for Rejection",
+        "accept": "Accept Transfer",
+        "reject": "Reject"
+      },
+      "details": {
+        "title": "Transfer Details",
+        "lineItems": "Subscription Line Items",
+        "timeline": "Activity Timeline",
+        "rejectionReason": "Rejection Reason"
+      },
+      "status": {
+        "pending": "Pending",
+        "inProgress": "Processing",
+        "completed": "Completed",
+        "failed": "Failed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      },
+      "notifications": {
+        "syncSuccess": "All transfer data is up to date.",
+        "syncFailed": "Failed to sync transfer data. Please try again.",
+        "transferCreated": "Transfer request sent to target partner.",
+        "transferAccepted": "The transfer is being processed by Microsoft.",
+        "transferRejected": "The transfer request has been rejected.",
+        "transferCancelled": "The transfer request has been cancelled."
+      }
+    }
+  }
+}
+
