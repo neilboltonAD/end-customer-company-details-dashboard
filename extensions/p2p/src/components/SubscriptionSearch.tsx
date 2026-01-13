@@ -14,7 +14,6 @@ import {
   Alert,
   Loader,
   Center,
-  SegmentedControl,
   ThemeIcon,
 } from '@mantine/core';
 import { Search, X, AlertCircle, Building2 } from 'lucide-react';
@@ -202,14 +201,11 @@ interface SubscriptionSearchProps {
   onInitiateTransfer: () => void;
 }
 
-type SearchType = 'customer' | 'subscription';
-
 export function SubscriptionSearch({
   selectedSubscriptions,
   onSelectionChange,
   onInitiateTransfer,
 }: SubscriptionSearchProps) {
-  const [searchType, setSearchType] = useState<SearchType>('customer');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<typeof mockSearchableSubscriptions>([]);
@@ -226,24 +222,19 @@ export function SubscriptionSearch({
 
     const query = searchQuery.toLowerCase().trim();
     
-    const results = mockSearchableSubscriptions.filter(sub => {
-      if (searchType === 'customer') {
-        return (
-          sub.customerName.toLowerCase().includes(query) ||
-          sub.customerId.toLowerCase().includes(query)
-        );
-      } else {
-        return (
-          sub.microsoftSubscriptionId.toLowerCase().includes(query) ||
-          sub.id.toLowerCase().includes(query) ||
-          sub.productName.toLowerCase().includes(query)
-        );
-      }
-    });
+    // Search across both customer and subscription fields
+    const results = mockSearchableSubscriptions.filter(sub => 
+      sub.customerName.toLowerCase().includes(query) ||
+      sub.customerId.toLowerCase().includes(query) ||
+      sub.microsoftSubscriptionId.toLowerCase().includes(query) ||
+      sub.id.toLowerCase().includes(query) ||
+      sub.productName.toLowerCase().includes(query) ||
+      sub.skuName.toLowerCase().includes(query)
+    );
 
     setSearchResults(results);
     setIsSearching(false);
-  }, [searchQuery, searchType]);
+  }, [searchQuery]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -301,58 +292,30 @@ export function SubscriptionSearch({
   return (
     <Stack gap="md">
       {/* Search Controls */}
-      <Card withBorder padding="sm" bg="gray.0">
-        <Stack gap="sm">
-          <Group gap="xs">
-            <Text size="sm" fw={500}>Search by:</Text>
-            <SegmentedControl
-              size="xs"
-              value={searchType}
-              onChange={(v) => setSearchType(v as SearchType)}
-              data={[
-                { label: 'Customer', value: 'customer' },
-                { label: 'Subscription', value: 'subscription' },
-              ]}
-            />
-          </Group>
-          
-          <Group gap="xs">
-            <TextInput
-              placeholder={
-                searchType === 'customer'
-                  ? 'Enter customer name or ID (e.g., "Woodgrove", "Contoso", "Fabrikam")...'
-                  : 'Enter subscription ID or product name (e.g., "E3", "Defender")...'
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.currentTarget.value)}
-              onKeyDown={handleKeyDown}
-              leftSection={<Search size={14} />}
-              rightSection={
-                searchQuery && (
-                  <ActionIcon size="xs" variant="subtle" onClick={clearSearch}>
-                    <X size={12} />
-                  </ActionIcon>
-                )
-              }
-              style={{ flex: 1 }}
-            />
-            <Button 
-              size="sm" 
-              onClick={handleSearch}
-              loading={isSearching}
-              disabled={!searchQuery.trim()}
-            >
-              Search
-            </Button>
-          </Group>
-
-          <Text size="xs" c="dimmed">
-            {searchType === 'customer' 
-              ? 'Search across all customers to find subscriptions eligible for P2P transfer'
-              : 'Search by Microsoft subscription ID or product name'}
-          </Text>
-        </Stack>
-      </Card>
+      <Group gap="xs">
+        <TextInput
+          placeholder="Search by customer name, subscription ID, or product name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          leftSection={<Search size={14} />}
+          rightSection={
+            searchQuery && (
+              <ActionIcon size="xs" variant="subtle" onClick={clearSearch}>
+                <X size={12} />
+              </ActionIcon>
+            )
+          }
+          style={{ flex: 1 }}
+        />
+        <Button 
+          onClick={handleSearch}
+          loading={isSearching}
+          disabled={!searchQuery.trim()}
+        >
+          Search
+        </Button>
+      </Group>
 
       {/* Search Results */}
       {isSearching && (
