@@ -7,9 +7,9 @@
 | **Feature** | Partner to Partner Transfers |
 | **Author** | Neil Bolton |
 | **Created** | January 12, 2026 |
-| **Last Updated** | January 12, 2026 |
-| **Status** | ✅ Implemented (Demo) |
-| **Version** | 1.1 |
+| **Last Updated** | January 13, 2026 |
+| **Status** | ✅ Implemented (AppDirect Extension Demo) |
+| **Version** | 1.2 |
 
 ---
 
@@ -830,77 +830,88 @@ The following items are explicitly **out of scope** for this initial release:
 
 ## 13. Implementation Status
 
-### 13.1 Completed Features (Demo Build)
+### 13.1 AppDirect Extension Implementation
 
-The following features have been implemented in the demo application:
+The P2P Transfers feature has been implemented as an **AppDirect Extension** using the official extension framework. This allows the feature to be deployed directly to any AppDirect marketplace as a standalone, embeddable application.
 
-| Feature | Status | Location | Notes |
-|---------|--------|----------|-------|
-| **P2P Transfers Panel** | ✅ Complete | Company Details > Vendor Information > Microsoft | Accordion-based panel with all core functionality |
-| **Transfer Overview Cards** | ✅ Complete | P2P Panel Header | Shows Incoming (3), Outgoing (1), Completed counts |
-| **Available Subscriptions List** | ✅ Complete | P2P Panel Accordion | 5 demo subscriptions eligible for transfer |
-| **Active Transfers List** | ✅ Complete | P2P Panel Accordion | Shows pending incoming/outgoing transfers |
-| **Transfer History** | ✅ Complete | P2P Panel Accordion | Shows completed, rejected, cancelled transfers |
-| **Create Transfer Modal** | ✅ Complete | Modal | Two-step wizard with partner ID entry and subscription selection |
-| **Review Transfer Modal** | ✅ Complete | Modal | Accept/reject incoming transfers with reason selection |
-| **Transfer Details Modal** | ✅ Complete | Modal | Full details with timeline and audit log |
-| **Status Badges** | ✅ Complete | Throughout | Mantine-styled badges for all transfer states |
-| **P2P Management Modal** | ✅ Complete | Operations > Companies | Platform-wide P2P transfer management |
-| **Notification Bell Dropdown** | ✅ Complete | Top Navigation Bar | P2P notifications with click-through to details |
+| Attribute | Value |
+|-----------|-------|
+| **Extension Name** | `p2p` |
+| **Extension Type** | Micro-UI / Embedded React App |
+| **Build Tool** | Webpack with Module Federation |
+| **UI Framework** | Mantine 8.x |
+| **State Management** | React Hooks + Context |
+| **Demo Mode** | ✅ Enabled (mock data, no live API calls) |
 
-### 13.2 Component Architecture
+### 13.2 Completed Features (Extension Demo)
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Demo Mode Banner** | ✅ Complete | Single-line banner at top indicating demo mode |
+| **P2P Transfers Header** | ✅ Complete | Title with DEMO badge and incoming notification count |
+| **Subscription Search** | ✅ Complete | Full-width search across customers and products |
+| **Search Results Table** | ✅ Complete | Grouped by customer with select-all for eligible subs |
+| **Active Transfers List** | ✅ Complete | Accordion with incoming/outgoing transfers |
+| **Transfer History** | ✅ Complete | Accordion showing completed transfers |
+| **Create Transfer Modal** | ✅ Complete | 3-step wizard: Select → Target Partner → Confirm |
+| **Review Transfer Modal** | ✅ Complete | Accept/reject with confirmation |
+| **Transfer Details Modal** | ✅ Complete | Full details with partner info and line items |
+| **Status Badges** | ✅ Complete | Color-coded status indicators |
+| **Action Buttons** | ✅ Complete | View, Accept, Reject, Cancel all functional |
+
+### 13.3 Extension Architecture
 
 ```
-src/components/company/p2p/
-├── index.ts                      # Barrel exports
-├── types.ts                      # TypeScript interfaces
-├── mockData.ts                   # Demo data & utility functions
-├── P2PTransfersPanel.tsx         # Main panel component
-├── P2PTransfersManagementModal.tsx # Platform-wide management
-├── CreateTransferModal.tsx       # Create outgoing transfer
-├── ReviewTransferModal.tsx       # Accept/reject incoming
-├── TransferDetailsModal.tsx      # View transfer details
-└── TransferStatusBadge.tsx       # Status badge component
+extensions/p2p-official/
+├── src/
+│   ├── components/
+│   │   ├── App/index.tsx           # Main extension entry point
+│   │   └── Header/index.tsx        # Boilerplate header (unused)
+│   ├── context/
+│   │   └── MarketplaceContext.tsx  # AppDirect host context
+│   ├── hooks/
+│   │   ├── useMarketplaceContext.ts
+│   │   └── usePageTitle.ts
+│   ├── locales/
+│   │   └── en.json                 # i18n strings
+│   └── index.tsx                   # React mount point
+├── static/
+│   ├── app-config.json             # Extension metadata
+│   └── app-dev-config.json         # Dev server config
+├── webpack.config.js               # Build configuration
+└── package.json                    # Dependencies
 ```
 
-### 13.3 Integration Points
+### 13.4 Key UI Components
 
-| Integration | File | Description |
-|-------------|------|-------------|
-| Vendor Information Page | `MicrosoftSection.tsx` | P2PTransfersPanel embedded after Partner Center Insights |
-| Companies List Page | `OperationsCompanies.tsx` | P2P Transfers button opens management modal |
-| Top Navigation | `TopNavbar.tsx` | Bell icon dropdown shows P2P notifications |
+| Component | Purpose |
+|-----------|---------|
+| **Search Bar** | Full-width input with "Search by customer name, subscription ID, or product name..." placeholder |
+| **Search Results** | Card per customer, table of subscriptions with checkboxes |
+| **Select All** | Header checkbox appears when 2+ eligible subs in results |
+| **Summary Cards** | Incoming (2), Outgoing (1), Completed (5) with click actions |
+| **Transfer Table** | Direction badge, Partner, Items, Est. Value, Status, Expires, Actions |
+| **Initiate Transfer Button** | Appears when subscriptions selected, opens 3-step modal |
 
-### 13.4 Demo Data
+### 13.5 Create Transfer Modal Steps
 
-The demo includes realistic mock data:
+| Step | Title | Description |
+|------|-------|-------------|
+| **1** | Select | Review selected subscriptions, remove any unwanted, see total est. value |
+| **2** | Target | Enter Target Partner Tenant ID (required) and MPN ID (optional) |
+| **3** | Confirm | Final review with subscription table and confirmation button |
 
-| Data Type | Count | Description |
-|-----------|-------|-------------|
-| Incoming Pending Transfers | 3 | From Contoso, Fabrikam, Northwind |
-| Outgoing Pending Transfers | 1 | To Acme Corp |
-| Completed Transfers | 2 | Historical completed transfers |
-| Failed/Rejected Transfers | 2 | Including one cancelled |
-| Available Subscriptions | 5 | M365 Business Premium, E3, E5, Teams Rooms, Defender |
+### 13.6 Demo Data
 
-### 13.5 Access Points
+| Data Type | Count | Examples |
+|-----------|-------|----------|
+| **Searchable Customers** | 5 | Woodgrove Bank, Contoso Ltd, Fabrikam Inc, Adventure Works |
+| **Searchable Subscriptions** | 11 | M365 E3/E5, Business Premium, Power BI Pro, Teams Rooms, Defender |
+| **Active Incoming Transfers** | 2 | Contoso Partners, Fabrikam Solutions |
+| **Active Outgoing Transfers** | 1 | Adventure Works |
+| **Completed Transfers** | 5 | Various historical transfers |
 
-Users can access P2P transfer functionality from:
-
-1. **Company Details Page** (`/operations/companies/{companyName}`)
-   - Navigate to Vendor Information tab
-   - View P2P Transfers Panel in Microsoft section
-
-2. **Companies List Page** (`/operations/companies`)
-   - Click "P2P Transfers" button in header
-   - Opens platform-wide management modal
-
-3. **Top Navigation Bar** (Global)
-   - Click bell icon to see P2P notifications
-   - Click notification to navigate to relevant company
-   - Badge shows count of pending transfers
-
-### 13.6 Pricing Display
+### 13.7 Pricing Display
 
 All pricing throughout the P2P feature is displayed as **estimated** values:
 - Table headers show "Est. Value/mo"
@@ -908,16 +919,30 @@ All pricing throughout the P2P feature is displayed as **estimated** values:
 - Currency values prefixed with `~` (e.g., ~$1,090)
 - This reflects that actual subscription pricing is only confirmed upon transfer completion
 
-### 13.7 Future Enhancements
+### 13.8 Running the Extension
+
+**Development Mode (Local):**
+```bash
+cd extensions/p2p-official
+npm install
+npm start
+```
+Access at: `http://localhost:7230`
+
+**Deployed Mode:**
+Upload the built extension to AppDirect via Admin > Customization > Extensions
+
+### 13.9 Future Enhancements
 
 | Enhancement | Priority | Notes |
 |-------------|----------|-------|
-| Microsoft Partner Centre API Integration | High | Replace mock data with live API calls |
-| Webhook Event Handling | High | Real-time status updates |
+| Microsoft Partner Centre API Integration | High | Replace mock data with live GraphQL/REST calls |
+| AppDirect GraphQL Schema Extension | High | Custom types for P2P transfers |
+| Webhook Event Handling | High | Real-time status updates from Microsoft |
+| Extension Embedding | Medium | Embed in Company Details > Vendor Information |
 | Email Notifications | Medium | Notify users of transfer events |
 | Bulk Transfer Operations | Medium | Transfer multiple customers at once |
 | Transfer Analytics Dashboard | Low | Metrics and reporting |
-| Mobile App Support | Low | Responsive design for mobile |
 
 ---
 
@@ -970,6 +995,7 @@ All pricing throughout the P2P feature is displayed as **estimated** values:
 |---------|------|--------|---------|
 | 1.0 | Jan 12, 2026 | Neil Bolton | Initial draft |
 | 1.1 | Jan 12, 2026 | Neil Bolton | Added Implementation Status section; Updated status to Implemented (Demo); Documented all completed features including P2P Management Modal and Notification Bell Dropdown |
+| 1.2 | Jan 13, 2026 | Neil Bolton | Migrated to AppDirect Extension architecture; Updated implementation status to reflect extension-based approach; Added subscription search with select-all; 3-step create transfer wizard with subscription review; Documented extension structure and running instructions |
 
 ---
 
