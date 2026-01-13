@@ -17,7 +17,7 @@ import {
   SegmentedControl,
   ThemeIcon,
 } from '@mantine/core';
-import { Search, X, AlertCircle, Building2, Package, Hash } from 'lucide-react';
+import { Search, X, AlertCircle, Building2 } from 'lucide-react';
 import { Subscription } from '../context/types';
 import { formatCurrency, formatTermDuration } from '../utils/formatters';
 
@@ -310,24 +310,8 @@ export function SubscriptionSearch({
               value={searchType}
               onChange={(v) => setSearchType(v as SearchType)}
               data={[
-                { 
-                  label: (
-                    <Group gap={4}>
-                      <Building2 size={12} />
-                      <span>Customer</span>
-                    </Group>
-                  ), 
-                  value: 'customer' 
-                },
-                { 
-                  label: (
-                    <Group gap={4}>
-                      <Package size={12} />
-                      <span>Subscription</span>
-                    </Group>
-                  ), 
-                  value: 'subscription' 
-                },
+                { label: 'Customer', value: 'customer' },
+                { label: 'Subscription', value: 'subscription' },
               ]}
             />
           </Group>

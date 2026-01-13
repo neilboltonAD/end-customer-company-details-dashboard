@@ -19,7 +19,7 @@ import {
   Stepper,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { ArrowUpRight, AlertCircle, Info, Search, X, Building2, Package } from 'lucide-react';
+import { ArrowUpRight, AlertCircle, Info, Search, X, Building2 } from 'lucide-react';
 import { Subscription } from '../../context/types';
 import { useTransfers } from '../../hooks/useTransfers';
 import { formatCurrency } from '../../utils/formatters';
@@ -301,8 +301,8 @@ export function CreateTransferModal({
                     value={searchType}
                     onChange={(v) => setSearchType(v as SearchType)}
                     data={[
-                      { label: <Group gap={4}><Building2 size={12} /><span>Customer</span></Group>, value: 'customer' },
-                      { label: <Group gap={4}><Package size={12} /><span>Subscription</span></Group>, value: 'subscription' },
+                      { label: 'Customer', value: 'customer' },
+                      { label: 'Subscription', value: 'subscription' },
                     ]}
                   />
                 </Group>
