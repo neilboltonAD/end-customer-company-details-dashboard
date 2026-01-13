@@ -25,8 +25,9 @@ import { useTransfers } from '../../hooks/useTransfers';
 import { formatCurrency } from '../../utils/formatters';
 import { validateCreateTransferInput, isValidTenantId } from '../../utils/validators';
 
-// Extended mock data for search
+// Extended mock data for search - must match SubscriptionSearch mock data
 const mockSearchableSubscriptions: (Subscription & { customerName: string; customerId: string })[] = [
+  // demoresellercustomer3's subscriptions
   {
     id: 'sub-1',
     microsoftSubscriptionId: 'a1b2c3d4-e5f6-7890-abcd-111111111111',
@@ -58,6 +59,22 @@ const mockSearchableSubscriptions: (Subscription & { customerName: string; custo
     customerId: 'cust-001',
   },
   {
+    id: 'sub-3',
+    microsoftSubscriptionId: 'a1b2c3d4-e5f6-7890-abcd-333333333333',
+    offerId: 'CFQ7TTC0LFLZ',
+    productName: 'Microsoft 365 E5',
+    skuName: 'Microsoft 365 E5',
+    quantity: 10,
+    billingCycle: 'Monthly',
+    termDuration: 'P3Y',
+    monthlyValue: 570,
+    status: 'Active',
+    isTransferable: true,
+    customerName: 'demoresellercustomer3',
+    customerId: 'cust-001',
+  },
+  // Woodgrove Bank subscriptions
+  {
     id: 'sub-wg-1',
     microsoftSubscriptionId: 'b2c3d4e5-f6a7-8901-bcde-111111111111',
     offerId: 'CFQ7TTC0LFLX',
@@ -87,6 +104,7 @@ const mockSearchableSubscriptions: (Subscription & { customerName: string; custo
     customerName: 'Woodgrove Bank',
     customerId: 'cust-002',
   },
+  // Contoso Ltd subscriptions
   {
     id: 'sub-co-1',
     microsoftSubscriptionId: 'c3d4e5f6-a7b8-9012-cdef-111111111111',
@@ -103,6 +121,22 @@ const mockSearchableSubscriptions: (Subscription & { customerName: string; custo
     customerId: 'cust-003',
   },
   {
+    id: 'sub-co-2',
+    microsoftSubscriptionId: 'c3d4e5f6-a7b8-9012-cdef-222222222222',
+    offerId: 'CFQ7TTC0RM8K',
+    productName: 'Microsoft Teams Rooms Pro',
+    skuName: 'Teams Rooms Pro',
+    quantity: 50,
+    billingCycle: 'Monthly',
+    termDuration: 'P1Y',
+    monthlyValue: 1000,
+    status: 'Active',
+    isTransferable: true,
+    customerName: 'Contoso Ltd',
+    customerId: 'cust-003',
+  },
+  // Fabrikam Inc subscriptions
+  {
     id: 'sub-fab-1',
     microsoftSubscriptionId: 'd4e5f6a7-b8c9-0123-def0-111111111111',
     offerId: 'CFQ7TTC0LFLZ',
@@ -116,6 +150,37 @@ const mockSearchableSubscriptions: (Subscription & { customerName: string; custo
     isTransferable: true,
     customerName: 'Fabrikam Inc',
     customerId: 'cust-004',
+  },
+  {
+    id: 'sub-fab-2',
+    microsoftSubscriptionId: 'd4e5f6a7-b8c9-0123-def0-222222222222',
+    offerId: 'CFQ7TTC0LHXM',
+    productName: 'Microsoft Defender for Business',
+    skuName: 'Defender for Business',
+    quantity: 500,
+    billingCycle: 'Monthly',
+    termDuration: 'P1Y',
+    monthlyValue: 2500,
+    status: 'Active',
+    isTransferable: true,
+    customerName: 'Fabrikam Inc',
+    customerId: 'cust-004',
+  },
+  // Adventure Works subscriptions
+  {
+    id: 'sub-aw-1',
+    microsoftSubscriptionId: 'e5f6a7b8-c9d0-1234-ef01-111111111111',
+    offerId: 'CFQ7TTC0LFLX',
+    productName: 'Microsoft 365 E3',
+    skuName: 'Microsoft 365 E3',
+    quantity: 25,
+    billingCycle: 'Monthly',
+    termDuration: 'P1Y',
+    monthlyValue: 900,
+    status: 'Active',
+    isTransferable: true,
+    customerName: 'Adventure Works',
+    customerId: 'cust-005',
   },
 ];
 
@@ -151,7 +216,9 @@ export function CreateTransferModal({
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setActive(0);
+      // If subscriptions are already selected, skip to Target Partner step
+      const hasPreselectedSubs = selectedSubscriptionIds.length > 0;
+      setActive(hasPreselectedSubs ? 1 : 0);
       setSelectedSubs(selectedSubscriptionIds);
       setErrors([]);
       setSearchQuery('');
@@ -191,7 +258,10 @@ export function CreateTransferModal({
     setSelectedSubs(prev => prev.includes(subId) ? prev.filter(id => id !== subId) : [...prev, subId]);
   };
 
-  const selectedSubscriptions = searchResults.filter(s => selectedSubs.includes(s.id) && s.isTransferable);
+  // Get selected subscriptions - check both searchResults and mockData for pre-selected items
+  const selectedSubscriptions = selectedSubs.map(id => 
+    searchResults.find(s => s.id === id) || mockSearchableSubscriptions.find(s => s.id === id)
+  ).filter((s): s is (typeof mockSearchableSubscriptions)[0] => s !== undefined && s.isTransferable);
   const totalValue = selectedSubscriptions.reduce((sum, s) => sum + s.monthlyValue, 0);
 
   const handleNext = () => {
