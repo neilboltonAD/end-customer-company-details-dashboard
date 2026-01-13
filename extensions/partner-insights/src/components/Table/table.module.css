@@ -1,0 +1,6 @@
+.table-row {
+  /* Selected row */
+  &[data-selected="true"] {
+    background-color: var(--mantine-primary-color-light);
+  }
+}
