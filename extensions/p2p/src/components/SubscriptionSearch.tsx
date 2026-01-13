@@ -480,26 +480,6 @@ export function SubscriptionSearch({
         </Stack>
       )}
 
-      {/* Initial State - Search Hints */}
-      {!hasSearched && (
-        <Card withBorder padding="md" bg="gray.0" ta="center">
-          <Stack gap="sm" align="center">
-            <ThemeIcon size="xl" color="gray" variant="light">
-              <Search size={24} />
-            </ThemeIcon>
-            <Text size="sm" fw={500}>Search for Subscriptions</Text>
-            <Text size="xs" c="dimmed" maw={400}>
-              Use the search above to find subscriptions by customer name/ID or subscription ID. 
-              Then select which subscriptions to include in a P2P transfer.
-            </Text>
-            <Group gap="xs" mt="xs">
-              <Badge variant="outline" color="gray" size="sm">Try: "Woodgrove"</Badge>
-              <Badge variant="outline" color="gray" size="sm">Try: "Contoso"</Badge>
-              <Badge variant="outline" color="gray" size="sm">Try: "E5"</Badge>
-            </Group>
-          </Stack>
-        </Card>
-      )}
     </Stack>
   );
 }
