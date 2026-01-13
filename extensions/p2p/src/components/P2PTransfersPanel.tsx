@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Paper,
   Title,
@@ -11,10 +11,8 @@ import {
   ThemeIcon,
   ActionIcon,
   Tooltip,
-  Stack,
   Badge,
   Divider,
-  Checkbox,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -27,43 +25,35 @@ import {
   Eye,
   Check,
   X,
-  Clock,
   AlertTriangle,
+  Search,
 } from 'lucide-react';
 import { useTransfers } from '../hooks/useTransfers';
-import { useSubscriptions } from '../hooks/useSubscriptions';
-import { TransferRequest, Subscription } from '../context/types';
-import { formatCurrency, formatDate, getDaysUntilExpiration, formatTermDuration } from '../utils/formatters';
+import { TransferRequest } from '../context/types';
+import { formatCurrency, formatDate, getDaysUntilExpiration } from '../utils/formatters';
 import { TransferStatusBadge, LoadingState } from './shared';
 import { CreateTransferModal } from './modals/CreateTransferModal';
 import { ReviewTransferModal } from './modals/ReviewTransferModal';
 import { TransferDetailsModal } from './modals/TransferDetailsModal';
+import { SubscriptionSearch } from './SubscriptionSearch';
 
 interface P2PTransfersPanelProps {
   companyId: string;
 }
 
-export function P2PTransfersPanel({ companyId }: P2PTransfersPanelProps) {
+export function P2PTransfersPanel(_props: P2PTransfersPanelProps) {
   const {
-    transfers,
     incomingPending,
     outgoingPending,
     completedTransfers,
     failedTransfers,
     summary,
     loading: loadingTransfers,
-    submitting,
     refresh: refreshTransfers,
     accept,
     reject,
     cancel,
   } = useTransfers();
-
-  const {
-    subscriptions,
-    transferable,
-    loading: loadingSubscriptions,
-  } = useSubscriptions();
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -192,19 +182,14 @@ export function P2PTransfersPanel({ companyId }: P2PTransfersPanelProps) {
   };
 
   const handleOpenCreate = () => {
-    setSelectedSubs([]);
     setCreateModalOpen(true);
   };
 
-  const toggleSubscription = (subId: string) => {
-    setSelectedSubs(prev =>
-      prev.includes(subId)
-        ? prev.filter(id => id !== subId)
-        : [...prev, subId]
-    );
+  const handleInitiateTransfer = () => {
+    setCreateModalOpen(true);
   };
 
-  if (loadingTransfers || loadingSubscriptions) {
+  if (loadingTransfers) {
     return <LoadingState message="Loading P2P transfers..." />;
   }
 
@@ -366,54 +351,20 @@ export function P2PTransfersPanel({ companyId }: P2PTransfersPanelProps) {
 
       {/* Accordion Sections */}
       <Accordion variant="separated" radius="md" multiple defaultValue={['subscriptions', 'active']}>
-        {/* Available Subscriptions */}
+        {/* Find Subscriptions for Transfer */}
         <Accordion.Item value="subscriptions">
           <Accordion.Control>
             <Group gap="xs">
-              <Text fw={500}>Available Subscriptions for Transfer</Text>
-              <Badge size="sm" variant="light">{transferable.length}</Badge>
+              <Search size={16} />
+              <Text fw={500}>Find Subscriptions for Transfer</Text>
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th style={{ width: 40 }}></Table.Th>
-                  <Table.Th>Product</Table.Th>
-                  <Table.Th>Qty</Table.Th>
-                  <Table.Th>Term</Table.Th>
-                  <Table.Th>Billing</Table.Th>
-                  <Table.Th>Est. Value/mo</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {transferable.map((sub) => (
-                  <Table.Tr key={sub.id}>
-                    <Table.Td>
-                      <Checkbox
-                        checked={selectedSubs.includes(sub.id)}
-                        onChange={() => toggleSubscription(sub.id)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" fw={500}>{sub.productName}</Text>
-                      <Text size="xs" c="dimmed">{sub.skuName}</Text>
-                    </Table.Td>
-                    <Table.Td>{sub.quantity}</Table.Td>
-                    <Table.Td>{formatTermDuration(sub.termDuration)}</Table.Td>
-                    <Table.Td>{sub.billingCycle}</Table.Td>
-                    <Table.Td>~{formatCurrency(sub.monthlyValue)}</Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-            {selectedSubs.length > 0 && (
-              <Group justify="flex-end" mt="md">
-                <Button size="xs" onClick={handleOpenCreate}>
-                  Transfer {selectedSubs.length} Selected
-                </Button>
-              </Group>
-            )}
+            <SubscriptionSearch
+              selectedSubscriptions={selectedSubs}
+              onSelectionChange={setSelectedSubs}
+              onInitiateTransfer={handleInitiateTransfer}
+            />
           </Accordion.Panel>
         </Accordion.Item>
 
@@ -493,9 +444,11 @@ export function P2PTransfersPanel({ companyId }: P2PTransfersPanelProps) {
       {/* Modals */}
       <CreateTransferModal
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setSelectedSubs([]);
+        }}
         selectedSubscriptionIds={selectedSubs}
-        subscriptions={transferable}
       />
 
       <ReviewTransferModal
