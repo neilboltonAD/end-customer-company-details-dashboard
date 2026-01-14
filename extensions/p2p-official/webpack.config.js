@@ -25,7 +25,7 @@ envKeys["process.env.API_URL"] =
 const APPNAME = appConfig.appName;
 const APPPATH = appConfig.appPath;
 const developmentMarketplaceDomain = appConfig.marketplaceDomain;
-const PORT = "7231";
+const PORT = "7230";
 const today = new Date().toISOString();
 
 const publicPath = path.join("/", `micro-ui/${APPNAME}`, "/");

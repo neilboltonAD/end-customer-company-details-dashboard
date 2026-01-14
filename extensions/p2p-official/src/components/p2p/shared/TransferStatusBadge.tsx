@@ -29,9 +29,7 @@ export function TransferStatusBadge({ status, size = 'sm' }: TransferStatusBadge
 
 interface LoadingStateProps {
   message?: string;
-}
-
-export function LoadingState({ message = 'Loading...' }: LoadingStateProps) {
+}export function LoadingState({ message = 'Loading...' }: LoadingStateProps) {
   return (
     <Center py="xl">
       <Stack align="center" gap="sm">

@@ -3,7 +3,7 @@ import {
   Alert, Title, Text, Card, Group, Badge, ThemeIcon, Space
 } from "@mantine/core";
 import { IconChartBar, IconInfoCircle } from "@tabler/icons-react";
-import { useMarketplaceContext } from "../../hooks/useMarketplaceContext";
+import useMarketplaceContext from "../../hooks/useMarketplaceContext";
 import { usePageTitle } from "../../hooks/usePageTitle";
 import { PartnerInsightsPanel } from "../insights/PartnerInsightsPanel";
 

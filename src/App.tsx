@@ -20,6 +20,7 @@ import { MicrosoftMarketplaceCredentials } from './pages/MicrosoftMarketplaceCre
 import { OperationsUsers } from './pages/OperationsUsers';
 import { OperationsCompanies } from './pages/OperationsCompanies';
 import { OperationsCompanyDetails } from './pages/OperationsCompanyDetails';
+import { PriceSyncTool } from './pages/PriceSyncTool';
 
 export function App() {
   return (
@@ -33,6 +34,7 @@ export function App() {
           <Route path="/products/find" element={<FindProducts />} />
           <Route path="/products/network" element={<NetworkProducts />} />
           <Route path="/products/import-settings" element={<ImportSettings />} />
+          <Route path="/products/price-sync" element={<PriceSyncTool />} />
           <Route path="/settings" element={<GeneralSettings />} />
           <Route path="/settings/general" element={<GeneralSettings />} />
           <Route path="/settings/sync" element={<ComponentLibrary />} />

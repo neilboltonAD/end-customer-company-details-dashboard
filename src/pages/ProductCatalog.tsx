@@ -274,6 +274,7 @@ export const ProductCatalog = () => {
             </SidebarSection>
 
             <SidebarSection title="Price Management">
+              <SidebarItem label="Disti Price Sync" onClick={() => navigate('/products/price-sync')} />
               <SidebarItem label="Price Books" />
               <SidebarItem label="Discounts" />
             </SidebarSection>
