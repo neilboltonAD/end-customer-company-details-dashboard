@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Extension - Standalone</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        #microui-app-styles {
+            /* Container for styled-components */
+        }
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="microui-app-styles"></div>
+    <div id="root"></div>
+
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Mock AppDirect bootstrap data -->
+    <script>
+        window.bootstrapData = {
+            bootstrap: {
+                locale: 'en',
+                CHANNEL_SETTINGS: {
+                    partner: 'test-partner'
+                }
+            }
+        };
+    </script>
+
+    <script>
+        // Load the Module Federation remote
+        (async function() {
+            try {
+                // Load remoteEntry.js
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'http://localhost:7230/micro-ui/p2p/remoteEntry.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+
+                console.log('Remote entry loaded');
+
+                // Get the remote container
+                const container = window.p2p;
+                if (!container) {
+                    throw new Error('Module Federation container not found. Make sure remoteEntry.js loaded correctly.');
+                }
+
+                // Import the Root component
+                const RootFactory = await container.get('./Root');
+                const Root = RootFactory();
+
+                // Import RemoteReactDom (ReactDOM) - this is the ReactDOM from the extension's node_modules
+                const ReactDOMFactory = await container.get('./RemoteReactDom');
+                const RemoteReactDOM = ReactDOMFactory();
+
+                // Get the actual ReactDOM (it's exported as default)
+                const ReactDOM = RemoteReactDOM.default || RemoteReactDOM;
+
+                // Render the Root component
+                const rootElement = document.getElementById('root');
+                
+                // Use createRoot if available (React 18), otherwise use render (React 17)
+                if (ReactDOM.createRoot) {
+                    const root = ReactDOM.createRoot(rootElement);
+                    root.render(React.createElement(Root.default || Root));
+                } else {
+                    ReactDOM.render(React.createElement(Root.default || Root), rootElement);
+                }
+
+                console.log('P2P Extension rendered successfully');
+            } catch (error) {
+                console.error('Error loading extension:', error);
+                document.getElementById('root').innerHTML = `
+                    <div style="padding: 40px; text-align: center; font-family: sans-serif;">
+                        <h2>Error Loading Extension</h2>
+                        <p style="color: #666;">${error.message}</p>
+                        <p style="color: #999; margin-top: 20px;">
+                            Make sure the dev server is running:<br>
+                            <code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px;">cd extensions/p2p-official && npm start</code>
+                        </p>
+                    </div>
+                `;
+            }
+        })();
+    </script>
+</body>
+</html>
