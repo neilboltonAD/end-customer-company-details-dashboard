@@ -12,6 +12,7 @@ import {
   Tooltip,
   Divider,
   ThemeIcon,
+  TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { 
@@ -34,6 +35,7 @@ import {
 import { 
   mockTransferRequests, 
   mockEligibleSubscriptions,
+  customerTenant,
   getTransferSummary,
   formatDate,
   formatCurrency,
@@ -184,6 +186,8 @@ export const P2PTransfersPanel: React.FC = () => {
   const [transfers, setTransfers] = useState<TransferRequest[]>(mockTransferRequests);
   const [eligibleSubscriptions] = useState<EligibleSubscription[]>(mockEligibleSubscriptions);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   
   // Modal states
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -192,6 +196,19 @@ export const P2PTransfersPanel: React.FC = () => {
   const [selectedTransfer, setSelectedTransfer] = useState<TransferRequest | null>(null);
 
   const summary: TransferSummary = getTransferSummary(transfers);
+
+  const filteredEligibleSubscriptions = hasSearched
+    ? eligibleSubscriptions.filter((sub) => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return false;
+        return (
+          sub.subscriptionId.toLowerCase().includes(query) ||
+          sub.productName.toLowerCase().includes(query) ||
+          sub.sku.toLowerCase().includes(query) ||
+          customerTenant.name.toLowerCase().includes(query)
+        );
+      })
+    : [];
 
   const incomingPending = transfers.filter(t => t.direction === 'Incoming' && t.status === 'Pending');
   const outgoingPending = transfers.filter(t => t.direction === 'Outgoing' && t.status === 'Pending');
@@ -434,45 +451,76 @@ export const P2PTransfersPanel: React.FC = () => {
             <Accordion.Control>
               <Group gap="xs">
                 <Text size="sm" fw={500}>Available Subscriptions for Transfer</Text>
-                <Badge size="xs" color="gray">{eligibleSubscriptions.length}</Badge>
+                <Badge size="xs" color="gray">{filteredEligibleSubscriptions.length}</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <Table striped highlightOnHover withTableBorder>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Product</Table.Th>
-                    <Table.Th>Qty</Table.Th>
-                    <Table.Th>Term</Table.Th>
-                    <Table.Th>Billing</Table.Th>
-                    <Table.Th>Est. Value/mo</Table.Th>
-                    <Table.Th>Eligible</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {eligibleSubscriptions.map((sub) => (
-                    <Table.Tr key={sub.id} className={!sub.transferEligible ? 'opacity-50' : ''}>
-                      <Table.Td>
-                        <Text size="sm" fw={500}>{sub.productName}</Text>
-                        <Text size="xs" c="dimmed">{sub.sku}</Text>
-                      </Table.Td>
-                      <Table.Td>{sub.quantity}</Table.Td>
-                      <Table.Td>{formatTermDuration(sub.termDuration)}</Table.Td>
-                      <Table.Td>{sub.billingCycle}</Table.Td>
-                      <Table.Td>{formatCurrency(sub.monthlyValue)}</Table.Td>
-                      <Table.Td>
-                        {sub.transferEligible ? (
-                          <Badge color="green" size="xs">✅ Yes</Badge>
-                        ) : (
-                          <Tooltip label={sub.eligibilityReason}>
-                            <Badge color="red" size="xs">❌ No</Badge>
-                          </Tooltip>
-                        )}
-                      </Table.Td>
+              <Group align="flex-end" mb="sm">
+                <TextInput
+                  label="Search customer or subscription ID"
+                  placeholder="Customer name or subscription ID"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                  className="flex-1"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => setHasSearched(true)}
+                  disabled={!searchQuery.trim()}
+                >
+                  Search
+                </Button>
+              </Group>
+
+              {!hasSearched ? (
+                <Card withBorder padding="md">
+                  <Text size="sm" c="dimmed">
+                    Search for a customer or subscription ID to view available subscriptions.
+                  </Text>
+                </Card>
+              ) : filteredEligibleSubscriptions.length === 0 ? (
+                <Card withBorder padding="md">
+                  <Text size="sm" c="dimmed">
+                    No subscriptions found for “{searchQuery.trim()}”.
+                  </Text>
+                </Card>
+              ) : (
+                <Table striped highlightOnHover withTableBorder>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Product</Table.Th>
+                      <Table.Th>Qty</Table.Th>
+                      <Table.Th>Term</Table.Th>
+                      <Table.Th>Billing</Table.Th>
+                      <Table.Th>Est. Value/mo</Table.Th>
+                      <Table.Th>Eligible</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {filteredEligibleSubscriptions.map((sub) => (
+                      <Table.Tr key={sub.id} className={!sub.transferEligible ? 'opacity-50' : ''}>
+                        <Table.Td>
+                          <Text size="sm" fw={500}>{sub.productName}</Text>
+                          <Text size="xs" c="dimmed">{sub.sku}</Text>
+                        </Table.Td>
+                        <Table.Td>{sub.quantity}</Table.Td>
+                        <Table.Td>{formatTermDuration(sub.termDuration)}</Table.Td>
+                        <Table.Td>{sub.billingCycle}</Table.Td>
+                        <Table.Td>{formatCurrency(sub.monthlyValue)}</Table.Td>
+                        <Table.Td>
+                          {sub.transferEligible ? (
+                            <Badge color="green" size="xs">✅ Yes</Badge>
+                          ) : (
+                            <Tooltip label={sub.eligibilityReason}>
+                              <Badge color="red" size="xs">❌ No</Badge>
+                            </Tooltip>
+                          )}
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              )}
             </Accordion.Panel>
           </Accordion.Item>
 

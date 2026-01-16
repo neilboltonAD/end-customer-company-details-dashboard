@@ -53,7 +53,21 @@ const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
       </SidebarSection>
 
       <SidebarSection title="ADMIN TASKS">
-        <SidebarItem label="Microsoft" active={activeItem === 'Microsoft'} />
+        <SidebarItem
+          label="Microsoft"
+          active={activeItem === 'Microsoft'}
+          onClick={() => navigate('/operations/microsoft')}
+        />
+        <SidebarItem
+          label="Reseller: PC Insights"
+          active={activeItem === 'Reseller: PC Insights'}
+          onClick={() => navigate('/operations/microsoft/reseller')}
+        />
+        <SidebarItem
+          label="Reseller: P2P Transfers"
+          active={activeItem === 'Reseller: P2P Transfers'}
+          onClick={() => navigate('/operations/microsoft/p2p')}
+        />
       </SidebarSection>
     </aside>
   );

@@ -55,7 +55,21 @@ const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
       </SidebarSection>
 
       <SidebarSection title="ADMIN TASKS">
-        <SidebarItem label="Microsoft" active={activeItem === 'Microsoft'} />
+        <SidebarItem
+          label="Microsoft"
+          active={activeItem === 'Microsoft'}
+          onClick={() => navigate('/operations/microsoft')}
+        />
+        <SidebarItem
+          label="Reseller: PC Insights"
+          active={activeItem === 'Reseller: PC Insights'}
+          onClick={() => navigate('/operations/microsoft/reseller')}
+        />
+        <SidebarItem
+          label="Reseller: P2P Transfers"
+          active={activeItem === 'Reseller: P2P Transfers'}
+          onClick={() => navigate('/operations/microsoft/p2p')}
+        />
       </SidebarSection>
     </aside>
   );
@@ -1428,7 +1442,13 @@ const EndCustomerInsights: React.FC = () => {
 };
 
 // End Customer Sidebar Component
-const EndCustomerSidebar = ({ activeItem }: { activeItem: string }) => {
+const EndCustomerSidebar = ({
+  activeItem,
+  onSelect,
+}: {
+  activeItem: string;
+  onSelect?: (item: string) => void;
+}) => {
   const SidebarSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="mb-1">
       <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
@@ -1457,8 +1477,16 @@ const EndCustomerSidebar = ({ activeItem }: { activeItem: string }) => {
       </SidebarSection>
 
       <SidebarSection title="VENDOR INFORMATION">
-        <SidebarItem label="Adobe" active={activeItem === 'Adobe'} />
-        <SidebarItem label="Microsoft" active={activeItem === 'Microsoft'} />
+        <SidebarItem
+          label="Adobe"
+          active={activeItem === 'Adobe'}
+          onClick={() => onSelect?.('Adobe')}
+        />
+        <SidebarItem
+          label="Microsoft"
+          active={activeItem === 'Microsoft'}
+          onClick={() => onSelect?.('Microsoft')}
+        />
       </SidebarSection>
     </aside>
   );
@@ -1841,7 +1869,10 @@ export const OperationsCompanyDetails = () => {
 
       <div className="flex">
         {viewMode === 'endcustomer' ? (
-          <EndCustomerSidebar activeItem={endCustomerActiveItem} />
+          <EndCustomerSidebar
+            activeItem={endCustomerActiveItem}
+            onSelect={setEndCustomerActiveItem}
+          />
         ) : viewMode === 'reseller' ? (
           <ResellerSidebar activeItem="Companies" />
         ) : (
@@ -1849,7 +1880,11 @@ export const OperationsCompanyDetails = () => {
         )}
 
         {viewMode === 'endcustomer' ? (
-          <EndCustomerMicrosoftView />
+          endCustomerActiveItem === 'Microsoft' ? (
+            <EndCustomerMicrosoftView />
+          ) : (
+            <PlaceholderTabContent tabName={endCustomerActiveItem} />
+          )
         ) : viewMode === 'reseller' ? (
           resellerSelectedCompany ? (
             <ResellerCompanyDetailsView 

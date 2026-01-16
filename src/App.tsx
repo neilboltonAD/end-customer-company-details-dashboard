@@ -20,6 +20,8 @@ import { MicrosoftMarketplaceCredentials } from './pages/MicrosoftMarketplaceCre
 import { OperationsUsers } from './pages/OperationsUsers';
 import { OperationsCompanies } from './pages/OperationsCompanies';
 import { OperationsCompanyDetails } from './pages/OperationsCompanyDetails';
+import { OperationsMicrosoft } from './pages/OperationsMicrosoft';
+import { OperationsP2PTransfers } from './pages/OperationsP2PTransfers';
 import { PriceSyncTool } from './pages/PriceSyncTool';
 
 export function App() {
@@ -42,6 +44,9 @@ export function App() {
           <Route path="/operations" element={<OperationsUsers />} />
           <Route path="/operations/companies" element={<OperationsCompanies />} />
           <Route path="/operations/companies/:companyName" element={<OperationsCompanyDetails />} />
+          <Route path="/operations/microsoft" element={<Navigate to="/operations/microsoft/reseller" replace />} />
+          <Route path="/operations/microsoft/reseller" element={<OperationsMicrosoft />} />
+          <Route path="/operations/microsoft/p2p" element={<OperationsP2PTransfers />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />

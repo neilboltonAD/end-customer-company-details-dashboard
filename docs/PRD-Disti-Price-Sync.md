@@ -333,8 +333,8 @@ An automated price synchronization tool where users can:
 
 | Attribute | Value |
 |-----------|-------|
-| **Location** | Main Application (`src/pages/PriceSyncTool.tsx`) |
-| **Route** | `/products/price-sync` |
+| **Location** | Microsoft > Reseller Tools (`src/components/company/DistiPriceSyncPanel.tsx`) |
+| **Entry Point** | Operations → Companies → Microsoft → Reseller Tools |
 | **UI Framework** | React + Tailwind CSS + Lucide Icons |
 | **State Management** | React Hooks + useState |
 | **Demo Mode** | ✅ Enabled (mock data) |
@@ -352,10 +352,10 @@ An automated price synchronization tool where users can:
 **Development Mode:**
 ```bash
 cd end-customer-company-details-dashboard
-npm run dev
+npm start
 ```
 
-Access at: `http://localhost:5174/products/price-sync`
+Access via: `http://localhost:3000/operations/companies/<companyName>` and open **Microsoft → Reseller Tools**
 
 ---
 
