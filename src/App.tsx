@@ -21,6 +21,7 @@ import { OperationsUsers } from './pages/OperationsUsers';
 import { OperationsCompanies } from './pages/OperationsCompanies';
 import { OperationsCompanyDetails } from './pages/OperationsCompanyDetails';
 import { OperationsMicrosoft } from './pages/OperationsMicrosoft';
+import { OperationsCustomerOnboarding } from './pages/OperationsCustomerOnboarding';
 import { OperationsP2PTransfers } from './pages/OperationsP2PTransfers';
 import { PriceSyncTool } from './pages/PriceSyncTool';
 
@@ -47,6 +48,7 @@ export function App() {
           <Route path="/operations/microsoft" element={<Navigate to="/operations/microsoft/reseller" replace />} />
           <Route path="/operations/microsoft/reseller" element={<OperationsMicrosoft />} />
           <Route path="/operations/microsoft/p2p" element={<OperationsP2PTransfers />} />
+          <Route path="/operations/microsoft/onboarding" element={<OperationsCustomerOnboarding />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
