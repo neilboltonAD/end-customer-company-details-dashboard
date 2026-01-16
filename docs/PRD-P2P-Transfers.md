@@ -7,9 +7,9 @@
 | **Feature** | Partner to Partner Transfers |
 | **Author** | Neil Bolton |
 | **Created** | January 12, 2026 |
-| **Last Updated** | January 13, 2026 |
-| **Status** | ✅ Implemented (AppDirect Extension Demo) |
-| **Version** | 1.2 |
+| **Last Updated** | January 16, 2026 |
+| **Status** | ✅ Implemented (Main App Demo) |
+| **Version** | 1.3 |
 
 ---
 
@@ -188,6 +188,15 @@ The P2P Transfers Panel shall be a new section within the **Company Details > Ve
 | FR-2.5 | Each summary card SHALL be clickable to filter the transfer list | Should Have |
 | FR-2.6 | Incoming Pending count SHALL display a notification badge if > 0 | Must Have |
 
+#### FR-2B: Transfer Settings & Modes
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-2B.1 | A settings modal SHALL allow switching between Direct and Indirect modes | Must Have |
+| FR-2B.2 | Indirect mode SHALL disable outbound transfer creation | Must Have |
+| FR-2B.3 | Direct mode SHALL allow both inbound and outbound transfers | Must Have |
+| FR-2B.4 | A toggle SHALL allow enabling or disabling company creation | Must Have |
+
 #### FR-3: Available Subscriptions for Transfer
 
 | ID | Requirement | Priority |
@@ -198,6 +207,8 @@ The P2P Transfers Panel shall be a new section within the **Company Details > Ve
 | FR-3.4 | Non-eligible subscriptions SHALL display the reason for ineligibility | Must Have |
 | FR-3.5 | List SHALL support filtering by eligibility status | Should Have |
 | FR-3.6 | List SHALL support sorting by Product Name, Quantity, Term | Should Have |
+| FR-3.7 | The list SHALL remain hidden until a customer or subscription search is performed | Must Have |
+| FR-3.8 | The search SHALL accept customer name and subscription ID | Must Have |
 
 #### FR-4: Active Transfers List
 
@@ -850,6 +861,7 @@ The P2P Transfers feature has been implemented as an **AppDirect Extension** usi
 | **Demo Mode Banner** | ✅ Complete | Single-line banner at top indicating demo mode |
 | **P2P Transfers Header** | ✅ Complete | Title with DEMO badge and incoming notification count |
 | **Subscription Search** | ✅ Complete | Full-width search across customers and products |
+| **Search Gating** | ✅ Complete | Available subscriptions stay hidden until a search is performed |
 | **Search Results Table** | ✅ Complete | Grouped by customer with select-all for eligible subs |
 | **Active Transfers List** | ✅ Complete | Accordion with incoming/outgoing transfers |
 | **Transfer History** | ✅ Complete | Accordion showing completed transfers |
@@ -858,6 +870,7 @@ The P2P Transfers feature has been implemented as an **AppDirect Extension** usi
 | **Transfer Details Modal** | ✅ Complete | Full details with partner info and line items |
 | **Status Badges** | ✅ Complete | Color-coded status indicators |
 | **Action Buttons** | ✅ Complete | View, Accept, Reject, Cancel all functional |
+| **Transfer Settings** | ✅ Complete | Direct/Indirect modes + Enable Company Creation toggle |
 
 ### 13.3 Extension Architecture
 

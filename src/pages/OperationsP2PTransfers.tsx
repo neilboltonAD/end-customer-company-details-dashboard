@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Settings } from 'lucide-react';
+import { Button, Group, Modal, SegmentedControl, Stack, Switch, Text } from '@mantine/core';
 import { TopNavbar } from '../components/navigation/TopNavbar';
 import { P2PTransfersPanel } from '../components/company/p2p';
 
@@ -83,6 +84,9 @@ const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
 
 export const OperationsP2PTransfers = () => {
   const navigate = useNavigate();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState<'Direct' | 'Indirect'>('Direct');
+  const [companyCreationEnabled, setCompanyCreationEnabled] = useState(true);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -103,15 +107,66 @@ export const OperationsP2PTransfers = () => {
           </div>
 
           <div className="bg-white rounded shadow p-4 mb-4">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Reseller: P2P Transfers</h1>
-              <p className="text-sm text-gray-500">Marketplace-wide subscription transfers</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Reseller: P2P Transfers</h1>
+                <p className="text-sm text-gray-500">Marketplace-wide subscription transfers</p>
+              </div>
+              <Button
+                variant="light"
+                leftSection={<Settings size={16} />}
+                onClick={() => setSettingsOpen(true)}
+              >
+                Settings
+              </Button>
             </div>
           </div>
 
-          <P2PTransfersPanel />
+          <P2PTransfersPanel allowOutbound={transferMode === 'Direct'} />
         </main>
       </div>
+
+      <Modal
+        opened={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="P2P Transfer Settings"
+        centered
+      >
+        <Stack gap="md">
+          <div>
+            <Text size="sm" fw={600} mb={6}>
+              Transfer Mode
+            </Text>
+            <SegmentedControl
+              fullWidth
+              value={transferMode}
+              onChange={(value) => setTransferMode(value as 'Direct' | 'Indirect')}
+              data={[
+                { label: 'Direct', value: 'Direct' },
+                { label: 'Indirect', value: 'Indirect' },
+              ]}
+            />
+            <Text size="xs" c="dimmed" mt={6}>
+              Indirect mode disables outbound transfers. Direct mode supports inbound and outbound.
+            </Text>
+          </div>
+
+          <Group justify="space-between">
+            <div>
+              <Text size="sm" fw={600}>
+                Enable Company Creation
+              </Text>
+              <Text size="xs" c="dimmed">
+                Allow creating a new company during transfer setup.
+              </Text>
+            </div>
+            <Switch
+              checked={companyCreationEnabled}
+              onChange={(event) => setCompanyCreationEnabled(event.currentTarget.checked)}
+            />
+          </Group>
+        </Stack>
+      </Modal>
 
       <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
         <HelpCircle className="h-5 w-5" />

@@ -182,7 +182,7 @@ const TransferRow: React.FC<{
 };
 
 // Main P2P Transfers Panel
-export const P2PTransfersPanel: React.FC = () => {
+export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allowOutbound = true }) => {
   const [transfers, setTransfers] = useState<TransferRequest[]>(mockTransferRequests);
   const [eligibleSubscriptions] = useState<EligibleSubscription[]>(mockEligibleSubscriptions);
   const [isLoading, setIsLoading] = useState(false);
@@ -211,7 +211,9 @@ export const P2PTransfersPanel: React.FC = () => {
     : [];
 
   const incomingPending = transfers.filter(t => t.direction === 'Incoming' && t.status === 'Pending');
-  const outgoingPending = transfers.filter(t => t.direction === 'Outgoing' && t.status === 'Pending');
+  const outgoingPending = allowOutbound
+    ? transfers.filter(t => t.direction === 'Outgoing' && t.status === 'Pending')
+    : [];
   const historyTransfers = transfers.filter(t => 
     t.status === 'Completed' || t.status === 'Failed' || t.status === 'Rejected' || t.status === 'Cancelled'
   );
@@ -390,14 +392,22 @@ export const P2PTransfersPanel: React.FC = () => {
           )}
         </div>
         <Group gap="xs">
-          <Button 
-            size="xs" 
-            variant="light" 
-            leftSection={<Plus size={14} />}
-            onClick={() => setCreateModalOpen(true)}
+          <Tooltip
+            label="Outbound transfers are disabled in Indirect mode"
+            disabled={allowOutbound}
           >
-            New
-          </Button>
+            <span>
+              <Button 
+                size="xs" 
+                variant="light" 
+                leftSection={<Plus size={14} />}
+                onClick={() => allowOutbound && setCreateModalOpen(true)}
+                disabled={!allowOutbound}
+              >
+                New
+              </Button>
+            </span>
+          </Tooltip>
           <Button 
             size="xs" 
             variant="light" 
@@ -431,7 +441,7 @@ export const P2PTransfersPanel: React.FC = () => {
             icon={<ArrowUpRight size={18} />}
             iconColor="teal"
             title="Outgoing"
-            count={summary.outgoingPending}
+            count={allowOutbound ? summary.outgoingPending : 0}
             subtitle="Pending"
             onClick={() => {}}
           />

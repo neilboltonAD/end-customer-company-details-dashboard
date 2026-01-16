@@ -94,6 +94,9 @@ Enable marketplace-wide management of Microsoft P2P subscription transfers from 
 | RP2P-4 | Display eligibility status with reasons for ineligible items | Must Have |
 | RP2P-5 | Provide create, review, and detail modals | Must Have |
 | RP2P-6 | Show active transfers and transfer history | Must Have |
+| RP2P-7 | Provide a settings modal for Direct vs Indirect mode | Must Have |
+| RP2P-8 | Indirect mode disables outbound transfer creation | Must Have |
+| RP2P-9 | Provide a toggle to enable company creation | Must Have |
 
 ### 3.4 UX Notes
 
