@@ -19,8 +19,9 @@
 2. [Feature A: Reseller PC Insights](#2-feature-a-reseller-pc-insights)
 3. [Feature B: Reseller P2P Transfers](#3-feature-b-reseller-p2p-transfers)
 4. [Feature C: Disti Price Sync](#4-feature-c-disti-price-sync)
-5. [Implementation Status](#5-implementation-status)
-6. [Future Enhancements](#6-future-enhancements)
+5. [Feature D: Reseller Customer Onboarding](#5-feature-d-reseller-customer-onboarding)
+6. [Implementation Status](#6-implementation-status)
+7. [Future Enhancements](#7-future-enhancements)
 
 ---
 
@@ -146,17 +147,53 @@ Provide a centralized tool to review and commit distributor price changes.
 
 ---
 
-## 5. Implementation Status
+## 5. Feature D: Reseller Customer Onboarding
+
+### 5.1 Objective
+
+Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant details, sending a branded email template, and tracking approval status.
+
+### 5.2 Primary Users
+
+- Marketplace Operations Managers
+- Indirect Reseller Operations Teams
+
+### 5.3 Functional Requirements
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| RCO-1 | Capture Default Domain, Email Address, CC | Must Have |
+| RCO-2 | Select New Company or Existing Company | Must Have |
+| RCO-3 | Create action opens editable email template modal | Must Have |
+| RCO-4 | Email template includes ITCloud.ca branding | Must Have |
+| RCO-5 | Email template includes RRR + GDAP URLs | Must Have |
+| RCO-6 | Show Current Approvals list with statuses | Must Have |
+| RCO-7 | Provide Resend Email action with confirmation | Must Have |
+
+### 5.4 UX Notes
+
+- Lives under **Operations → Microsoft → Reseller: Customer Onboarding**.
+- Approvals table provides at-a-glance status visibility.
+
+### 5.5 Data Requirements
+
+- Tenant metadata and email template content.
+- Approval status list with step labels.
+
+---
+
+## 6. Implementation Status
 
 | Feature | Status | Notes |
 |---------|--------|------|
 | Reseller PC Insights | ✅ Implemented (Demo) | Marketplace summary + collapsible sections |
 | Reseller P2P Transfers | ✅ Implemented (Demo) | Search gating + full transfer workflow |
 | Disti Price Sync | ✅ Implemented (Demo) | Review modal + synced status tracking |
+| Reseller Customer Onboarding | 🚧 In Progress | New onboarding dashboard + modal |
 
 ---
 
-## 6. Future Enhancements
+## 7. Future Enhancements
 
 - Live API integration with Microsoft Partner Center and distributor feeds
 - Audit trails tied to user identity and timestamps

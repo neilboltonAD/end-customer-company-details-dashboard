@@ -70,6 +70,11 @@ const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
           active={activeItem === 'Reseller: P2P Transfers'}
           onClick={() => navigate('/operations/microsoft/p2p')}
         />
+        <SidebarItem
+          label="Reseller: Customer Onboarding"
+          active={activeItem === 'Reseller: Customer Onboarding'}
+          onClick={() => navigate('/operations/microsoft/onboarding')}
+        />
       </SidebarSection>
     </aside>
   );
