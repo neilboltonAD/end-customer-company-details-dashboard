@@ -1,16 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from '../_lib/cookies';
-import { buildAuthorizeUrl, getAccessTokenForSession, handleOAuthCallback, clearStoredTokens } from '../_lib/delegatedAuth';
-import { partnerCenterFetch, partnerCenterFetchWithToken } from '../_lib/partnerCenter';
+import { ensureSessionId } from './_lib/cookies';
+import { buildAuthorizeUrl, clearStoredTokens, getAccessTokenForSession, handleOAuthCallback } from './_lib/delegatedAuth';
+import { getPartnerCenterAccessTokenWithCreds, partnerCenterFetch, partnerCenterFetchWithToken } from './_lib/partnerCenter';
 
 function json(res: VercelResponse, status: number, payload: any) {
   res.status(status).json(payload);
-}
-
-function opFrom(req: VercelRequest): string {
-  const raw = (req.query.op ?? '') as any;
-  if (Array.isArray(raw)) return raw.join('/');
-  return String(raw || '');
 }
 
 function safeTruncate(value: any, maxLen = 3000) {
@@ -42,7 +36,7 @@ async function getDelegatedTokenIfConnected(req: VercelRequest, res: VercelRespo
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const op = opFrom(req);
+  const op = (req.query.op || '').toString();
   const timestamp = new Date().toISOString();
 
   try {
@@ -224,10 +218,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!tenantId || !clientId || !clientSecret) {
         return json(res, 400, { ok: false, error: 'Missing tenantId/clientId/clientSecret', timestamp });
       }
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const lib = require('../_lib/partnerCenter') as typeof import('../_lib/partnerCenter');
-      const token = await lib.getPartnerCenterAccessTokenWithCreds({ tenantId, clientId, clientSecret });
-      const pc = await lib.partnerCenterFetchWithToken<any>(token, '/v1/customers?size=10');
+      const token = await getPartnerCenterAccessTokenWithCreds({ tenantId, clientId, clientSecret });
+      const pc = await partnerCenterFetchWithToken<any>(token, '/v1/customers?size=10');
       const ok = pc.status >= 200 && pc.status < 300;
       return json(res, ok ? 200 : pc.status, {
         ok,

@@ -9,11 +9,19 @@
       }
     },
     {
-      "src": "api/partner-center/[...op].ts",
+      "src": "api/partner-center.ts",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/partner-center",
+      "destination": "/api/partner-center?op=status"
+    },
+    {
+      "source": "/api/partner-center/:op*",
+      "destination": "/api/partner-center?op=:op*"
+    },
     {
       "source": "/((?!api).*)",
       "destination": "/index.html"
