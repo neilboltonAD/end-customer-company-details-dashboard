@@ -113,6 +113,8 @@ A single onboarding page inside Operations that:
 | RCO-3.1 | Show a list of customer approvals | Must Have |
 | RCO-3.2 | Show status labels (e.g., Pending: Awaiting confirmation of RRR, Ready to Order) | Must Have |
 | RCO-3.3 | Use demo data for initial implementation | Must Have |
+| RCO-3.4 | Provide a Resend Email action per row with confirmation modal | Must Have |
+| RCO-3.5 | Show a success toast after resend confirmation | Should Have |
 
 ---
 

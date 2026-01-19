@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle } from 'lucide-react';
-import { Badge, Button, Group, Modal, Select, Stack, Table, Text, TextInput } from '@mantine/core';
+import { HelpCircle, Mail } from 'lucide-react';
+import { ActionIcon, Badge, Button, Group, Modal, Select, Stack, Table, Text, TextInput, Tooltip } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { RichTextEditor } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -137,6 +138,7 @@ export const OperationsCustomerOnboarding = () => {
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [emailBody, setEmailBody] = useState('');
+  const [resendTarget, setResendTarget] = useState<(typeof approvalRows)[number] | null>(null);
 
   const template = useMemo(() => {
     const domain = defaultDomain || '[customer-domain]';
@@ -280,6 +282,7 @@ export const OperationsCustomerOnboarding = () => {
                   <Table.Th>Default Domain</Table.Th>
                   <Table.Th>Step</Table.Th>
                   <Table.Th>Status</Table.Th>
+                  <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -292,6 +295,13 @@ export const OperationsCustomerOnboarding = () => {
                       <Badge color={row.statusColor} variant="light">
                         {row.status}
                       </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Tooltip label="Resend email">
+                        <ActionIcon variant="light" color="blue" onClick={() => setResendTarget(row)}>
+                          <Mail size={16} />
+                        </ActionIcon>
+                      </Tooltip>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -350,6 +360,43 @@ export const OperationsCustomerOnboarding = () => {
           <Group justify="flex-end">
             <Button onClick={() => setModalOpen(false)}>Close</Button>
             <Button variant="filled">Submit</Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={Boolean(resendTarget)}
+        onClose={() => setResendTarget(null)}
+        title="Resend email confirmation"
+        centered
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Are you sure you want to resend the Reseller Relationship Email to the customer?
+          </Text>
+          {resendTarget && (
+            <Text size="sm" c="dimmed">
+              {resendTarget.customer} • {resendTarget.defaultDomain}
+            </Text>
+          )}
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setResendTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (resendTarget) {
+                  notifications.show({
+                    title: 'Email sent',
+                    message: `Reseller Relationship Email sent to ${resendTarget.customer}.`,
+                    color: 'blue',
+                  });
+                }
+                setResendTarget(null);
+              }}
+            >
+              Confirm
+            </Button>
           </Group>
         </Stack>
       </Modal>

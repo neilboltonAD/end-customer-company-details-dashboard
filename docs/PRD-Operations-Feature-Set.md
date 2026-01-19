@@ -168,6 +168,7 @@ Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant
 | RCO-4 | Email template includes ITCloud.ca branding | Must Have |
 | RCO-5 | Email template includes RRR + GDAP URLs | Must Have |
 | RCO-6 | Show Current Approvals list with statuses | Must Have |
+| RCO-7 | Provide Resend Email action with confirmation | Must Have |
 
 ### 5.4 UX Notes
 
