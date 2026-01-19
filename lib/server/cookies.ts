@@ -54,7 +54,7 @@ export function ensureSessionId(req: VercelRequest, res: VercelResponse) {
       sameSite: 'Lax',
       httpOnly: true,
       path: '/',
-      maxAgeSeconds: 60 * 60 * 24 * 30, // 30d
+      maxAgeSeconds: 60 * 60 * 24 * 30,
     })
   );
   return id;

@@ -109,28 +109,7 @@ export async function partnerCenterFetch<T>(
   path: string,
   init?: RequestInit
 ): Promise<{ status: number; data: T; headers: Headers }> {
-  const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
   const token = await getPartnerCenterAccessToken();
-  const url = `${baseUrl.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
-
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      ...(init?.headers || {}),
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-    },
-  });
-
-  const text = await res.text();
-  let data: T;
-  try {
-    data = (text ? JSON.parse(text) : null) as T;
-  } catch {
-    // Some errors may not return JSON; keep payload as best-effort.
-    data = ({ raw: text } as unknown) as T;
-  }
-
-  return { status: res.status, data, headers: res.headers };
+  return await partnerCenterFetchWithToken<T>(token, path, init);
 }
 

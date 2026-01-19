@@ -9,15 +9,13 @@
       }
     },
     {
-      "src": "api/partner-center.ts",
+      "src": "api/partner-center/*.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    { "src": "/api/partner-center$", "dest": "/api/partner-center?op=status" },
-    { "src": "/api/partner-center/(.*)", "dest": "/api/partner-center?op=$1" },
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/((?!api).*)", "dest": "/index.html" }
   ]
 }
 

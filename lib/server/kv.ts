@@ -37,7 +37,6 @@ async function kvCall<T>(path: string): Promise<T> {
   try {
     return JSON.parse(text) as T;
   } catch {
-    // Upstash always returns JSON; keep best-effort.
     return ({ raw: text } as unknown) as T;
   }
 }

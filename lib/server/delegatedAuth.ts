@@ -26,13 +26,6 @@ function baseUrlFromReq(req: VercelRequest) {
   return `${proto}://${host}`;
 }
 
-function createPkcePair() {
-  // PKCE S256
-  const verifier = cryptoRandomUrlSafe(64);
-  const challenge = base64UrlEncode(sha256(verifier));
-  return { verifier, challenge };
-}
-
 function sha256(input: string) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const crypto = require('crypto') as typeof import('crypto');
@@ -47,6 +40,12 @@ function cryptoRandomUrlSafe(bytes: number) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const crypto = require('crypto') as typeof import('crypto');
   return base64UrlEncode(crypto.randomBytes(bytes));
+}
+
+function createPkcePair() {
+  const verifier = cryptoRandomUrlSafe(64);
+  const challenge = base64UrlEncode(sha256(verifier));
+  return { verifier, challenge };
 }
 
 type OAuthCookie = {
@@ -72,7 +71,7 @@ function setOAuthCookie(req: VercelRequest, res: VercelResponse, cookie: OAuthCo
       sameSite: 'Lax',
       httpOnly: true,
       path: '/',
-      maxAgeSeconds: 60 * 10, // 10 min
+      maxAgeSeconds: 60 * 10,
     })
   );
 }
@@ -116,7 +115,6 @@ function getClientSecretOptional() {
 }
 
 function partnerCenterScopes() {
-  // delegated Partner Center scope + OIDC basics
   return (
     process.env.PARTNER_CENTER_SCOPE_DELEGATED ||
     'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile'
@@ -159,9 +157,7 @@ export function buildAuthorizeUrl(req: VercelRequest, res: VercelResponse, opts:
     createdAt: new Date().toISOString(),
   });
 
-  // ensure session cookie exists
   ensureSessionId(req, res);
-
   return { authorizeUrl: url };
 }
 
@@ -222,7 +218,6 @@ function refreshKey(sessionId: string, kind: OAuthCookie['kind']) {
 }
 
 export async function storeRefreshToken(sessionId: string, kind: OAuthCookie['kind'], refreshToken: string) {
-  // store encrypted to KV
   await kvSet(refreshKey(sessionId, kind), encryptString(refreshToken));
 }
 
@@ -250,7 +245,6 @@ export async function handleOAuthCallback(req: VercelRequest, res: VercelRespons
   if (!code) throw new Error('Missing code');
   if (!state) throw new Error('Missing state');
 
-  // Determine which flow we’re finishing (GDAP or Partner Center) by checking cookies.
   const pcCookie = readOAuthCookie(req, 'partnerCenter');
   const gdapCookie = readOAuthCookie(req, 'gdap');
   const cookie = gdapCookie && gdapCookie.state === state ? gdapCookie : pcCookie && pcCookie.state === state ? pcCookie : null;
@@ -261,7 +255,7 @@ export async function handleOAuthCallback(req: VercelRequest, res: VercelRespons
   const token = await exchangeCodeForTokens({ code, redirectUri, codeVerifier: cookie.verifier, scope });
 
   if (!token.refresh_token) {
-    throw new Error('No refresh_token returned. Ensure offline_access is included in scopes and the app is configured correctly.');
+    throw new Error('No refresh_token returned. Ensure offline_access is included in scopes.');
   }
 
   await storeRefreshToken(sessionId, cookie.kind, token.refresh_token);
@@ -269,7 +263,9 @@ export async function handleOAuthCallback(req: VercelRequest, res: VercelRespons
 
   const returnTo =
     cookie.returnTo ||
-    (cookie.kind === 'gdap' ? `${baseUrl}/operations/microsoft/onboarding/gdap` : `${baseUrl}/settings/vendor-integrations/microsoft`);
+    (cookie.kind === 'gdap'
+      ? `${baseUrl}/operations/microsoft/onboarding/gdap`
+      : `${baseUrl}/settings/vendor-integrations/microsoft`);
 
   res.status(302).setHeader('Location', returnTo);
   res.end();

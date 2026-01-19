@@ -18,7 +18,6 @@ export function encryptString(plaintext: string): string {
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
   const enc = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
-  // iv.tag.ciphertext (base64)
   return Buffer.concat([iv, tag, enc]).toString('base64');
 }
 
