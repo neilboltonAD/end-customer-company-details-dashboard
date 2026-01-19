@@ -3,16 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { SearchIcon, PlusIcon, BellIcon, Settings2Icon, ArrowDownLeft, ArrowUpRight, Clock, X, ExternalLink, PlugZap, RefreshCw } from 'lucide-react'
 import { Avatar } from '../misc/Avatar'
 import { mockTransferRequests, formatDate, getDaysUntilExpiration, formatCurrency } from '../company/p2p/mockData'
-import { notifications } from '@mantine/notifications'
-import { Badge, Button, Group, Modal, Stack, Text } from '@mantine/core'
-import {
-  disconnectPartnerCenter,
-  getPartnerCenterConnectUrl,
-  getPartnerCenterHealth,
-  getPartnerCenterStatus,
-  type PartnerCenterHealth,
-  type PartnerCenterStatus,
-} from '../../api/partnerCenter'
+import { getPartnerCenterHealth, getPartnerCenterStatus } from '../../api/partnerCenter'
+import { PartnerCenterConnectorModal } from '../microsoft/PartnerCenterConnectorModal'
 
 const NavLink = ({ to, children, active, isNew }: { to: string; children: React.ReactNode; active?: boolean; isNew?: boolean }) => (
   <Link
@@ -42,11 +34,7 @@ export const TopNavbar = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [connectorStatus, setConnectorStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown')
-  const [isSyncingConnector, setIsSyncingConnector] = useState(false)
   const [connectorModalOpen, setConnectorModalOpen] = useState(false)
-  const [connectorStatusJson, setConnectorStatusJson] = useState<PartnerCenterStatus | null>(null)
-  const [connectorHealthJson, setConnectorHealthJson] = useState<PartnerCenterHealth | null>(null)
-  const [connectorLastError, setConnectorLastError] = useState<string | null>(null)
 
   // Get pending P2P transfers for notifications
   const pendingIncoming = mockTransferRequests.filter(t => t.direction === 'Incoming' && t.status === 'Pending')
@@ -74,14 +62,11 @@ export const TopNavbar = () => {
         const status = await getPartnerCenterStatus()
         const health = await getPartnerCenterHealth()
         if (!cancelled) {
-          setConnectorStatusJson(status)
-          setConnectorHealthJson(health)
           setConnectorStatus(status.ok && health.ok ? 'connected' : 'disconnected')
         }
       } catch (e: any) {
         if (!cancelled) {
           setConnectorStatus('disconnected')
-          setConnectorLastError(e?.message || 'Failed to reach connector endpoints.')
         }
       }
     }
@@ -92,42 +77,8 @@ export const TopNavbar = () => {
     }
   }, [])
 
-  const refreshConnectorDetails = async (opts?: { showToast?: boolean }) => {
-    setIsSyncingConnector(true)
-    setConnectorLastError(null)
-    try {
-      const status = await getPartnerCenterStatus()
-      const health = await getPartnerCenterHealth()
-      setConnectorStatusJson(status)
-      setConnectorHealthJson(health)
-      setConnectorStatus(status.ok && health.ok ? 'connected' : 'disconnected')
-      if (opts?.showToast) {
-        notifications.show({
-          title: status.ok && health.ok ? 'Connector connected' : 'Connector not connected',
-          message: status.ok && health.ok
-            ? 'Partner Center connector is healthy.'
-            : health.error || status.error || 'Partner Center health check failed.',
-          color: status.ok && health.ok ? 'green' : 'red',
-        })
-      }
-    } catch (e: any) {
-      setConnectorStatus('disconnected')
-      setConnectorLastError(e?.message || 'Failed to reach connector endpoints.')
-      if (opts?.showToast) {
-        notifications.show({
-          title: 'Connector error',
-          message: e?.message || 'Failed to reach connector endpoints.',
-          color: 'red',
-        })
-      }
-    } finally {
-      setIsSyncingConnector(false)
-    }
-  }
-
   const handleConnectorSync = async () => {
     setConnectorModalOpen(true)
-    await refreshConnectorDetails()
   }
 
   const handleViewAll = () => {
@@ -229,102 +180,18 @@ export const TopNavbar = () => {
             }`}
           />
           Connector Sync
-          {isSyncingConnector ? (
-            <RefreshCw className="h-4 w-4 ml-2 animate-spin" />
-          ) : (
-            <PlugZap className="h-4 w-4 ml-2" />
-          )}
+          <PlugZap className="h-4 w-4 ml-2" />
         </button>
 
-        <Modal
+        <PartnerCenterConnectorModal
           opened={connectorModalOpen}
           onClose={() => setConnectorModalOpen(false)}
-          title="Partner Center Connector"
-          size="lg"
-          centered
-        >
-          <Stack gap="sm">
-            <Group justify="space-between" align="center">
-              <Group gap="xs">
-                <Text fw={600}>Live status</Text>
-                <Badge
-                  variant="light"
-                  color={connectorStatus === 'connected' ? 'green' : connectorStatus === 'disconnected' ? 'red' : 'gray'}
-                >
-                  {connectorStatus === 'connected' ? 'Connected' : connectorStatus === 'disconnected' ? 'Not connected' : 'Unknown'}
-                </Badge>
-              </Group>
-              <Group gap="xs">
-                <Button variant="light" onClick={() => refreshConnectorDetails({ showToast: true })} loading={isSyncingConnector}>
-                  Check now
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={() => {
-                    navigate('/settings/vendor-integrations/microsoft')
-                    setConnectorModalOpen(false)
-                  }}
-                >
-                  Open settings
-                </Button>
-              </Group>
-            </Group>
-
-            {connectorLastError && (
-              <Text c="red" size="sm">
-                {connectorLastError}
-              </Text>
-            )}
-
-            <Group justify="flex-end" gap="xs">
-              <Button
-                variant="light"
-                onClick={() => {
-                  window.location.href = getPartnerCenterConnectUrl()
-                }}
-              >
-                Connect
-              </Button>
-              <Button
-                variant="light"
-                color="red"
-                onClick={async () => {
-                  try {
-                    await disconnectPartnerCenter()
-                  } catch (e: any) {
-                    notifications.show({
-                      title: 'Disconnect failed',
-                      message: e?.message || 'Failed to disconnect.',
-                      color: 'red',
-                    })
-                  } finally {
-                    await refreshConnectorDetails({ showToast: true })
-                  }
-                }}
-              >
-                Disconnect
-              </Button>
-            </Group>
-
-            <div className="border border-gray-200 rounded bg-gray-50 p-3">
-              <Text size="xs" fw={600} mb={6}>
-                /api/partner-center/status
-              </Text>
-              <pre className="text-xs text-gray-800 whitespace-pre-wrap max-h-56 overflow-auto">
-                {connectorStatusJson ? JSON.stringify(connectorStatusJson, null, 2) : '—'}
-              </pre>
-            </div>
-
-            <div className="border border-gray-200 rounded bg-gray-50 p-3">
-              <Text size="xs" fw={600} mb={6}>
-                /api/partner-center/health
-              </Text>
-              <pre className="text-xs text-gray-800 whitespace-pre-wrap max-h-56 overflow-auto">
-                {connectorHealthJson ? JSON.stringify(connectorHealthJson, null, 2) : '—'}
-              </pre>
-            </div>
-          </Stack>
-        </Modal>
+          onOpenSettings={() => {
+            navigate('/settings/vendor-integrations/microsoft')
+            setConnectorModalOpen(false)
+          }}
+          onStatusChange={(s) => setConnectorStatus(s)}
+        />
 
         {/* Notifications */}
         <div className="relative" ref={dropdownRef}>
