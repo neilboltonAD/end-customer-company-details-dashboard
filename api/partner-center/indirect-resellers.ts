@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { partnerCenterFetch } from '../_lib/partnerCenter';
+import { partnerCenterFetch, partnerCenterFetchWithToken } from '../_lib/partnerCenter';
+import { ensureSessionId } from '../_lib/cookies';
+import { getAccessTokenForSession } from '../_lib/delegatedAuth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -9,7 +11,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Docs: GET /v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf
-    const pc = await partnerCenterFetch<any>('/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf');
+    let token: string | null = null;
+    try {
+      const sessionId = ensureSessionId(req, res);
+      token = await getAccessTokenForSession(sessionId, 'partnerCenter');
+    } catch {
+      token = null;
+    }
+
+    const pc = token
+      ? await partnerCenterFetchWithToken<any>(token, '/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf')
+      : await partnerCenterFetch<any>('/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf');
     const ok = pc.status >= 200 && pc.status < 300;
     const items = Array.isArray((pc.data as any)?.items) ? (pc.data as any).items : Array.isArray(pc.data) ? pc.data : [];
 
