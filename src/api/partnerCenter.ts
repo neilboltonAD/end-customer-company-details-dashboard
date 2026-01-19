@@ -17,12 +17,61 @@ export type PartnerCenterStatus = {
   timestamp: string;
 };
 
+export type PartnerCenterIndirectReseller = {
+  id: string;
+  name?: string;
+  mpnId?: string;
+  tenantId?: string;
+  state?: string;
+};
+
+export type PartnerCenterIndirectResellersResponse = {
+  ok: boolean;
+  resellers: PartnerCenterIndirectReseller[];
+  partnerCenter?: { status: number; sampleEndpoint?: string };
+  error?: string;
+  debug?: any;
+  timestamp: string;
+};
+
+export type PartnerCenterCustomer = {
+  id: string;
+  tenantId?: string;
+  companyName?: string;
+  defaultDomain?: string;
+};
+
+export type PartnerCenterCustomersResponse = {
+  ok: boolean;
+  customers: PartnerCenterCustomer[];
+  partnerCenter?: { status: number; sampleEndpoint?: string };
+  error?: string;
+  debug?: any;
+  timestamp: string;
+};
+
+export type PartnerCenterGdapRelationshipsResponse = {
+  ok: boolean;
+  relationships: any[];
+  graph?: { status: number; sampleEndpoint?: string };
+  error?: string;
+  debug?: any;
+  timestamp: string;
+};
+
 export function getPartnerCenterConnectUrl() {
   // CRA dev server won't proxy full-page navigations to /api/*, so use the API server directly.
   if (window.location.hostname === 'localhost' && window.location.port === '3000') {
     return 'http://localhost:4000/api/partner-center/connect';
   }
   return '/api/partner-center/connect';
+}
+
+export function getPartnerCenterConnectGdapUrl() {
+  if (window.location.hostname === 'localhost' && window.location.port === '3000') {
+    return 'http://localhost:4000/api/partner-center/connect-gdap';
+  }
+  return '/api/partner-center/connect-gdap';
 }
 
 async function parseJsonResponse<T>(res: Response): Promise<T> {
@@ -56,6 +105,24 @@ export async function getPartnerCenterStatus(): Promise<PartnerCenterStatus> {
 export async function disconnectPartnerCenter(): Promise<{ ok: boolean; error?: string; timestamp: string }> {
   const res = await fetch('/api/partner-center/disconnect', { method: 'POST' });
   return await parseJsonResponse<{ ok: boolean; error?: string; timestamp: string }>(res);
+}
+
+export async function getPartnerCenterIndirectResellers(): Promise<PartnerCenterIndirectResellersResponse> {
+  const res = await fetch('/api/partner-center/indirect-resellers', { method: 'GET' });
+  return await parseJsonResponse<PartnerCenterIndirectResellersResponse>(res);
+}
+
+export async function getPartnerCenterCustomers(size = 50): Promise<PartnerCenterCustomersResponse> {
+  const res = await fetch(`/api/partner-center/customers?size=${encodeURIComponent(String(size))}`, { method: 'GET' });
+  return await parseJsonResponse<PartnerCenterCustomersResponse>(res);
+}
+
+export async function getPartnerCenterGdapRelationships(customerTenantId: string): Promise<PartnerCenterGdapRelationshipsResponse> {
+  const res = await fetch(
+    `/api/partner-center/gdap-relationships?customerTenantId=${encodeURIComponent(customerTenantId)}`,
+    { method: 'GET' }
+  );
+  return await parseJsonResponse<PartnerCenterGdapRelationshipsResponse>(res);
 }
 
 export type PartnerCenterTestRequest = {

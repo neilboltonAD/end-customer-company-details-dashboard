@@ -8,8 +8,8 @@
 | **Author** | Neil Bolton |
 | **Created** | January 19, 2026 |
 | **Last Updated** | January 19, 2026 |
-| **Status** | 🧭 Planned |
-| **Version** | 1.0 |
+| **Status** | ✅ Implemented (POC) |
+| **Version** | 1.1 |
 
 ---
 
@@ -111,7 +111,7 @@ A marketplace-wide dashboard that:
 
 ### 5.2 Out of Scope (POC)
 
-- Real Partner Center API integration
+- Partner Center write-back (creating/renewing GDAP requests for real)
 - Real email sending
 - Permission model / RBAC
 
@@ -201,6 +201,17 @@ A marketplace-wide dashboard that:
 ---
 
 ## 9. Implementation Notes (POC)
+
+### 9.1 Live Data Sources (Current)
+
+- **Customers**: Microsoft **Partner Center** (`/v1/customers`) via local API (`/api/partner-center/customers`)
+- **GDAP relationships**: Microsoft **Graph** (`/v1.0/tenantRelationships/delegatedAdminRelationships`) via local API
+  (`/api/partner-center/gdap-relationships?customerTenantId=...`)
+
+### 9.2 Authentication Notes (Current)
+
+- Partner Center and Graph require delegated user context; for the demo we use an interactive OAuth flow and store tokens locally (dev only).
+- The GDAP relationship details require Graph scopes (e.g. `DelegatedAdminRelationship.Read.All`), so the UI can prompt for a separate **Connect GDAP** consent if needed.
 
 - Use existing dummy data patterns already in the repo.
 - Template role catalog can be a curated subset aligned with the Microsoft roles-by-task guidance.

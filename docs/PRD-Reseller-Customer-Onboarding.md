@@ -7,9 +7,9 @@
 | **Feature** | Reseller Customer Onboarding |
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
-| **Last Updated** | January 16, 2026 |
-| **Status** | 🚧 In Development |
-| **Version** | 1.0 |
+| **Last Updated** | January 19, 2026 |
+| **Status** | ✅ Implemented (Demo) |
+| **Version** | 1.1 |
 
 ---
 
@@ -112,7 +112,7 @@ A single onboarding page inside Operations that:
 |----|-------------|----------|
 | RCO-3.1 | Show a list of customer approvals | Must Have |
 | RCO-3.2 | Show status labels (e.g., Pending: Awaiting confirmation of RRR, Ready to Order) | Must Have |
-| RCO-3.3 | Use demo data for initial implementation | Must Have |
+| RCO-3.3 | Use demo data for approvals list (POC) | Must Have |
 | RCO-3.4 | Provide a Resend Email action per row with confirmation modal | Must Have |
 | RCO-3.5 | Show a success toast after resend confirmation | Should Have |
 
@@ -139,14 +139,16 @@ A single onboarding page inside Operations that:
 
 | Feature | Status | Notes |
 |---------|--------|------|
-| Onboarding form | 🚧 In Progress | Basic layout in main app |
-| Email template modal | 🚧 In Progress | Editable template |
-| Current approvals | 🚧 In Progress | Demo data table |
+| Onboarding form | ✅ Implemented (Demo) | Includes Name + indirect reseller dropdown |
+| Email template modal | ✅ Implemented (Demo) | WYSIWYG editor + clearer editable panel + prepopulated RRR/GDAP links |
+| Current approvals | ✅ Implemented (Demo) | Demo approvals table + resend action + confirmation + toast |
+| Indirect resellers (real) | ✅ Implemented (Demo) | Loaded from Partner Center (`state === "Active"`) |
 
 ---
 
 ## 9. Future Enhancements
 
-- Integrate with real Microsoft Partner Center APIs
+- Send emails + track delivery/opens
+- Integrate approval state from Partner Center / Microsoft flows
 - Automated sending and tracking of onboarding emails
 - Role-based access controls
