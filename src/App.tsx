@@ -22,6 +22,7 @@ import { OperationsCompanies } from './pages/OperationsCompanies';
 import { OperationsCompanyDetails } from './pages/OperationsCompanyDetails';
 import { OperationsMicrosoft } from './pages/OperationsMicrosoft';
 import { OperationsCustomerOnboarding } from './pages/OperationsCustomerOnboarding';
+import { OperationsGDAPManagement } from './pages/OperationsGDAPManagement';
 import { OperationsP2PTransfers } from './pages/OperationsP2PTransfers';
 import { PriceSyncTool } from './pages/PriceSyncTool';
 
@@ -49,6 +50,7 @@ export function App() {
           <Route path="/operations/microsoft/reseller" element={<OperationsMicrosoft />} />
           <Route path="/operations/microsoft/p2p" element={<OperationsP2PTransfers />} />
           <Route path="/operations/microsoft/onboarding" element={<OperationsCustomerOnboarding />} />
+          <Route path="/operations/microsoft/onboarding/gdap" element={<OperationsGDAPManagement />} />
           <Route path="/integrations/ingram-micro" element={<IngramMicroCredentials />} />
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />

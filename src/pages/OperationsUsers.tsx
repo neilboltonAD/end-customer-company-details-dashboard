@@ -73,6 +73,11 @@ const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
           active={activeItem === 'Reseller: Customer Onboarding'}
           onClick={() => navigate('/operations/microsoft/onboarding')}
         />
+        <SidebarItem
+          label="GDAP: Management"
+          active={activeItem === 'GDAP: Management'}
+          onClick={() => navigate('/operations/microsoft/onboarding/gdap')}
+        />
       </SidebarSection>
     </aside>
   );
