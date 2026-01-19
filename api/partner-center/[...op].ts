@@ -1,20 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from './_lib/cookies';
-import { buildAuthorizeUrl, getAccessTokenForSession, handleOAuthCallback, clearStoredTokens } from './_lib/delegatedAuth';
-import { partnerCenterFetch, partnerCenterFetchWithToken } from './_lib/partnerCenter';
+import { ensureSessionId } from '../_lib/cookies';
+import { buildAuthorizeUrl, getAccessTokenForSession, handleOAuthCallback, clearStoredTokens } from '../_lib/delegatedAuth';
+import { partnerCenterFetch, partnerCenterFetchWithToken } from '../_lib/partnerCenter';
 
 function json(res: VercelResponse, status: number, payload: any) {
   res.status(status).json(payload);
 }
 
 function opFrom(req: VercelRequest): string {
-  const q = (req.query.op || '').toString();
-  if (q) return q;
-  // If called directly as /api/partner-center/<op> without rewrite, infer from path.
-  const base = `http://${req.headers.host || 'localhost'}`;
-  const u = new URL(req.url || '/', base);
-  const m = u.pathname.match(/^\/api\/partner-center\/(.+)$/);
-  return m?.[1] || '';
+  const raw = (req.query.op ?? '') as any;
+  if (Array.isArray(raw)) return raw.join('/');
+  return String(raw || '');
 }
 
 function safeTruncate(value: any, maxLen = 3000) {
@@ -50,6 +46,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const timestamp = new Date().toISOString();
 
   try {
+    if (!op) return json(res, 404, { ok: false, error: 'Missing op', timestamp });
+
     // CONNECT (Partner Center)
     if (op === 'connect') {
       if (req.method !== 'GET') return json(res, 405, { ok: false, error: 'Method not allowed', timestamp });
@@ -79,9 +77,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (op === 'status') {
       if (req.method !== 'GET') return json(res, 405, { ok: false, error: 'Method not allowed', timestamp });
       const sessionId = ensureSessionId(req, res);
-      // We can’t inspect KV here without importing kv; easiest is to attempt token refresh cheaply?
-      // Instead, just report presence by attempting to refresh silently in the background via our helper.
-      // If it fails, we treat as disconnected.
       let hasPartnerCenter = false;
       let hasGdap = false;
       try {
@@ -225,15 +220,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // TEST (demo credential check)
     if (op === 'test') {
       if (req.method !== 'POST') return json(res, 405, { ok: false, error: 'Method not allowed', timestamp });
-      // Keep the existing behavior from api/partner-center/test.ts (client credentials provided in body)
       const { tenantId, clientId, clientSecret } = (req.body || {}) as any;
       if (!tenantId || !clientId || !clientSecret) {
         return json(res, 400, { ok: false, error: 'Missing tenantId/clientId/clientSecret', timestamp });
       }
-      // Reuse the existing library helper (client credentials flow)
-      // Dynamically import to avoid duplicating logic in this file.
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const lib = require('./_lib/partnerCenter') as typeof import('./_lib/partnerCenter');
+      const lib = require('../_lib/partnerCenter') as typeof import('../_lib/partnerCenter');
       const token = await lib.getPartnerCenterAccessTokenWithCreds({ tenantId, clientId, clientSecret });
       const pc = await lib.partnerCenterFetchWithToken<any>(token, '/v1/customers?size=10');
       const ok = pc.status >= 200 && pc.status < 300;
@@ -266,7 +258,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    return json(res, 404, { ok: false, error: `Unknown op: ${op || '(none)'}`, timestamp });
+    return json(res, 404, { ok: false, error: `Unknown op: ${op}`, timestamp });
   } catch (e: any) {
     return json(res, 500, { ok: false, error: e?.message || 'Unknown error', timestamp });
   }

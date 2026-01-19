@@ -14,9 +14,6 @@
     }
   ],
   "routes": [
-    { "src": "/api/partner-center/(.*)", "dest": "/api/partner-center?op=$1" },
-    { "src": "/api/partner-center", "dest": "/api/partner-center?op=status" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
