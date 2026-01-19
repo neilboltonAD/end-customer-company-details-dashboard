@@ -13,19 +13,11 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/partner-center",
-      "destination": "/api/partner-center?op=status"
-    },
-    {
-      "source": "/api/partner-center/:op*",
-      "destination": "/api/partner-center?op=:op*"
-    },
-    {
-      "source": "/((?!api).*)",
-      "destination": "/index.html"
-    }
+  "routes": [
+    { "src": "/api/partner-center$", "dest": "/api/partner-center?op=status" },
+    { "src": "/api/partner-center/(.*)", "dest": "/api/partner-center?op=$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
 
