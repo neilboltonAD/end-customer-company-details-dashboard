@@ -9,13 +9,11 @@ import {
   Group,
   Modal,
   MultiSelect,
-  NumberInput,
   Select,
   Stack,
   Table,
   Text,
   Textarea,
-  TextInput,
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
@@ -53,6 +51,8 @@ type GdapTemplate = {
   recommendedFor?: string[];
   roles: string[];
 };
+
+const EXPIRING_SOON_DAYS = 30;
 
 const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
   const navigate = useNavigate();
@@ -245,7 +245,6 @@ export const OperationsGDAPManagement = () => {
   const [expiringModalOpen, setExpiringModalOpen] = useState(false);
   const [expiredModalOpen, setExpiredModalOpen] = useState(false);
 
-  const [expiringWithinDays, setExpiringWithinDays] = useState<number>(30);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Expired'>('All');
 
   const [templates, setTemplates] = useState<GdapTemplate[]>(initialTemplates);
@@ -315,12 +314,12 @@ export const OperationsGDAPManagement = () => {
   }, [relationships, selectedCompanyId]);
 
   const expiringSoon = useMemo(() => {
-    const threshold = Math.max(0, expiringWithinDays || 0);
+    const threshold = EXPIRING_SOON_DAYS;
     return relationships
       .map((r) => ({ r, days: daysUntil(r.validTo) }))
       .filter(({ r, days }) => r.status !== 'Expired' && days >= 0 && days <= threshold)
       .sort((a, b) => a.days - b.days);
-  }, [relationships, expiringWithinDays]);
+  }, [relationships]);
 
   const expired = useMemo(() => {
     return relationships
@@ -651,63 +650,11 @@ export const OperationsGDAPManagement = () => {
 
           {/* Overview (keep expiring/expired at top under header) */}
           <div className="bg-white rounded shadow p-4 mb-4">
-            <Group justify="space-between" align="flex-end">
-              <div className="flex-1">
-                <Text fw={600} size="sm" mb={6}>
-                  Overview
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Expiring/expired counts are based on the currently loaded relationships.
-                </Text>
-              </div>
-              <NumberInput
-                label="Expiring within (days)"
-                value={expiringWithinDays}
-                onChange={(value) => setExpiringWithinDays(typeof value === 'number' ? value : 30)}
-                min={1}
-                max={365}
-                clampBehavior="strict"
-                w={200}
-              />
-            </Group>
-          </div>
-
-          {/* Expiring / expired */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <button
-              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
-              onClick={() => setExpiringModalOpen(true)}
-            >
-              <Text fw={700} size="sm">
-                Expiring soon
-              </Text>
-              <Text size="xs" c="dimmed">
-                Relationships expiring within {expiringWithinDays} days
-              </Text>
-              <Text fw={800} size="xl" mt={6}>
-                {expiringSoon.length}
-              </Text>
-            </button>
-            <button
-              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
-              onClick={() => setExpiredModalOpen(true)}
-            >
-              <Text fw={700} size="sm">
-                Expired
-              </Text>
-              <Text size="xs" c="dimmed">
-                Relationships requiring renewal / new request
-              </Text>
-              <Text fw={800} size="xl" mt={6}>
-                {expired.length}
-              </Text>
-            </button>
-          </div>
-
-          {/* Company search */}
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <Text fw={600} size="sm" mb="sm">
-              Company search
+            <Text fw={600} size="sm" mb={6}>
+              Overview
+            </Text>
+            <Text size="xs" c="dimmed" mb="sm">
+              Select a company to view relationships and create new GDAP requests.
             </Text>
             <Select
               searchable
@@ -731,6 +678,38 @@ export const OperationsGDAPManagement = () => {
                 {companiesError}
               </div>
             )}
+          </div>
+
+          {/* Expiring / expired */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <button
+              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
+              onClick={() => setExpiringModalOpen(true)}
+            >
+              <Text fw={700} size="sm">
+                Expiring soon
+              </Text>
+              <Text size="xs" c="dimmed">
+                Relationships expiring within {EXPIRING_SOON_DAYS} days
+              </Text>
+              <Text fw={800} size="xl" mt={6}>
+                {expiringSoon.length}
+              </Text>
+            </button>
+            <button
+              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
+              onClick={() => setExpiredModalOpen(true)}
+            >
+              <Text fw={700} size="sm">
+                Expired
+              </Text>
+              <Text size="xs" c="dimmed">
+                Relationships requiring renewal / new request
+              </Text>
+              <Text fw={800} size="xl" mt={6}>
+                {expired.length}
+              </Text>
+            </button>
           </div>
 
           {/* Templates */}
