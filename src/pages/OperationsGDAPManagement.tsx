@@ -11,6 +11,7 @@ import {
   Modal,
   MultiSelect,
   Select,
+  SimpleGrid,
   Stack,
   Table,
   Text,
@@ -527,7 +528,7 @@ export const OperationsGDAPManagement = () => {
 
   return (
     <OperationsLayout>
-      <main>
+      <Stack component="main" gap="xl">
         <Group gap="xs" mb="sm">
           <Button variant="subtle" color="blue" onClick={() => navigate('/operations/microsoft/onboarding')} px={0}>
             Reseller: Customer Onboarding
@@ -536,7 +537,7 @@ export const OperationsGDAPManagement = () => {
           <Text size="sm">GDAP: Management</Text>
         </Group>
 
-          <Card>
+        <Card>
             <Group justify="space-between" align="flex-start">
               <Stack gap={2}>
                 <Text fw={700} size="lg">
@@ -600,14 +601,7 @@ export const OperationsGDAPManagement = () => {
           </Card>
 
           {/* Expiring / expired */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 16,
-              marginBottom: 16,
-            }}
-          >
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
             <Card interactive onClick={() => setExpiringModalOpen(true)}>
               <Text fw={700} size="sm">
                 Expiring soon
@@ -630,11 +624,11 @@ export const OperationsGDAPManagement = () => {
                 {expired.length}
               </Text>
             </Card>
-          </div>
+          </SimpleGrid>
 
           {/* Relationships */}
           <Card style={!selectedCompany ? { opacity: 0.6 } : undefined}>
-            <Group justify="space-between" mb="sm">
+            <Group justify="space-between" mb="sm" wrap="wrap">
               <div>
                 <Text fw={600} size="sm">
                   GDAP Relationships
@@ -643,12 +637,12 @@ export const OperationsGDAPManagement = () => {
                   {selectedCompany ? `Managing relationships for ${selectedCompany.name}` : 'Select a company to manage relationships'}
                 </Text>
               </div>
-              <Group gap="xs" align="center">
+              <Group gap="xs" align="center" wrap="wrap">
                 <Badge variant="light" color={selectedCompany ? 'teal' : 'gray'}>
                   {selectedCompany ? 'Company selected' : 'No company selected'}
                 </Badge>
                 {selectedCompany && (
-                  <Group gap="xs">
+                  <Group gap="xs" wrap="wrap">
                     {(['All', 'Active', 'Pending', 'Expired'] as const).map((s) => (
                       <Button
                         key={s}
@@ -777,7 +771,7 @@ export const OperationsGDAPManagement = () => {
 
           {/* Templates (collapsible) */}
           <Card>
-            <Group justify="space-between" mb="sm" align="center">
+            <Group justify="space-between" mb="sm" align="center" wrap="wrap">
               <Group gap="xs" align="center">
                 <ActionIcon
                   variant="subtle"
@@ -804,7 +798,8 @@ export const OperationsGDAPManagement = () => {
             </Group>
 
             <Collapse in={templatesExpanded}>
-              <Table striped highlightOnHover withTableBorder>
+              <div style={{ overflowX: 'auto' }}>
+                <Table striped highlightOnHover withTableBorder>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Name</Table.Th>
@@ -834,14 +829,32 @@ export const OperationsGDAPManagement = () => {
                         )}
                       </Table.Td>
                       <Table.Td>
-                        <Text size="xs" c="dimmed">
+                        <Text size="xs" c="dimmed" lineClamp={2}>
                           {t.description || '—'}
                         </Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="xs" c="dimmed">
-                          {t.roles.join(', ')}
-                        </Text>
+                        {t.roles.length > 0 ? (
+                          <Tooltip
+                            withArrow
+                            multiline
+                            maw={520}
+                            label={
+                              <div style={{ whiteSpace: 'pre-wrap' }}>
+                                {t.roles.join('\n')}
+                              </div>
+                            }
+                          >
+                            <Text size="xs" c="dimmed" style={{ cursor: 'help' }}>
+                              {t.roles.slice(0, 2).join(', ')}
+                              {t.roles.length > 2 ? ` (+${t.roles.length - 2} more)` : ''}
+                            </Text>
+                          </Tooltip>
+                        ) : (
+                          <Text size="xs" c="dimmed">
+                            —
+                          </Text>
+                        )}
                       </Table.Td>
                       <Table.Td>
                         <Group gap="xs">
@@ -860,7 +873,8 @@ export const OperationsGDAPManagement = () => {
                     </Table.Tr>
                   ))}
                 </Table.Tbody>
-              </Table>
+                </Table>
+              </div>
             </Collapse>
           </Card>
 
@@ -1181,7 +1195,7 @@ export const OperationsGDAPManagement = () => {
               </Table.Tbody>
             </Table>
           </Modal>
-      </main>
+      </Stack>
 
       <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
         <ActionIcon size="lg" radius="xl" variant="filled" color="blue" aria-label="Help">
