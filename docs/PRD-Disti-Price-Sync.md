@@ -7,9 +7,23 @@
 | **Feature** | Distributor Catalogue Price Synchronization |
 | **Author** | Neil Bolton |
 | **Created** | January 14, 2026 |
-| **Last Updated** | January 14, 2026 |
-| **Status** | 🚧 In Development |
+| **Last Updated** | January 20, 2026 |
+| **Status** | ✅ Implemented (Main App Demo) |
 | **Version** | 1.0 |
+
+---
+
+## Executive Summary
+
+The Disti Price Sync tool provides a centralized, Operations-owned workflow to **review distributor price deltas** and **commit selected updates** with a secondary confirmation step. It also provides **status tracking** of attempted updates (synced history).
+
+### Mini-features (bulleted)
+
+- **Catalogue filter**: filter updates by distributor catalogue.
+- **Search**: product name / product ID search.
+- **Delta review**: old vs new price shown side-by-side with change indicators.
+- **Select + confirm**: select rows, review in a modal, remove items, confirm update.
+- **Synced tracking**: “Synced Prices” tab with status (success/pending/failed) and color indicators.
 
 ---
 

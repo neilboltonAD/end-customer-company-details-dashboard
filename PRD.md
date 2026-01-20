@@ -15,6 +15,19 @@ The Marketplace Administration Settings Interface is a comprehensive update desi
 
 The application streamlines the configuration of critical marketplace operations including company sync, tenant linking, user synchronization across Microsoft, and detailed vendor-specific information management.
 
+### 1.0 Mini-features (bulleted)
+
+- **Marketplace sync settings dashboard**: one place to view/edit all sync toggles and dependencies.
+- **Company sync**: enable/disable company discovery + sub-settings.
+- **Microsoft tenant linking**: configure and guide tenant relationship setup.
+- **Microsoft user sync**: enable/disable user synchronization + sub-settings.
+- **Vendor information (per company)**: vendor selector and vendor-specific sections.
+- **Partner Center insights (customer metrics)**: usage and revenue rollups (where available).
+- **P2P transfers (Microsoft)**: transfer initiation + management tooling (where enabled).
+- **GDAP management**: relationship visibility + template-based request creation (where enabled).
+- **Reseller customer onboarding**: capture onboarding info + email template workflow (where enabled).
+- **Price sync tooling**: review deltas + confirm updates + status tracking (where enabled).
+
 ### 1.1 Business Objectives
 
 - **Centralized Configuration Management**: Provide a single interface for all marketplace synchronization and vendor settings

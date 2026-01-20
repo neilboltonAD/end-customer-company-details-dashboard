@@ -7,9 +7,25 @@
 | **Feature** | Reseller Customer Onboarding |
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
-| **Last Updated** | January 16, 2026 |
-| **Status** | 🚧 In Development |
+| **Last Updated** | January 20, 2026 |
+| **Status** | ✅ Implemented (Main App Demo) |
 | **Version** | 1.0 |
+
+---
+
+## Executive Summary
+
+Reseller Customer Onboarding provides an Operations workflow for Microsoft Indirect Resellers to **collect onboarding details**, **generate a branded onboarding email (WYSIWYG)** with required Microsoft links, and **track customer approval status**. The demo implementation focuses on a complete end-to-end UI flow without external email APIs.
+
+### Mini-features (bulleted)
+
+- **Onboarding form**: capture default domain, name, email, CC, company type, indirect reseller selection.
+- **Email generation**: Create opens an editable branded template (WYSIWYG).
+- **Required links**: template always includes RRR + GDAP URLs.
+- **Company context**: supports New vs Existing company selection (with company selection in modal).
+- **Approvals dashboard**: current approvals table with statuses.
+- **Resend reminder**: resend action with confirmation and toast.
+- **Internal-only email preview**: opens a browser window/tab with expected email content (no send).
 
 ---
 

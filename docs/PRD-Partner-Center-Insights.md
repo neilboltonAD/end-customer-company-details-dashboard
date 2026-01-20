@@ -7,9 +7,24 @@
 | **Feature** | Partner Center Insights |
 | **Author** | Neil Bolton |
 | **Created** | January 13, 2026 |
-| **Last Updated** | January 13, 2026 |
+| **Last Updated** | January 20, 2026 |
 | **Status** | ✅ Implemented (AppDirect Extension Demo) |
 | **Version** | 1.0 |
+
+---
+
+## Executive Summary
+
+Partner Center Insights provides a consolidated view of Microsoft customer usage, seats, and revenue trends, with drilldowns into subscription-level metrics and Office usage. The current implementation is a demo UI designed for AppDirect extension deployment, with clear pathways to wire up Partner Center/Graph APIs.
+
+### Mini-features (bulleted)
+
+- **Overview dashboard**: key totals (seats, assigned, active users, revenue) with trends.
+- **Subscriptions panel**: per-subscription metrics, health indicators, and nicknames.
+- **All subscriptions modal**: grouped summaries and risk indicators.
+- **Office usage analytics**: service-level adoption breakdown.
+- **Revenue analytics**: product-level breakdown and totals.
+- **Recommendations**: contextual insights based on utilization.
 
 ---
 

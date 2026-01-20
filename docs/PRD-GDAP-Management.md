@@ -7,9 +7,24 @@
 | **Feature** | GDAP: Management |
 | **Author** | Neil Bolton |
 | **Created** | January 19, 2026 |
-| **Last Updated** | January 19, 2026 |
-| **Status** | 🧭 Planned |
+| **Last Updated** | January 20, 2026 |
+| **Status** | ✅ Implemented (Main App Demo) |
 | **Version** | 1.0 |
+
+---
+
+## Executive Summary
+
+GDAP: Management provides a marketplace-wide Operations page to **search/select companies**, **review GDAP relationships**, **act on expiring/expired relationships**, and **manage reusable GDAP request templates**. The current implementation is a demo-first UX, designed to align with Partner Center workflows and future API-backed behavior.
+
+### Mini-features (bulleted)
+
+- **Company search + context**: select a company to enable relationship actions.
+- **Relationships list**: view relationships with status filtering and drill-through.
+- **Expiring/expired drill-through**: list relationships needing attention with “Renew/New request” actions.
+- **Templates**: create/edit role-set templates with description + “recommended for” tags.
+- **Seed templates**: includes baseline templates (e.g., Default GDAP, AppDirect Marketplace).
+- **Future-proofing**: intended to be wired to Partner Center APIs (demo now).
 
 ---
 

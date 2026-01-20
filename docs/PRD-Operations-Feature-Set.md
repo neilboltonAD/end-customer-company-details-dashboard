@@ -7,9 +7,15 @@
 | **Scope** | Microsoft Reseller Insights, Reseller P2P Transfers, Disti Price Sync |
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
-| **Last Updated** | January 16, 2026 |
-| **Status** | 🚧 In Development |
+| **Last Updated** | January 20, 2026 |
+| **Status** | ✅ Implemented (Demo) |
 | **Version** | 1.0 |
+
+---
+
+## Executive Summary
+
+This document defines the **Operations feature set** for Microsoft + Price Management workflows in the main application. It is intended to be a crisp reference for what users can do now (demo) and what “done” means for each mini-feature.
 
 ---
 
@@ -27,11 +33,12 @@
 
 ## 1. Overview
 
-This PRD covers three marketplace-wide Operations features:
+This PRD covers marketplace-wide Operations features:
 
 - **Reseller PC Insights** — analytics and rollups of subscription health by customer and product type.
 - **Reseller P2P Transfers** — initiate and manage Microsoft subscription transfers across partners.
 - **Disti Price Sync** — review and commit distributor catalogue price updates.
+- **Reseller Customer Onboarding** — capture onboarding details, generate a branded email, and track approvals.
 
 All features are integrated into the main application (not extensions) and are accessible from the Operations navigation.
 
@@ -48,7 +55,15 @@ Provide a marketplace-wide view of Microsoft subscription performance with drill
 - Marketplace Operations Managers
 - Partner Success Managers
 
-### 2.3 Functional Requirements
+### 2.3 Mini-features (bulleted)
+
+- **Marketplace summary card**: always-visible rollup above drilldowns.
+- **By Customer (collapsible)**: customer list with expandable product-type summaries.
+- **By Product Type (collapsible)**: product types with expandable customer lists.
+- **Sorting**: expanded customer list sortable by Seats / Highest Value.
+- **Consistent “health” styling**: trend indicators, good/bad color language, consistent value formatting.
+
+### 2.4 Functional Requirements
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
@@ -60,13 +75,13 @@ Provide a marketplace-wide view of Microsoft subscription performance with drill
 | RPCI-6 | Sort customers by Seats or Highest Value via column headers | Must Have |
 | RPCI-7 | Use consistent summary styling (trend, icons, colors) | Must Have |
 
-### 2.4 UX Notes
+### 2.5 UX Notes
 
 - Marketplace overview always appears above the two subsections.
 - Expandable sections remember open/closed state.
 - Summary cards use consistent visual language (trend indicators, status colors).
 
-### 2.5 Data Requirements
+### 2.6 Data Requirements
 
 - Marketplace totals: subscriptions, product types, seats, assigned seats, revenue.
 - Per-customer rollups: subscriptions, seats, value, and health status.
@@ -85,7 +100,16 @@ Enable marketplace-wide management of Microsoft P2P subscription transfers from 
 - Marketplace Operations Managers
 - Partner Account Managers
 
-### 3.3 Functional Requirements
+### 3.3 Mini-features (bulleted)
+
+- **Search gating**: “Available Subscriptions” remains empty until a search is performed.
+- **Eligibility + reasons**: ineligible items are clearly marked with reason text.
+- **Create flow**: create transfer modal flow with selection + confirmation.
+- **Review flow**: inbound transfer review (accept/reject) with confirmations.
+- **Management**: active + historical transfer visibility and status badges.
+- **Settings**: Direct vs Indirect mode; Indirect disables outbound creation; company creation toggle.
+
+### 3.4 Functional Requirements
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
@@ -99,12 +123,12 @@ Enable marketplace-wide management of Microsoft P2P subscription transfers from 
 | RP2P-8 | Indirect mode disables outbound transfer creation | Must Have |
 | RP2P-9 | Provide a toggle to enable company creation | Must Have |
 
-### 3.4 UX Notes
+### 3.5 UX Notes
 
 - Search gating prevents subscription lists from appearing before a query.
 - Status badges and eligibility reasons are prominent and accessible.
 
-### 3.5 Data Requirements
+### 3.6 Data Requirements
 
 - Transfer request metadata (direction, status, dates, partners).
 - Eligible subscriptions (SKU, term, billing, value, eligibility reason).
@@ -122,7 +146,15 @@ Provide a centralized tool to review and commit distributor price changes.
 - Marketplace Managers
 - Operations Analysts
 
-### 4.3 Functional Requirements
+### 4.3 Mini-features (bulleted)
+
+- **Catalogue filter**: filter updates by distributor catalogue.
+- **Search**: product name / ID search.
+- **Review deltas**: old vs new price shown side-by-side.
+- **Selection + confirm**: select rows, review in modal, remove items, confirm commit.
+- **Synced tracking**: Synced Prices tab shows status (success/pending/failed) with color indicators.
+
+### 4.4 Functional Requirements
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
@@ -134,12 +166,12 @@ Provide a centralized tool to review and commit distributor price changes.
 | DPS-6 | Track updates in **Synced Prices** tab | Must Have |
 | DPS-7 | Status colors: Success/ Pending / Failed | Must Have |
 
-### 4.4 UX Notes
+### 4.5 UX Notes
 
 - Located under **Price Management** → **Disti Price Sync**.
 - Review modal is a confirmation checkpoint before committing.
 
-### 4.5 Data Requirements
+### 4.6 Data Requirements
 
 - Product pricing snapshots (old price, new price, % delta).
 - Distributor metadata and sync timestamp.
@@ -158,7 +190,16 @@ Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant
 - Marketplace Operations Managers
 - Indirect Reseller Operations Teams
 
-### 5.3 Functional Requirements
+### 5.3 Mini-features (bulleted)
+
+- **Onboarding form**: capture required customer/contact fields and reseller context.
+- **Email generation**: Create opens an editable branded template (WYSIWYG).
+- **Required links**: template always includes RRR + GDAP URLs.
+- **Company context**: supports New vs Existing company selection.
+- **Approvals dashboard**: current approvals table with statuses.
+- **Resend reminder**: resend icon with confirmation and toast.
+
+### 5.4 Functional Requirements
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
@@ -170,12 +211,12 @@ Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant
 | RCO-6 | Show Current Approvals list with statuses | Must Have |
 | RCO-7 | Provide Resend Email action with confirmation | Must Have |
 
-### 5.4 UX Notes
+### 5.5 UX Notes
 
 - Lives under **Operations → Microsoft → Reseller: Customer Onboarding**.
 - Approvals table provides at-a-glance status visibility.
 
-### 5.5 Data Requirements
+### 5.6 Data Requirements
 
 - Tenant metadata and email template content.
 - Approval status list with step labels.
@@ -189,7 +230,20 @@ Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant
 | Reseller PC Insights | ✅ Implemented (Demo) | Marketplace summary + collapsible sections |
 | Reseller P2P Transfers | ✅ Implemented (Demo) | Search gating + full transfer workflow |
 | Disti Price Sync | ✅ Implemented (Demo) | Review modal + synced status tracking |
-| Reseller Customer Onboarding | 🚧 In Progress | New onboarding dashboard + modal |
+| Reseller Customer Onboarding | ✅ Implemented (Demo) | WYSIWYG email editor + resend flow + approvals table |
+
+---
+
+## 6.1 Definition of Done (Outcomes)
+
+For the Operations feature set to be considered complete:
+
+- **Outcome: Navigation**
+  - All pages are reachable from the Operations sidebar and have stable routes.
+- **Outcome: Consistent UI**
+  - Pages use the DesignSystem/Mantine primitives (cards, tables, modals) and avoid Tailwind-only layout where possible.
+- **Outcome: Demo parity**
+  - Each feature has a usable demo flow end-to-end with clear status messaging (even if backed by mock data).
 
 ---
 

@@ -7,9 +7,24 @@
 | **Feature** | Partner to Partner Transfers |
 | **Author** | Neil Bolton |
 | **Created** | January 12, 2026 |
-| **Last Updated** | January 16, 2026 |
+| **Last Updated** | January 20, 2026 |
 | **Status** | ✅ Implemented (Main App Demo) |
 | **Version** | 1.3 |
+
+---
+
+## Executive Summary
+
+P2P Transfers provides an Operations workflow for **Partner-to-Partner Microsoft subscription transfers** inside the main app (demo). It focuses on **search-gated eligibility**, clear **accept/reject/cancel** actions, and consistent **status visibility** for both inbound and outbound transfers.
+
+### Mini-features (bulleted)
+
+- **Search gating**: available subscriptions remain hidden until a search is performed.
+- **Eligibility + reasons**: non-eligible subscriptions show why.
+- **Create transfer**: select subscriptions → enter target partner → confirm.
+- **Inbound review**: accept/reject incoming transfers with confirmations.
+- **Details + history**: view transfer details + timeline/status in a modal.
+- **Settings**: Direct vs Indirect mode; Indirect prevents outbound creation; company creation toggle.
 
 ---
 
