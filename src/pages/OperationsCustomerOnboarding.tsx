@@ -8,7 +8,6 @@ import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { TopNavbar } from '../components/navigation/TopNavbar';
-import { getPartnerCenterIndirectResellers, type PartnerCenterIndirectReseller } from '../api/partnerCenter';
 
 const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
   const navigate = useNavigate();
@@ -141,87 +140,19 @@ export const OperationsCustomerOnboarding = () => {
   const [emailAddress, setEmailAddress] = useState('');
   const [ccAddress, setCcAddress] = useState('');
   const [companyType, setCompanyType] = useState<'new' | 'existing'>('new');
-  const [resellerId, setResellerId] = useState<string | null>(null);
+  const [reseller, setReseller] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [emailBody, setEmailBody] = useState('');
   const [resendTarget, setResendTarget] = useState<(typeof approvalRows)[number] | null>(null);
 
-  const [indirectResellers, setIndirectResellers] = useState<PartnerCenterIndirectReseller[]>([]);
-  const [isLoadingResellers, setIsLoadingResellers] = useState(false);
-  const [resellersError, setResellersError] = useState<string | null>(null);
-
-  const selectedReseller = useMemo(() => {
-    if (!resellerId) return null;
-    return indirectResellers.find((r) => r.id === resellerId) || null;
-  }, [indirectResellers, resellerId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      setIsLoadingResellers(true);
-      setResellersError(null);
-      try {
-        const resp = await getPartnerCenterIndirectResellers();
-        if (cancelled) return;
-        if (!resp.ok) {
-          setIndirectResellers([]);
-          setResellersError(resp.error || 'Failed to load indirect resellers from Partner Center.');
-          return;
-        }
-        // Only show Active resellers (per request).
-        const cleaned = (resp.resellers || [])
-          .filter((r) => r && r.id)
-          .filter((r) => String(r.state || '').toLowerCase() === 'active')
-          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-        setIndirectResellers(cleaned);
-      } catch (e: any) {
-        if (cancelled) return;
-        setIndirectResellers([]);
-        setResellersError(e?.message || 'Failed to load indirect resellers from Partner Center.');
-      } finally {
-        if (!cancelled) setIsLoadingResellers(false);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const rrrUrl = useMemo(() => {
-    const domain = defaultDomain || '';
-    const params = new URLSearchParams();
-    if (domain) params.set('domain', domain);
-    if (selectedReseller) {
-      const tenantId = selectedReseller.tenantId || selectedReseller.id;
-      params.set('resellerTenantId', tenantId);
-      params.set('resellerId', selectedReseller.id);
-      if (selectedReseller.mpnId) params.set('resellerMpnId', selectedReseller.mpnId);
-    }
-    const qs = params.toString();
-    return `https://itcloud.ca/rrr-request${qs ? `?${qs}` : ''}`;
-  }, [defaultDomain, selectedReseller]);
-
-  const gdapUrl = useMemo(() => {
-    const domain = defaultDomain || '';
-    const params = new URLSearchParams();
-    if (domain) params.set('domain', domain);
-    if (selectedReseller) {
-      const tenantId = selectedReseller.tenantId || selectedReseller.id;
-      params.set('resellerTenantId', tenantId);
-      params.set('resellerId', selectedReseller.id);
-      if (selectedReseller.mpnId) params.set('resellerMpnId', selectedReseller.mpnId);
-    }
-    const qs = params.toString();
-    return `https://itcloud.ca/gdap-request${qs ? `?${qs}` : ''}`;
-  }, [defaultDomain, selectedReseller]);
-
   const template = useMemo(() => {
     const domain = defaultDomain || '[customer-domain]';
     const recipient = emailAddress || '[customer-email]';
     const name = contactName || '[contact-name]';
-    const resellerName = selectedReseller?.name || 'your indirect reseller';
+    const resellerName = reseller || 'your indirect reseller';
+    const rrrUrl = `https://itcloud.ca/rrr-request?domain=${encodeURIComponent(domain)}`;
+    const gdapUrl = `https://itcloud.ca/gdap-request?domain=${encodeURIComponent(domain)}`;
 
     return `
       <p>Hello ${name},</p>
@@ -236,7 +167,7 @@ export const OperationsCustomerOnboarding = () => {
       <p>If you have any questions, reply to this email and our team will help.</p>
       <p>Thanks,<br />ITCloud.ca Team</p>
     `.trim();
-  }, [ccAddress, contactName, defaultDomain, emailAddress, gdapUrl, rrrUrl, selectedReseller?.name]);
+  }, [defaultDomain, emailAddress]);
 
   const editor = useEditor({
     extensions: [
@@ -329,18 +260,15 @@ export const OperationsCustomerOnboarding = () => {
               />
               <Select
                 label="Indirect Reseller"
-                placeholder={isLoadingResellers ? 'Loading…' : resellersError ? 'Unable to load' : 'Select reseller'}
+                placeholder="None"
                 data={[
-                  { value: 'none', label: 'None' },
-                  ...indirectResellers.map((r) => ({
-                    value: r.id,
-                    label: `${r.name || r.tenantId || r.id}${r.mpnId ? ` (MPN ${r.mpnId})` : ''}${r.state ? ` • ${r.state}` : ''}`,
-                  })),
+                  { value: 'None', label: 'None' },
+                  { value: 'ITCloud.ca', label: 'ITCloud.ca' },
+                  { value: 'Northwind Reseller', label: 'Northwind Reseller' },
+                  { value: 'Contoso Cloud Services', label: 'Contoso Cloud Services' },
                 ]}
-                value={resellerId || 'none'}
-                onChange={(value) => setResellerId(value === 'none' ? null : value || null)}
-                searchable
-                nothingFoundMessage={resellersError || 'No resellers found'}
+                value={reseller || 'None'}
+                onChange={(value) => setReseller(value === 'None' ? null : value || null)}
               />
             </div>
 
@@ -400,25 +328,6 @@ export const OperationsCustomerOnboarding = () => {
           <Text size="sm" c="dimmed">
             The email below is editable. ITCloud.ca branding and the RRR + GDAP links are included by default.
           </Text>
-
-          <div className="border border-gray-200 rounded p-3 bg-gray-50">
-            <Text size="sm" fw={600} mb={6}>
-              Prepopulated links
-            </Text>
-            <Stack gap={6}>
-              <Text size="xs" c="dimmed">
-                Reseller: <strong>{selectedReseller?.name || 'None selected'}</strong>
-                {selectedReseller?.tenantId ? ` • Tenant: ${selectedReseller.tenantId}` : ''}
-                {selectedReseller?.mpnId ? ` • MPN: ${selectedReseller.mpnId}` : ''}
-              </Text>
-              <Text size="sm" style={{ wordBreak: 'break-all' }}>
-                <strong>RRR:</strong> <a href={rrrUrl} target="_blank" rel="noreferrer">{rrrUrl}</a>
-              </Text>
-              <Text size="sm" style={{ wordBreak: 'break-all' }}>
-                <strong>GDAP:</strong> <a href={gdapUrl} target="_blank" rel="noreferrer">{gdapUrl}</a>
-              </Text>
-            </Stack>
-          </div>
           <Text size="sm" fw={600}>
             Editable email content
           </Text>

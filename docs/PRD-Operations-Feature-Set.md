@@ -7,9 +7,9 @@
 | **Scope** | Microsoft Reseller Insights, Reseller P2P Transfers, Disti Price Sync |
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
-| **Last Updated** | January 19, 2026 |
+| **Last Updated** | January 16, 2026 |
 | **Status** | 🚧 In Development |
-| **Version** | 1.1 |
+| **Version** | 1.0 |
 
 ---
 
@@ -189,8 +189,7 @@ Enable Microsoft Indirect Resellers to onboard new customers by capturing tenant
 | Reseller PC Insights | ✅ Implemented (Demo) | Marketplace summary + collapsible sections |
 | Reseller P2P Transfers | ✅ Implemented (Demo) | Search gating + full transfer workflow |
 | Disti Price Sync | ✅ Implemented (Demo) | Review modal + synced status tracking |
-| Reseller Customer Onboarding | ✅ Implemented (Demo) | WYSIWYG email + resend + Partner Center resellers (Active only) |
-| GDAP: Management | ✅ Implemented (POC) | Customer list from Partner Center + relationships from Microsoft Graph |
+| Reseller Customer Onboarding | 🚧 In Progress | New onboarding dashboard + modal |
 
 ---
 

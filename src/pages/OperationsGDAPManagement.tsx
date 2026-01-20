@@ -5,6 +5,7 @@ import {
   ActionIcon,
   Badge,
   Button,
+  Collapse,
   CopyButton,
   Group,
   Modal,
@@ -249,6 +250,7 @@ export const OperationsGDAPManagement = () => {
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Pending' | 'Expired'>('All');
 
   const [templates, setTemplates] = useState<GdapTemplate[]>(initialTemplates);
+  const [templatesExpanded, setTemplatesExpanded] = useState(true);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState('');
@@ -713,76 +715,6 @@ export const OperationsGDAPManagement = () => {
             </button>
           </div>
 
-          {/* Templates */}
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <Group justify="space-between" mb="sm">
-              <Text fw={600} size="sm">
-                GDAP request templates
-              </Text>
-              <Button size="xs" leftSection={<Plus size={14} />} onClick={openCreateTemplate}>
-                New template
-              </Button>
-            </Group>
-
-            <Table striped highlightOnHover withTableBorder>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Recommended for</Table.Th>
-                  <Table.Th>Description</Table.Th>
-                  <Table.Th>Roles</Table.Th>
-                  <Table.Th style={{ width: 120 }}>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {templates.map((t) => (
-                  <Table.Tr key={t.id}>
-                    <Table.Td>{t.name}</Table.Td>
-                    <Table.Td>
-                      {t.recommendedFor && t.recommendedFor.length > 0 ? (
-                        <Group gap={6}>
-                          {t.recommendedFor.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="light" color="teal">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </Group>
-                      ) : (
-                        <Text size="xs" c="dimmed">
-                          —
-                        </Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {t.description || '—'}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed">
-                        {t.roles.join(', ')}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Group gap="xs">
-                        <Tooltip label="Edit">
-                          <ActionIcon variant="light" onClick={() => openEditTemplate(t)}>
-                            <Pencil size={16} />
-                          </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label="Delete">
-                          <ActionIcon variant="light" color="red" onClick={() => deleteTemplate(t.id)}>
-                            <Trash2 size={16} />
-                          </ActionIcon>
-                        </Tooltip>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </div>
-
           {/* Relationships */}
           <div className={`bg-white rounded shadow p-4 ${!selectedCompany ? 'opacity-60' : ''}`}>
             <Group justify="space-between" mb="sm">
@@ -906,6 +838,95 @@ export const OperationsGDAPManagement = () => {
                   </div>
                 );
               })}
+          </div>
+
+          {/* Templates (collapsible) */}
+          <div className="bg-white rounded shadow p-4 mb-4">
+            <Group justify="space-between" mb="sm" align="center">
+              <Group gap="xs" align="center">
+                <ActionIcon
+                  variant="subtle"
+                  onClick={() => setTemplatesExpanded((v) => !v)}
+                  aria-label={templatesExpanded ? 'Collapse templates' : 'Expand templates'}
+                >
+                  {templatesExpanded ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </ActionIcon>
+                <Text fw={600} size="sm">
+                  GDAP request templates
+                </Text>
+              </Group>
+              <Button size="xs" leftSection={<Plus size={14} />} onClick={openCreateTemplate}>
+                New template
+              </Button>
+            </Group>
+
+            <Collapse in={templatesExpanded}>
+              <Table striped highlightOnHover withTableBorder>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>Recommended for</Table.Th>
+                    <Table.Th>Description</Table.Th>
+                    <Table.Th>Roles</Table.Th>
+                    <Table.Th style={{ width: 120 }}>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {templates.map((t) => (
+                    <Table.Tr key={t.id}>
+                      <Table.Td>{t.name}</Table.Td>
+                      <Table.Td>
+                        {t.recommendedFor && t.recommendedFor.length > 0 ? (
+                          <Group gap={6}>
+                            {t.recommendedFor.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="light" color="teal">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </Group>
+                        ) : (
+                          <Text size="xs" c="dimmed">
+                            —
+                          </Text>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs" c="dimmed">
+                          {t.description || '—'}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs" c="dimmed">
+                          {t.roles.join(', ')}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Group gap="xs">
+                          <Tooltip label="Edit">
+                            <ActionIcon variant="light" onClick={() => openEditTemplate(t)}>
+                              <Pencil size={16} />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Tooltip label="Delete">
+                            <ActionIcon variant="light" color="red" onClick={() => deleteTemplate(t.id)}>
+                              <Trash2 size={16} />
+                            </ActionIcon>
+                          </Tooltip>
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Collapse>
           </div>
 
           {/* Modals */}
