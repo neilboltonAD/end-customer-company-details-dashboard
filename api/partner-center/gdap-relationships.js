@@ -1,15 +1,14 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from '../../lib/server/cookies';
-import { getAccessTokenForSession } from '../../lib/server/delegatedAuth';
+const { ensureSessionId } = require('../../lib/server/cookies');
+const { getAccessTokenForSession } = require('../../lib/server/delegatedAuth');
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     res.status(405).json({ ok: false, error: 'Method not allowed', relationships: [], timestamp: new Date().toISOString() });
     return;
   }
 
   try {
-    const customerTenantId = (req.query.customerTenantId || '').toString();
+    const customerTenantId = String((req.query && req.query.customerTenantId) || '');
     if (!customerTenantId) {
       res.status(400).json({ ok: false, error: 'Missing customerTenantId', relationships: [], timestamp: new Date().toISOString() });
       return;
@@ -17,6 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sessionId = ensureSessionId(req, res);
     const token = await getAccessTokenForSession(sessionId, 'gdap');
+
     const safeTenantId = customerTenantId.replace(/'/g, "''");
     const url =
       'https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships' +
@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
     const text = await resp.text();
-    let data: any;
+    let data;
     try {
       data = text ? JSON.parse(text) : null;
     } catch {
@@ -32,16 +32,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const ok = resp.status >= 200 && resp.status < 300;
-    const value = Array.isArray(data?.value) ? data.value : [];
-    const relationships = value.map((r: any) => ({
-      id: r?.id,
-      displayName: r?.displayName || r?.id,
-      status: r?.status,
-      createdDateTime: r?.createdDateTime,
-      endDateTime: r?.endDateTime,
-      autoExtendDuration: r?.autoExtendDuration,
-      roles: Array.isArray(r?.accessDetails?.unifiedRoles)
-        ? r.accessDetails.unifiedRoles.map((ur: any) => ur?.roleDefinitionId || ur?.displayName || ur?.id).filter(Boolean)
+    const value = Array.isArray(data && data.value) ? data.value : [];
+    const relationships = value.map((r) => ({
+      id: r && r.id,
+      displayName: (r && (r.displayName || r.id)) || undefined,
+      status: r && r.status,
+      createdDateTime: r && r.createdDateTime,
+      endDateTime: r && r.endDateTime,
+      autoExtendDuration: r && r.autoExtendDuration,
+      roles: Array.isArray(r && r.accessDetails && r.accessDetails.unifiedRoles)
+        ? r.accessDetails.unifiedRoles
+            .map((ur) => (ur && (ur.roleDefinitionId || ur.displayName || ur.id)) || null)
+            .filter(Boolean)
         : [],
     }));
 
@@ -53,8 +55,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       debug: ok ? undefined : { graph: data },
       timestamp: new Date().toISOString(),
     });
-  } catch (e: any) {
-    res.status(500).json({ ok: false, error: e?.message || 'GDAP relationships failed', relationships: [], timestamp: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({
+      ok: false,
+      error: (e && e.message) || 'GDAP relationships failed',
+      relationships: [],
+      timestamp: new Date().toISOString(),
+    });
   }
-}
+};
 

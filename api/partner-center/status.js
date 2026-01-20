@@ -1,8 +1,7 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from '../../lib/server/cookies';
-import { getAccessTokenForSession } from '../../lib/server/delegatedAuth';
+const { ensureSessionId } = require('../../lib/server/cookies');
+const { getAccessTokenForSession } = require('../../lib/server/delegatedAuth');
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'GET') {
       res.status(405).json({ ok: false, error: 'Method not allowed', timestamp: new Date().toISOString() });
@@ -10,14 +9,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const sessionId = ensureSessionId(req, res);
+
     let hasPartnerCenter = false;
     let hasGdap = false;
+
     try {
       await getAccessTokenForSession(sessionId, 'partnerCenter');
       hasPartnerCenter = true;
     } catch {
       hasPartnerCenter = false;
     }
+
     try {
       await getAccessTokenForSession(sessionId, 'gdap');
       hasGdap = true;
@@ -31,8 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = err && err.message ? err.message : String(err);
     res.status(500).json({ ok: false, error: message, timestamp: new Date().toISOString() });
   }
-}
+};
 
