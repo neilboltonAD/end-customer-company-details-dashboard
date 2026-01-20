@@ -7,7 +7,8 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { authorizeUrl } = buildAuthorizeUrl(req, res, { kind: 'gdap' });
+    const returnTo = (req.query && req.query.returnTo ? String(req.query.returnTo) : '') || undefined;
+    const { authorizeUrl } = buildAuthorizeUrl(req, res, { kind: 'gdap', returnTo });
     res.status(302).setHeader('Location', authorizeUrl);
     res.end();
   } catch (e) {
