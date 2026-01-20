@@ -9,6 +9,12 @@ This project deploys to Vercel as:
 
 Set these in Vercel Project Settings → Environment Variables (Production / Preview as needed).
 
+### App URL (recommended)
+
+- `APP_BASE_URL`
+  - Set this to the **stable** public URL of the app (no trailing slash), e.g. `https://neilbolton-msft-disti-mp.vercel.app`
+  - This ensures OAuth always uses a single redirect URI even when Vercel preview deployment URLs change.
+
 ### Entra (Azure AD) App Registration
 
 - `AZURE_TENANT_ID`
@@ -46,7 +52,9 @@ This exact callback URI must be registered in the Entra App Registration (Authen
 
 ### Preview deployments
 
-Vercel preview domains are dynamic. If you want OAuth to work in previews, you must add the preview callback domains as redirect URIs, or use a dedicated fixed staging domain.
+Vercel preview domains are dynamic. To avoid constantly updating Entra redirect URIs, set `APP_BASE_URL` to a single stable domain and register only:
+
+- `https://<stable-domain>/api/partner-center/callback`
 
 ## SPA routing
 
