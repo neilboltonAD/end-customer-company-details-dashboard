@@ -14,6 +14,7 @@ import {
   Table,
   Text,
   Textarea,
+  TextInput,
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
