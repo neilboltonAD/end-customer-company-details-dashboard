@@ -5,6 +5,7 @@ import {
   ActionIcon,
   Badge,
   Button,
+  CopyButton,
   Group,
   Modal,
   MultiSelect,
@@ -13,23 +14,22 @@ import {
   Stack,
   Table,
   Text,
+  Textarea,
   TextInput,
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { TopNavbar } from '../components/navigation/TopNavbar';
 import { Toggle } from '../components/form/Toggle';
-import {
-  getPartnerCenterConnectGdapUrl,
-  getPartnerCenterCustomers,
-  getPartnerCenterGdapRelationships,
-  type PartnerCenterCustomer,
-} from '../api/partnerCenter';
+import { getPartnerCenterConnectGdapUrl, getPartnerCenterCustomers, getPartnerCenterGdapRelationships } from '../api/partnerCenter';
 
 type Company = {
   id: string;
+  tenantId: string;
   name: string;
   defaultDomain: string;
+  contactName?: string;
+  contactEmail?: string;
 };
 
 type RelationshipStatus = 'Active' | 'Pending' | 'Expired';
@@ -161,9 +161,23 @@ const roleOptions = [
 
 const templateCategories = ['Teams', 'Support', 'User Management', 'Baseline Read', 'Security'];
 
-const initialCompanies: Company[] = [];
+function ymdFromIso(iso?: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-const initialRelationships: GdapRelationship[] = [];
+function mapGraphStatusToRelationshipStatus(s?: string): RelationshipStatus {
+  const v = String(s || '').toLowerCase();
+  if (v === 'active') return 'Active';
+  if (v === 'pending') return 'Pending';
+  if (v === 'expired') return 'Expired';
+  return 'Pending';
+}
 
 const initialTemplates: GdapTemplate[] = [
   {
@@ -220,11 +234,11 @@ export const OperationsGDAPManagement = () => {
   const [companyQuery, setCompanyQuery] = useState('');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const [companiesError, setCompaniesError] = useState<string | null>(null);
 
-  const [relationships, setRelationships] = useState<GdapRelationship[]>(initialRelationships);
+  const [relationships, setRelationships] = useState<GdapRelationship[]>([]);
   const [relationshipsLoading, setRelationshipsLoading] = useState(false);
   const [relationshipsError, setRelationshipsError] = useState<string | null>(null);
   const [expandedRelId, setExpandedRelId] = useState<string | null>(null);
@@ -252,6 +266,44 @@ export const OperationsGDAPManagement = () => {
   const [newRequestTemplateId, setNewRequestTemplateId] = useState<string | null>(null);
   const [newRequestRoles, setNewRequestRoles] = useState<string[]>([]);
   const [newRequestAutoRenew, setNewRequestAutoRenew] = useState(true);
+  const [newRequestRecipientName, setNewRequestRecipientName] = useState('');
+  const [newRequestRecipientEmail, setNewRequestRecipientEmail] = useState('');
+  const [newRequestRequestUrl, setNewRequestRequestUrl] = useState('');
+  const [newRequestEmailSubject, setNewRequestEmailSubject] = useState('');
+  const [newRequestEmailBody, setNewRequestEmailBody] = useState('');
+
+  const buildEmailTemplate = (opts: {
+    companyName: string;
+    recipientName?: string;
+    relationshipName: string;
+    requestUrl?: string;
+  }) => {
+    const greeting = opts.recipientName?.trim() ? `Hi ${opts.recipientName.trim()},` : 'Hi,';
+    const urlLine = opts.requestUrl?.trim()
+      ? `GDAP request link: ${opts.requestUrl.trim()}`
+      : 'GDAP request link: <paste link here>';
+
+    const subject = `Action required: Approve GDAP relationship request for ${opts.companyName}`;
+
+    const body = [
+      greeting,
+      '',
+      `We’re requesting a GDAP (Granular Delegated Admin Privileges) relationship to support your Microsoft tenant: ${opts.companyName}.`,
+      '',
+      `Relationship name: ${opts.relationshipName}`,
+      urlLine,
+      '',
+      'Please open the link above and approve the request.',
+      '',
+      'If you have any questions, reply to this email and we’ll help.',
+      '',
+      'Thanks,',
+      '<Your name>',
+      '<Your company>',
+    ].join('\n');
+
+    return { subject, body };
+  };
 
   const selectedCompany = useMemo(
     () => companies.find((c) => c.id === selectedCompanyId) || null,
@@ -262,96 +314,12 @@ export const OperationsGDAPManagement = () => {
     const q = companyQuery.trim().toLowerCase();
     if (!q) return companies;
     return companies.filter((c) => c.name.toLowerCase().includes(q) || c.defaultDomain.toLowerCase().includes(q));
-  }, [companies, companyQuery]);
+  }, [companyQuery, companies]);
 
   const companyRelationships = useMemo(() => {
     if (!selectedCompanyId) return [];
     return relationships.filter((r) => r.companyId === selectedCompanyId);
   }, [relationships, selectedCompanyId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      setCompaniesLoading(true);
-      setCompaniesError(null);
-      try {
-        const resp = await getPartnerCenterCustomers(200);
-        if (cancelled) return;
-        if (!resp.ok) {
-          setCompanies([]);
-          setCompaniesError(resp.error || 'Failed to load customers from Partner Center.');
-          return;
-        }
-        const mapped: Company[] = (resp.customers || [])
-          .filter((c: PartnerCenterCustomer) => c && c.id)
-          .map((c: PartnerCenterCustomer) => ({
-            id: c.tenantId || c.id,
-            name: c.companyName || c.defaultDomain || c.id,
-            defaultDomain: c.defaultDomain || '',
-          }));
-        setCompanies(mapped);
-      } catch (e: any) {
-        if (cancelled) return;
-        setCompanies([]);
-        setCompaniesError(e?.message || 'Failed to load customers from Partner Center.');
-      } finally {
-        if (!cancelled) setCompaniesLoading(false);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      if (!selectedCompanyId) return;
-      setRelationshipsLoading(true);
-      setRelationshipsError(null);
-      try {
-        const resp = await getPartnerCenterGdapRelationships(selectedCompanyId);
-        if (cancelled) return;
-        if (!resp.ok) {
-          setRelationshipsError(resp.error || 'Failed to load GDAP relationships. Connect GDAP if prompted.');
-          // keep existing relationships for now
-          return;
-        }
-        const mapped: GdapRelationship[] = (resp.relationships || []).map((r: any) => {
-          const created = r?.createdDateTime ? String(r.createdDateTime).slice(0, 10) : '';
-          const end = r?.endDateTime ? String(r.endDateTime).slice(0, 10) : '';
-          const statusRaw = String(r?.status || '').toLowerCase();
-          const status: RelationshipStatus =
-            statusRaw.includes('active') ? 'Active' : statusRaw.includes('pending') ? 'Pending' : 'Expired';
-          return {
-            id: String(r?.id || ''),
-            companyId: selectedCompanyId,
-            displayName: r?.displayName || r?.id || 'GDAP relationship',
-            description: 'GDAP relationship (Microsoft Graph)',
-            validFrom: created || '',
-            validTo: end || '',
-            autoRenew: Boolean(r?.autoExtendDuration),
-            status,
-            roles: Array.isArray(r?.roles) ? r.roles : [],
-          };
-        });
-        setRelationships((prev) => {
-          const others = prev.filter((x) => x.companyId !== selectedCompanyId);
-          return [...mapped, ...others];
-        });
-      } catch (e: any) {
-        if (cancelled) return;
-        setRelationshipsError(e?.message || 'Failed to load GDAP relationships.');
-      } finally {
-        if (!cancelled) setRelationshipsLoading(false);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCompanyId]);
 
   const expiringSoon = useMemo(() => {
     const threshold = Math.max(0, expiringWithinDays || 0);
@@ -428,78 +396,117 @@ export const OperationsGDAPManagement = () => {
   };
 
   const handleSync = () => {
-    (async () => {
-      notifications.show({
-        title: 'Syncing',
-        message: 'Syncing customers and GDAP relationships…',
-        color: 'blue',
-      });
+    // Refresh companies and (if selected) relationships.
+    void (async () => {
       try {
         setCompaniesLoading(true);
         setCompaniesError(null);
-        const customersResp = await getPartnerCenterCustomers(200);
-        if (customersResp.ok) {
-          const mapped: Company[] = (customersResp.customers || [])
-            .filter((c: PartnerCenterCustomer) => c && c.id)
-            .map((c: PartnerCenterCustomer) => ({
-              id: c.tenantId || c.id,
-              name: c.companyName || c.defaultDomain || c.id,
-              defaultDomain: c.defaultDomain || '',
-            }));
-          setCompanies(mapped);
-        } else {
-          setCompaniesError(customersResp.error || 'Failed to load customers from Partner Center.');
-        }
+        const c = await getPartnerCenterCustomers(200);
+        if (!c.ok) throw new Error(c.error || 'Failed to load customers.');
+        const mapped: Company[] = (c.customers || [])
+          .map((x) => ({
+            id: String(x.id || x.tenantId || ''),
+            tenantId: String(x.tenantId || x.id || ''),
+            name: String(x.companyName || x.defaultDomain || x.id || 'Unknown'),
+            defaultDomain: String(x.defaultDomain || ''),
+            contactName: x.contactName || undefined,
+            contactEmail: x.contactEmail || undefined,
+          }))
+          .filter((x) => x.id && x.tenantId);
+        setCompanies(mapped);
 
         if (selectedCompanyId) {
-          setRelationshipsLoading(true);
-          setRelationshipsError(null);
-          const relResp = await getPartnerCenterGdapRelationships(selectedCompanyId);
-          if (relResp.ok) {
-            const mapped: GdapRelationship[] = (relResp.relationships || []).map((r: any) => {
-              const created = r?.createdDateTime ? String(r.createdDateTime).slice(0, 10) : '';
-              const end = r?.endDateTime ? String(r.endDateTime).slice(0, 10) : '';
-              const statusRaw = String(r?.status || '').toLowerCase();
-              const status: RelationshipStatus =
-                statusRaw.includes('active') ? 'Active' : statusRaw.includes('pending') ? 'Pending' : 'Expired';
-              return {
-                id: String(r?.id || ''),
-                companyId: selectedCompanyId,
-                displayName: r?.displayName || r?.id || 'GDAP relationship',
-                description: 'GDAP relationship (Microsoft Graph)',
-                validFrom: created || '',
-                validTo: end || '',
-                autoRenew: Boolean(r?.autoExtendDuration),
-                status,
-                roles: Array.isArray(r?.roles) ? r.roles : [],
-              };
-            });
-            setRelationships((prev) => {
-              const others = prev.filter((x) => x.companyId !== selectedCompanyId);
-              return [...mapped, ...others];
-            });
-          } else {
-            setRelationshipsError(relResp.error || 'Failed to load GDAP relationships. Connect GDAP if prompted.');
+          const sel = mapped.find((m) => m.id === selectedCompanyId);
+          if (sel) {
+            setRelationshipsLoading(true);
+            setRelationshipsError(null);
+            const r = await getPartnerCenterGdapRelationships(sel.tenantId);
+            if (!r.ok) throw new Error(r.error || 'Failed to load GDAP relationships.');
+            const mappedRels: GdapRelationship[] = (r.relationships || []).map((gr) => ({
+              id: String(gr.id || ''),
+              companyId: sel.id,
+              displayName: String(gr.displayName || gr.id || 'GDAP Relationship'),
+              description: '',
+              validFrom: ymdFromIso(gr.createdDateTime) || '',
+              validTo: ymdFromIso(gr.endDateTime) || '',
+              autoRenew: Boolean(gr.autoExtendDuration && String(gr.autoExtendDuration).toUpperCase() !== 'P0D'),
+              status: mapGraphStatusToRelationshipStatus(gr.status),
+              roles: Array.isArray(gr.roles) ? gr.roles.filter(Boolean) : [],
+            }));
+            setRelationships(mappedRels);
           }
         }
 
-        notifications.show({
-          title: 'Synced',
-          message: 'Latest data loaded.',
-          color: 'green',
-        });
+        notifications.show({ title: 'Synced', message: 'Partner Center + GDAP data refreshed.', color: 'green' });
       } catch (e: any) {
-        notifications.show({
-          title: 'Sync failed',
-          message: e?.message || 'Unable to sync data.',
-          color: 'red',
-        });
+        notifications.show({ title: 'Sync failed', message: e?.message || 'Failed to sync.', color: 'red' });
       } finally {
         setCompaniesLoading(false);
         setRelationshipsLoading(false);
       }
     })();
   };
+
+  useEffect(() => {
+    // Initial load of companies
+    void (async () => {
+      try {
+        setCompaniesLoading(true);
+        setCompaniesError(null);
+        const c = await getPartnerCenterCustomers(200);
+        if (!c.ok) throw new Error(c.error || 'Failed to load customers.');
+        const mapped: Company[] = (c.customers || [])
+          .map((x) => ({
+            id: String(x.id || x.tenantId || ''),
+            tenantId: String(x.tenantId || x.id || ''),
+            name: String(x.companyName || x.defaultDomain || x.id || 'Unknown'),
+            defaultDomain: String(x.defaultDomain || ''),
+            contactName: x.contactName || undefined,
+            contactEmail: x.contactEmail || undefined,
+          }))
+          .filter((x) => x.id && x.tenantId);
+        setCompanies(mapped);
+      } catch (e: any) {
+        setCompaniesError(e?.message || 'Failed to load companies.');
+      } finally {
+        setCompaniesLoading(false);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    // Load relationships when company changes
+    void (async () => {
+      if (!selectedCompany) {
+        setRelationships([]);
+        setRelationshipsError(null);
+        return;
+      }
+      try {
+        setRelationshipsLoading(true);
+        setRelationshipsError(null);
+        const r = await getPartnerCenterGdapRelationships(selectedCompany.tenantId);
+        if (!r.ok) throw new Error(r.error || 'Failed to load GDAP relationships.');
+        const mappedRels: GdapRelationship[] = (r.relationships || []).map((gr) => ({
+          id: String(gr.id || ''),
+          companyId: selectedCompany.id,
+          displayName: String(gr.displayName || gr.id || 'GDAP Relationship'),
+          description: '',
+          validFrom: ymdFromIso(gr.createdDateTime) || '',
+          validTo: ymdFromIso(gr.endDateTime) || '',
+          autoRenew: Boolean(gr.autoExtendDuration && String(gr.autoExtendDuration).toUpperCase() !== 'P0D'),
+          status: mapGraphStatusToRelationshipStatus(gr.status),
+          roles: Array.isArray(gr.roles) ? gr.roles.filter(Boolean) : [],
+        }));
+        setRelationships(mappedRels);
+      } catch (e: any) {
+        setRelationships([]);
+        setRelationshipsError(e?.message || 'Failed to load GDAP relationships.');
+      } finally {
+        setRelationshipsLoading(false);
+      }
+    })();
+  }, [selectedCompanyId, selectedCompany?.tenantId]);
 
   const openRename = (relId: string) => {
     const rel = relationships.find((r) => r.id === relId);
@@ -528,6 +535,17 @@ export const OperationsGDAPManagement = () => {
     setNewRequestTemplateId(templates[0]?.id ?? null);
     setNewRequestRoles(templates[0]?.roles ?? []);
     setNewRequestAutoRenew(true);
+    setNewRequestRecipientName(selectedCompany.contactName || '');
+    setNewRequestRecipientEmail(selectedCompany.contactEmail || '');
+    setNewRequestRequestUrl('');
+    const t = buildEmailTemplate({
+      companyName: selectedCompany.name,
+      recipientName: selectedCompany.contactName,
+      relationshipName: `New GDAP for ${selectedCompany.name}`,
+      requestUrl: '',
+    });
+    setNewRequestEmailSubject(t.subject);
+    setNewRequestEmailBody(t.body);
     setNewRequestOpen(true);
   };
 
@@ -535,10 +553,22 @@ export const OperationsGDAPManagement = () => {
     setSelectedCompanyId(rel.companyId);
     const company = companies.find((c) => c.id === rel.companyId);
     const prefix = mode === 'renew' ? 'Renew' : 'New';
-    setNewRequestName(`${prefix}: ${rel.displayName}${company ? ` (${company.name})` : ''}`);
+    const relName = `${prefix}: ${rel.displayName}${company ? ` (${company.name})` : ''}`;
+    setNewRequestName(relName);
     setNewRequestTemplateId(null);
     setNewRequestRoles(rel.roles);
     setNewRequestAutoRenew(true);
+    setNewRequestRecipientName(company?.contactName || '');
+    setNewRequestRecipientEmail(company?.contactEmail || '');
+    setNewRequestRequestUrl('');
+    const t = buildEmailTemplate({
+      companyName: company?.name || 'Selected company',
+      recipientName: company?.contactName,
+      relationshipName: relName,
+      requestUrl: '',
+    });
+    setNewRequestEmailSubject(t.subject);
+    setNewRequestEmailBody(t.body);
     setNewRequestOpen(true);
   };
 
@@ -631,26 +661,28 @@ export const OperationsGDAPManagement = () => {
             <Text fw={600} size="sm" mb="sm">
               Company search
             </Text>
-            {companiesLoading && (
-              <Text size="xs" c="dimmed" mb="xs">
-                Loading customers from Partner Center…
-              </Text>
-            )}
-            {companiesError && (
-              <Text size="xs" c="red" mb="xs">
-                {companiesError}
-              </Text>
-            )}
             <Group align="flex-end">
+              <Select
+                className="flex-1"
+                searchable
+                clearable
+                label="Company"
+                placeholder={companiesLoading ? 'Loading companies…' : 'Select a company'}
+                data={companies.map((c) => ({ value: c.id, label: `${c.name} (${c.defaultDomain})` }))}
+                value={selectedCompanyId}
+                onChange={setSelectedCompanyId}
+                nothingFoundMessage={companiesError || 'No companies found'}
+              />
               <TextInput
                 className="flex-1"
                 leftSection={<Search size={16} />}
-                placeholder="Search by company name or default domain…"
+                placeholder="Filter list by company name or default domain…"
                 value={companyQuery}
                 onChange={(e) => setCompanyQuery(e.currentTarget.value)}
               />
               <Button
                 variant="light"
+                loading={companiesLoading}
                 onClick={() => {
                   if (matchingCompanies.length > 0) setSelectedCompanyId(matchingCompanies[0].id);
                 }}
@@ -660,7 +692,7 @@ export const OperationsGDAPManagement = () => {
               </Button>
             </Group>
 
-            {companyQuery.trim() && (
+            {!!companyQuery.trim() && (
               <div className="mt-3 border border-gray-200 rounded">
                 {matchingCompanies.length === 0 ? (
                   <div className="p-3 text-sm text-gray-600">No matches.</div>
@@ -685,6 +717,11 @@ export const OperationsGDAPManagement = () => {
               <div className="mt-3 text-sm text-gray-700">
                 <span className="font-semibold">Selected Company:</span> {selectedCompany.name}{' '}
                 <span className="text-gray-400">({selectedCompany.defaultDomain})</span>
+              </div>
+            )}
+            {companiesError && (
+              <div className="mt-3 text-sm text-red-600">
+                {companiesError}
               </div>
             )}
           </div>
@@ -852,41 +889,33 @@ export const OperationsGDAPManagement = () => {
                   <Badge variant="light" color={selectedCompany ? 'teal' : 'gray'}>
                     {selectedCompany ? 'Company selected' : 'No company selected'}
                   </Badge>
-                  {selectedCompany && relationshipsLoading && (
-                    <Badge variant="light" color="blue">
-                      Loading…
-                    </Badge>
-                  )}
                 </Group>
             </Group>
 
-            {selectedCompany && relationshipsError && (
-              <div className="border border-rose-200 bg-rose-50 rounded p-3 mb-3">
-                <Text size="sm" c="red" fw={600}>
-                  Unable to load GDAP relationships
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {relationshipsError}
-                </Text>
-                <Group justify="flex-end" mt="sm">
-                  <Button
-                    size="xs"
-                    variant="light"
-                    onClick={() => {
-                      window.location.href = getPartnerCenterConnectGdapUrl();
-                    }}
-                  >
-                    Connect GDAP
-                  </Button>
-                </Group>
+            {selectedCompany && relationshipsLoading && (
+              <div className="border border-dashed border-gray-300 rounded p-5 text-center text-sm text-gray-600">
+                Loading GDAP relationships…
               </div>
             )}
-
-            {selectedCompany && filteredCompanyRelationships.length === 0 && (
+            {selectedCompany && !relationshipsLoading && relationshipsError && (
+              <div className="border border-red-200 bg-red-50 rounded p-5 text-sm text-red-700 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-semibold">Unable to load GDAP relationships</div>
+                  <div className="text-sm">{relationshipsError}</div>
+                </div>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    window.location.href = getPartnerCenterConnectGdapUrl(window.location.href);
+                  }}
+                >
+                  Connect GDAP
+                </Button>
+              </div>
+            )}
+            {selectedCompany && !relationshipsLoading && !relationshipsError && filteredCompanyRelationships.length === 0 && (
               <div className="border border-dashed border-gray-300 rounded p-5 text-center text-sm text-gray-600">
-                {relationshipsLoading
-                  ? 'Loading GDAP relationships…'
-                  : 'No GDAP relationships found for this company.'}
+                No GDAP relationships found for this company.
               </div>
             )}
 
@@ -1052,6 +1081,82 @@ export const OperationsGDAPManagement = () => {
                 </div>
                 <Toggle enabled={newRequestAutoRenew} onChange={setNewRequestAutoRenew} size="md" />
               </Group>
+
+              <Text fw={600} size="sm">
+                Customer email
+              </Text>
+              <Text size="xs" c="dimmed">
+                Select a company first. If we can’t detect a contact name/email, enter it manually, then copy the template to send to the customer.
+              </Text>
+
+              <Group grow>
+                <TextInput
+                  label="Recipient name"
+                  placeholder="e.g., Jane Doe"
+                  value={newRequestRecipientName}
+                  onChange={(e) => setNewRequestRecipientName(e.currentTarget.value)}
+                />
+                <TextInput
+                  label="Recipient email"
+                  placeholder="e.g., jane@contoso.com"
+                  value={newRequestRecipientEmail}
+                  onChange={(e) => setNewRequestRecipientEmail(e.currentTarget.value)}
+                />
+              </Group>
+
+              <TextInput
+                label="GDAP request link (optional)"
+                placeholder="Paste the approval link here once generated"
+                value={newRequestRequestUrl}
+                onChange={(e) => setNewRequestRequestUrl(e.currentTarget.value)}
+              />
+
+              <Group justify="space-between" align="flex-end">
+                <div style={{ flex: 1 }}>
+                  <TextInput
+                    label="Email subject"
+                    value={newRequestEmailSubject}
+                    onChange={(e) => setNewRequestEmailSubject(e.currentTarget.value)}
+                  />
+                </div>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    if (!selectedCompany) return;
+                    const t = buildEmailTemplate({
+                      companyName: selectedCompany.name,
+                      recipientName: newRequestRecipientName,
+                      relationshipName: newRequestName.trim() || `New GDAP for ${selectedCompany.name}`,
+                      requestUrl: newRequestRequestUrl,
+                    });
+                    setNewRequestEmailSubject(t.subject);
+                    setNewRequestEmailBody(t.body);
+                    notifications.show({ title: 'Template regenerated', message: 'Email subject/body updated.', color: 'gray' });
+                  }}
+                >
+                  Regenerate
+                </Button>
+                <CopyButton value={`Subject: ${newRequestEmailSubject}\n\n${newRequestEmailBody}`}>
+                  {({ copied, copy }) => (
+                    <Button
+                      onClick={() => {
+                        copy();
+                        notifications.show({ title: copied ? 'Copied' : 'Copied', message: 'Email copied to clipboard.', color: 'green' });
+                      }}
+                    >
+                      {copied ? 'Copied' : 'Copy email'}
+                    </Button>
+                  )}
+                </CopyButton>
+              </Group>
+
+              <Textarea
+                label="Email body"
+                autosize
+                minRows={8}
+                value={newRequestEmailBody}
+                onChange={(e) => setNewRequestEmailBody(e.currentTarget.value)}
+              />
 
               <Group justify="flex-end">
                 <Button variant="default" onClick={() => setNewRequestOpen(false)}>

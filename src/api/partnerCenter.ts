@@ -17,45 +17,36 @@ export type PartnerCenterStatus = {
   timestamp: string;
 };
 
-export type PartnerCenterIndirectReseller = {
-  id: string;
-  name?: string;
-  mpnId?: string;
-  tenantId?: string;
-  state?: string;
-};
-
-export type PartnerCenterIndirectResellersResponse = {
-  ok: boolean;
-  resellers: PartnerCenterIndirectReseller[];
-  partnerCenter?: { status: number; sampleEndpoint?: string };
-  error?: string;
-  debug?: any;
-  timestamp: string;
-};
-
 export type PartnerCenterCustomer = {
-  id: string;
+  id?: string;
   tenantId?: string;
   companyName?: string;
   defaultDomain?: string;
+  contactName?: string;
+  contactEmail?: string;
 };
 
 export type PartnerCenterCustomersResponse = {
   ok: boolean;
   customers: PartnerCenterCustomer[];
-  partnerCenter?: { status: number; sampleEndpoint?: string };
   error?: string;
-  debug?: any;
   timestamp: string;
+};
+
+export type PartnerCenterGdapRelationship = {
+  id?: string;
+  displayName?: string;
+  status?: string;
+  createdDateTime?: string;
+  endDateTime?: string;
+  autoExtendDuration?: string;
+  roles?: string[];
 };
 
 export type PartnerCenterGdapRelationshipsResponse = {
   ok: boolean;
-  relationships: any[];
-  graph?: { status: number; sampleEndpoint?: string };
+  relationships: PartnerCenterGdapRelationship[];
   error?: string;
-  debug?: any;
   timestamp: string;
 };
 
@@ -67,11 +58,12 @@ export function getPartnerCenterConnectUrl() {
   return '/api/partner-center/connect';
 }
 
-export function getPartnerCenterConnectGdapUrl() {
+export function getPartnerCenterConnectGdapUrl(returnTo?: string) {
+  const qs = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
   if (window.location.hostname === 'localhost' && window.location.port === '3000') {
-    return 'http://localhost:4000/api/partner-center/connect-gdap';
+    return `http://localhost:4000/api/partner-center/connect-gdap${qs}`;
   }
-  return '/api/partner-center/connect-gdap';
+  return `/api/partner-center/connect-gdap${qs}`;
 }
 
 async function parseJsonResponse<T>(res: Response): Promise<T> {
@@ -107,17 +99,15 @@ export async function disconnectPartnerCenter(): Promise<{ ok: boolean; error?: 
   return await parseJsonResponse<{ ok: boolean; error?: string; timestamp: string }>(res);
 }
 
-export async function getPartnerCenterIndirectResellers(): Promise<PartnerCenterIndirectResellersResponse> {
-  const res = await fetch('/api/partner-center/indirect-resellers', { method: 'GET' });
-  return await parseJsonResponse<PartnerCenterIndirectResellersResponse>(res);
-}
-
-export async function getPartnerCenterCustomers(size = 50): Promise<PartnerCenterCustomersResponse> {
-  const res = await fetch(`/api/partner-center/customers?size=${encodeURIComponent(String(size))}`, { method: 'GET' });
+export async function getPartnerCenterCustomers(size = 200): Promise<PartnerCenterCustomersResponse> {
+  const s = Math.max(1, Math.min(size, 500));
+  const res = await fetch(`/api/partner-center/customers?size=${encodeURIComponent(String(s))}`, { method: 'GET' });
   return await parseJsonResponse<PartnerCenterCustomersResponse>(res);
 }
 
-export async function getPartnerCenterGdapRelationships(customerTenantId: string): Promise<PartnerCenterGdapRelationshipsResponse> {
+export async function getPartnerCenterGdapRelationships(
+  customerTenantId: string
+): Promise<PartnerCenterGdapRelationshipsResponse> {
   const res = await fetch(
     `/api/partner-center/gdap-relationships?customerTenantId=${encodeURIComponent(customerTenantId)}`,
     { method: 'GET' }

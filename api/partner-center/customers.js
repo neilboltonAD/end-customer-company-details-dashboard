@@ -21,6 +21,16 @@ module.exports = async function handler(req, res) {
       companyName: c && c.companyProfile && c.companyProfile.companyName,
       defaultDomain: c && c.companyProfile && c.companyProfile.domain,
       tenantId: (c && c.companyProfile && c.companyProfile.tenantId) || (c && c.id),
+      // Best-effort contact info for outbound customer comms (may be empty depending on Partner Center tenant config).
+      contactEmail:
+        (c && c.billingProfile && (c.billingProfile.email || (c.billingProfile.defaultAddress && c.billingProfile.defaultAddress.email))) ||
+        (c && c.companyProfile && c.companyProfile.email) ||
+        undefined,
+      contactName:
+        (c &&
+          c.billingProfile &&
+          [c.billingProfile.firstName, c.billingProfile.lastName].filter(Boolean).join(' ').trim()) ||
+        undefined,
     }));
 
     res.status(ok ? 200 : pc.status).json({
