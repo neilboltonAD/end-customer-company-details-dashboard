@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { ensureSessionId } from '../../lib/server/cookies';
+import { getAccessTokenForSession } from '../../lib/server/delegatedAuth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -6,10 +8,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(405).json({ ok: false, error: 'Method not allowed', timestamp: new Date().toISOString() });
       return;
     }
-
-    // Use dynamic imports so any bundling/module-resolution issues become a JSON error instead of a hard crash page.
-    const { ensureSessionId } = await import('../_lib/cookies');
-    const { getAccessTokenForSession } = await import('../_lib/delegatedAuth');
 
     const sessionId = ensureSessionId(req, res);
     let hasPartnerCenter = false;
