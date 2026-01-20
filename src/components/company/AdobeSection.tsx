@@ -1,15 +1,18 @@
 import React from 'react';
+import { Card, Stack, Text, Title } from 'components/DesignSystem';
 
 export const AdobeSection = () => (
-  <div className="mb-8">
-    <div className="flex items-center mb-2">
-      <h3 className="text-lg font-bold text-gray-800">Adobe</h3>
-    </div>
-    <div className="bg-white border border-gray-200 rounded mb-6">
-      <div className="text-center py-12 px-6">
-        <div className="text-5xl text-gray-200 mb-6">📄</div>
-        <h2 className="text-xl font-bold text-gray-700 mb-2">No Adobe account found.</h2>
-      </div>
-    </div>
-  </div>
+  <Stack gap="sm" style={{ marginBottom: 24 }}>
+    <Title order={4}>Adobe</Title>
+    <Card>
+      <Stack gap="sm" align="center" style={{ padding: 24 }}>
+        <Text style={{ fontSize: 48, lineHeight: 1 }} c="dimmed">
+          📄
+        </Text>
+        <Text fw={800} ta="center">
+          No Adobe account found.
+        </Text>
+      </Stack>
+    </Card>
+  </Stack>
 ); 

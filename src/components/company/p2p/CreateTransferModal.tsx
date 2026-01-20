@@ -160,9 +160,11 @@ export const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
                   {eligibleSubscriptions.map((sub) => (
                     <Table.Tr 
                       key={sub.id}
-                      className={selectedSubscriptions.includes(sub.id) ? 'bg-blue-50' : ''}
                       onClick={() => toggleSubscription(sub.id)}
-                      style={{ cursor: 'pointer' }}
+                      style={{
+                        cursor: 'pointer',
+                        ...(selectedSubscriptions.includes(sub.id) ? { background: 'var(--mantine-color-blue-0)' } : undefined),
+                      }}
                     >
                       <Table.Td>
                         <Checkbox

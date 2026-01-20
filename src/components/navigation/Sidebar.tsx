@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Divider, NavLink, Stack, ThemeIcon, Title } from '@mantine/core'
 
 type SidebarCategoryProps = {
   title: string
@@ -8,25 +9,28 @@ type SidebarCategoryProps = {
 
 export const SidebarCategory = ({ title, children }: SidebarCategoryProps) => {
   return (
-    <div className="mb-1">
-      <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-        <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, height: 48, paddingLeft: 6 }}>
+        <Title order={6} fw={700} m={0}>
           {title}
-        </h3>
+        </Title>
       </div>
-      <div className="py-1">{children}</div>
+      <Divider mb="sm" />
+      <Stack gap={2}>{children}</Stack>
     </div>
   )
 }
 
 type SidebarItemProps = {
   label: string
+  icon?: string
   isActive?: boolean
   onClick?: () => void
   path?: string
+  rightSection?: React.ReactNode
 }
 
-export const SidebarItem = ({ label, isActive = false, onClick, path }: SidebarItemProps) => {
+export const SidebarItem = ({ label, icon, isActive = false, onClick, path, rightSection }: SidebarItemProps) => {
   const navigate = useNavigate()
   
   const handleClick = () => {
@@ -38,16 +42,30 @@ export const SidebarItem = ({ label, isActive = false, onClick, path }: SidebarI
   }
 
   return (
-    <button
+    <NavLink
+      label={label}
+      active={isActive}
+      aria-current={isActive ? 'page' : undefined}
       onClick={handleClick}
-      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-        isActive 
-          ? 'bg-teal-700 text-white font-medium' 
-          : 'text-gray-700 hover:bg-gray-50'
-      }`}
-    >
-      {label}
-    </button>
+      leftSection={
+        icon ? (
+          <ThemeIcon variant="transparent" size="md" color={isActive ? 'blue' : 'dark'}>
+            <i className={icon} style={{ fontSize: 20 }} />
+          </ThemeIcon>
+        ) : undefined
+      }
+      rightSection={rightSection}
+      styles={{
+        root: {
+          height: 44,
+          paddingLeft: 'var(--mantine-spacing-xs)',
+          borderTopLeftRadius: 'var(--mantine-radius-sm)',
+          borderBottomLeftRadius: 'var(--mantine-radius-sm)',
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+        },
+      }}
+    />
   )
 }
 
@@ -57,6 +75,7 @@ type SidebarProps = {
 
 export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
   const location = useLocation()
+  const navigate = useNavigate()
   
   // Determine active item based on current path
   const getActiveItem = () => {
@@ -70,12 +89,13 @@ export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
   const currentActive = getActiveItem()
 
   return (
-    <div className="w-64 border-r border-gray-200 h-full bg-white overflow-y-auto">
+    <div style={{ height: '100%', overflowY: 'auto', paddingRight: 12 }}>
       <SidebarCategory title="SETTINGS">
         <SidebarItem 
           label="General Settings" 
           isActive={currentActive === 'General Settings'} 
           path="/settings/general"
+          icon="ri-settings-3-line"
         />
         <SidebarItem label="Developers" isActive={currentActive === 'Developers'} />
         <SidebarItem label="Marketplace Functionality" isActive={currentActive === 'Marketplace Functionality'} />
@@ -88,6 +108,7 @@ export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
         <SidebarItem label="Data Removal" isActive={currentActive === 'Data Removal'} />
       </SidebarCategory>
 
+      <div style={{ marginTop: 18 }} />
       <SidebarCategory title="BILLING SETTINGS">
         <SidebarItem label="Billing Functionality" isActive={currentActive === 'Billing Functionality'} />
         <SidebarItem label="Payment Methods" isActive={currentActive === 'Payment Methods'} />
@@ -95,6 +116,7 @@ export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
         <SidebarItem label="Revenue Shares Settings" isActive={currentActive === 'Revenue Shares Settings'} />
       </SidebarCategory>
 
+      <div style={{ marginTop: 18 }} />
       <SidebarCategory title="CUSTOM UI">
         <SidebarItem label="Extensions" isActive={currentActive === 'Extensions'} />
         <SidebarItem label="FAQs" isActive={currentActive === 'FAQs'} />
@@ -104,6 +126,7 @@ export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
         <SidebarItem label="Navigation Manager" isActive={currentActive === 'Navigation Manager'} />
       </SidebarCategory>
 
+      <div style={{ marginTop: 18 }} />
       <SidebarCategory title="INTEGRATION">
         <SidebarItem label="GraphQL Explorer" isActive={currentActive === 'GraphQL Explorer'} />
         <SidebarItem label="API Clients" isActive={currentActive === 'API Clients'} />
@@ -115,19 +138,23 @@ export const Sidebar = ({ activeItem = 'General Settings' }: SidebarProps) => {
           label="Sync Settings" 
           isActive={currentActive === 'Sync Settings'} 
           path="/settings/sync"
+          icon="ri-refresh-line"
         />
         <SidebarItem 
           label="Vendor Integrations" 
           isActive={currentActive === 'Vendor Integrations'} 
           path="/settings/vendor-integrations"
+          icon="ri-plug-line"
         />
       </SidebarCategory>
 
+      <div style={{ marginTop: 18 }} />
       <SidebarCategory title="REPORTS">
         <SidebarItem label="Destinations" isActive={currentActive === 'Destinations'} />
         <SidebarItem label="Advanced Settings" isActive={currentActive === 'Advanced Settings'} />
       </SidebarCategory>
 
+      <div style={{ marginTop: 18 }} />
       <SidebarCategory title="DOCUMENT BUILDER">
         <SidebarItem label="Manage Templates" isActive={currentActive === 'Manage Templates'} />
         <SidebarItem label="Template Settings" isActive={currentActive === 'Template Settings'} />

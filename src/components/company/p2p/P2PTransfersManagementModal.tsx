@@ -13,6 +13,7 @@ import {
   Tooltip,
   ThemeIcon,
   Divider,
+  Loader,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -181,7 +182,7 @@ export const P2PTransfersManagementModal: React.FC<P2PTransfersManagementModalPr
       : transfer.targetPartner.name;
 
     return (
-      <Table.Tr key={transfer.id} className={isUrgent ? 'bg-orange-50' : ''}>
+      <Table.Tr key={transfer.id} style={isUrgent ? { background: 'var(--mantine-color-orange-0)' } : undefined}>
         <Table.Td>
           <Group gap="xs">
             {transfer.direction === 'Incoming' ? (
@@ -215,7 +216,7 @@ export const P2PTransfersManagementModal: React.FC<P2PTransfersManagementModalPr
           <Group gap="xs">
             {isUrgent && (
               <Tooltip label={`Expires in ${daysRemaining} days`}>
-                <AlertTriangle size={14} className="text-orange-500" />
+                <AlertTriangle size={14} color="var(--mantine-color-orange-6)" />
               </Tooltip>
             )}
             <Text size="xs" c="dimmed">
@@ -279,7 +280,13 @@ export const P2PTransfersManagementModal: React.FC<P2PTransfersManagementModalPr
       >
         <Stack gap="md">
           {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-3">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: 12,
+            }}
+          >
             <Card shadow="xs" padding="sm" radius="md" withBorder>
               <Group gap="xs" mb={4}>
                 <ThemeIcon size="sm" color="blue" variant="light">
@@ -327,7 +334,7 @@ export const P2PTransfersManagementModal: React.FC<P2PTransfersManagementModalPr
             <Button
               size="xs"
               variant="light"
-              leftSection={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+              leftSection={isLoading ? <Loader size="xs" /> : <RefreshCw size={14} />}
               onClick={handleSync}
               loading={isLoading}
             >

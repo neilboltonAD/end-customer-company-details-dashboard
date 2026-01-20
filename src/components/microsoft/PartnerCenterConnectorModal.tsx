@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { Badge, Button, Group, Modal, Paper, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   disconnectPartnerCenter,
@@ -140,23 +140,23 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
           </Button>
         </Group>
 
-        <div className="border border-gray-200 rounded bg-gray-50 p-3">
+        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
           <Text size="xs" fw={600} mb={6}>
             /api/partner-center/status
           </Text>
-          <pre className="text-xs text-gray-800 whitespace-pre-wrap max-h-56 overflow-auto">
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 224, overflow: 'auto', margin: 0 }}>
             {connectorStatusJson ? JSON.stringify(connectorStatusJson, null, 2) : '—'}
           </pre>
-        </div>
+        </Paper>
 
-        <div className="border border-gray-200 rounded bg-gray-50 p-3">
+        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
           <Text size="xs" fw={600} mb={6}>
             /api/partner-center/health
           </Text>
-          <pre className="text-xs text-gray-800 whitespace-pre-wrap max-h-56 overflow-auto">
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 224, overflow: 'auto', margin: 0 }}>
             {connectorHealthJson ? JSON.stringify(connectorHealthJson, null, 2) : '—'}
           </pre>
-        </div>
+        </Paper>
       </Stack>
     </Modal>
   );

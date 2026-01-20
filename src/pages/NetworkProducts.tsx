@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Container,
   Paper,
   Title,
   Text,
@@ -11,55 +10,13 @@ import {
   Table,
   Badge,
   Anchor,
-  Box,
-  ActionIcon,
   Collapse,
   Select,
-  Checkbox,
-  Stack,
 } from '@mantine/core';
 import { Search, Filter, ChevronDown, ChevronUp, Star } from 'lucide-react';
-import { TopNavbar } from '../components/navigation/TopNavbar';
+import { CatalogLayout } from '../components/layout/CatalogLayout';
 
-// Sidebar Section Component
-const SidebarSection = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="mb-1">
-    <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-      <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-        {title}
-      </h3>
-    </div>
-    <div className="py-1">{children}</div>
-  </div>
-);
-
-// Sidebar Item Component
-const SidebarItem = ({
-  label,
-  active = false,
-  onClick,
-}: {
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-      active
-        ? 'bg-teal-700 text-white font-medium'
-        : 'text-gray-700 hover:bg-gray-50'
-    }`}
-  >
-    {label}
-  </button>
-);
+// Note: product pages share the `CatalogLayout` + `CatalogSidebar` now.
 
 // Product status type
 type ProductStatus = 'available' | 'added' | 'request';
@@ -247,26 +204,32 @@ const networkProducts: NetworkProduct[] = [
 
 // Product image component with fallback
 const ProductImage = ({ src, name }: { src?: string; name: string }) => {
-  if (!src) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
     return (
-      <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-        <Star size={20} className="text-gray-400" />
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          background: 'var(--mantine-color-gray-1)',
+          borderRadius: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Star size={20} style={{ color: 'var(--mantine-color-gray-4)' }} />
       </div>
     );
   }
+
   return (
     <img
       src={src}
       alt={name}
-      className="w-12 h-12 rounded object-cover"
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = 'none';
-        (e.target as HTMLImageElement).parentElement!.innerHTML = `
-          <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          </div>
-        `;
-      }}
+      style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }}
+      onError={() => setFailed(true)}
     />
   );
 };
@@ -346,67 +309,24 @@ export const NetworkProducts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-          <SidebarSection title="CATALOG">
-            <SidebarItem 
-              label="Production Catalog" 
-              onClick={() => navigate('/products')}
-            />
-            <SidebarItem 
-              label="Staging Catalog" 
-              onClick={() => navigate('/products')}
-            />
-            <SidebarItem label="Product Uploader" />
-          </SidebarSection>
-
-          <SidebarSection title="IMPORT PRODUCTS">
-            <SidebarItem label="Find & Import Distributor Products" active />
-          </SidebarSection>
-
-          <SidebarSection title="PRICE MANAGEMENT">
-            <SidebarItem label="Price Books" />
-            <SidebarItem label="Discounts" />
-          </SidebarSection>
-
-          <SidebarSection title="PROMOTIONS">
-            <SidebarItem label="Promotional Products" />
-            <SidebarItem label="Merchandising Options" />
-          </SidebarSection>
-
-          <SidebarSection title="GROUPS">
-            <SidebarItem label="Product Groups" />
-            <SidebarItem label="Segments" />
-          </SidebarSection>
-
-          <SidebarSection title="PRODUCT CONTENT">
-            <SidebarItem label="Media Sources" />
-            <SidebarItem label="Featured Customers" />
-          </SidebarSection>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-6">
+    <CatalogLayout>
+      <main>
           {/* Breadcrumb */}
-          <div className="flex items-center text-sm text-gray-500 mb-2">
+          <Group gap="xs" align="center">
             <Anchor 
               component="button"
               onClick={() => navigate('/products')}
-              c="teal"
+              c="blue"
               size="sm"
             >
               Catalog
             </Anchor>
-            <span className="mx-2">›</span>
-            <span>Appdirect Network Products</span>
-          </div>
+            <Text size="sm" c="dimmed">›</Text>
+            <Text size="sm" c="dimmed">Appdirect Network Products</Text>
+          </Group>
 
           {/* Title */}
-          <Title order={2} fw={400} mb="lg" className="text-gray-800">
+          <Title order={2} fw={400} mb="lg">
             Add from the Network Catalog
           </Title>
 
@@ -425,7 +345,7 @@ export const NetworkProducts = () => {
               placeholder="Search product names and IDs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              rightSection={<Search size={16} className="text-gray-400" />}
+              rightSection={<Search size={16} />}
               style={{ width: 300 }}
             />
           </Group>
@@ -491,7 +411,7 @@ export const NetworkProducts = () => {
                         <div>
                           <Anchor 
                             component="button"
-                            c="teal"
+                            c="blue"
                             fw={500}
                             size="sm"
                           >
@@ -537,9 +457,8 @@ export const NetworkProducts = () => {
           <Text size="sm" c="dimmed" mt="md">
             Showing {filteredProducts.length} of {products.length} products
           </Text>
-        </main>
-      </div>
-    </div>
+      </main>
+    </CatalogLayout>
   );
 };
 

@@ -4,6 +4,21 @@ import { ExpandableSection } from '../layout/ExpandableSection';
 import { Toggle } from '../form/Toggle';
 import { PartnerCenterInsights } from './PartnerCenterInsights';
 import { P2PTransfersPanel } from './p2p';
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Card,
+  ConfirmationModal as DSConfirmationModal,
+  Grid,
+  Inline,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from 'components/DesignSystem';
 
 const initialGdapRelationships = [
   {
@@ -70,13 +85,9 @@ const qualificationOptions = [
 ];
 
 const ActionButton = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-  <button
-    className="px-2 py-1 text-xs rounded border border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors text-center font-medium"
-    type="button"
-    onClick={onClick}
-  >
+  <Button variant="link" size="xs" onClick={onClick}>
     {children}
-  </button>
+  </Button>
 );
 
 const GdapOptionsModal = ({
@@ -88,33 +99,24 @@ const GdapOptionsModal = ({
   onClose: () => void;
   onSelectOption: (option: string) => void;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Choose a GDAP Relationship request type:</h2>
-        <div className="space-y-3 mb-6">
-          {gdapOptions.map((option) => (
-            <button
-              key={option}
-              className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
-              onClick={() => onSelectOption(option)}
-            >
-              <div className="font-medium text-gray-800">{option}</div>
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-end">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Choose a GDAP relationship request type"
+      size="md"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+      ]}
+    >
+      <Stack gap="sm">
+        {gdapOptions.map((option) => (
+          <Card key={option} interactive onClick={() => onSelectOption(option)}>
+            <Text fw={700}>{option}</Text>
+          </Card>
+        ))}
+      </Stack>
+    </Modal>
   );
 };
 
@@ -129,31 +131,22 @@ const ConfirmationModal = ({
   onConfirm: () => void;
   selectedOption: string;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Confirm GDAP Relationship Request</h2>
-        <p className="mb-6 text-gray-700">
-          You have requested to send your customer a GDAP Relationship request for the <strong>{selectedOption}</strong> roles.
-        </p>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            onClick={onConfirm}
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
+    <DSConfirmationModal
+      opened={open}
+      onClose={onClose}
+      title="Confirm GDAP Relationship Request"
+      confirmLabel="Send"
+      cancelLabel="Cancel"
+      confirmVariant="primary"
+      onConfirm={onConfirm}
+      onCancel={onClose}
+      size="md"
+    >
+      <Text size="sm" c="dimmed">
+        You have requested to send your customer a GDAP Relationship request for the <Text span fw={700}>{selectedOption}</Text> roles.
+      </Text>
+    </DSConfirmationModal>
   );
 };
 
@@ -166,33 +159,24 @@ const QualificationOptionsModal = ({
   onClose: () => void;
   onSelectOption: (option: string) => void;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Choose a Special Qualification type:</h2>
-        <div className="space-y-3 mb-6">
-          {qualificationOptions.map((option) => (
-            <button
-              key={option}
-              className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
-              onClick={() => onSelectOption(option)}
-            >
-              <div className="font-medium text-gray-800">{option}</div>
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-end">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Choose a Special Qualification type"
+      size="md"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+      ]}
+    >
+      <Stack gap="sm">
+        {qualificationOptions.map((option) => (
+          <Card key={option} interactive onClick={() => onSelectOption(option)}>
+            <Text fw={700}>{option}</Text>
+          </Card>
+        ))}
+      </Stack>
+    </Modal>
   );
 };
 
@@ -216,46 +200,42 @@ const DomainInputModal = ({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSubmit();
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Enter your organization domain URL</h2>
-        <div className="mb-6">
-          <input
-            type="text"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="e.g www.besthighschool.edu"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            autoFocus
-          />
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleSubmit}
-            disabled={!domain.trim()}
-          >
-            Request Qualification
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Enter your organization domain URL"
+      size="md"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+        {
+          id: 'confirm',
+          label: 'Request Qualification',
+          variant: 'primary',
+          onClick: handleSubmit,
+          disabled: !domain.trim(),
+        },
+      ]}
+    >
+      <Stack gap="sm">
+        <Text size="sm" c="dimmed">
+          Qualification: <Text span fw={700}>{selectedQualification}</Text>
+        </Text>
+        <TextInput
+          value={domain}
+          onChange={(e) => setDomain(e.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="e.g www.besthighschool.edu"
+          autoFocus
+        />
+      </Stack>
+    </Modal>
   );
 };
 
@@ -272,37 +252,36 @@ const QualificationConfirmationModal = ({
   selectedQualification: string;
   domain: string;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Confirm Special Qualification Request</h2>
-        <p className="mb-6 text-gray-700">
-          You want to submit a request to Microsoft for this qualification, and you should be aware that this take a few days to be completed by Microsoft. <br/><br/>The status of this request will move from Pending to Active once completed - please keep checking back for updates.
-        </p>
-        <div className="bg-gray-50 p-3 rounded mb-6">
-          <div className="text-sm font-medium text-gray-800 mb-1">Qualification:</div>
-          <div className="text-sm text-gray-700">{selectedQualification}</div>
-          <div className="text-sm font-medium text-gray-800 mb-1 mt-2">Domain:</div>
-          <div className="text-sm text-gray-700">{domain}</div>
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            onClick={onConfirm}
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
+    <DSConfirmationModal
+      opened={open}
+      onClose={onClose}
+      title="Confirm Special Qualification Request"
+      confirmLabel="Confirm"
+      cancelLabel="Cancel"
+      confirmVariant="primary"
+      onConfirm={onConfirm}
+      onCancel={onClose}
+      size="md"
+    >
+      <Stack gap="sm">
+        <Text size="sm" c="dimmed">
+          You want to submit a request to Microsoft for this qualification. This can take a few days to complete; the status will move from Pending to Active once completed.
+        </Text>
+        <Card>
+          <Stack gap={6}>
+            <Inline justify="space-between">
+              <Text size="sm" c="dimmed">Qualification</Text>
+              <Text size="sm" fw={700}>{selectedQualification}</Text>
+            </Inline>
+            <Inline justify="space-between">
+              <Text size="sm" c="dimmed">Domain</Text>
+              <Text size="sm" fw={700}>{domain}</Text>
+            </Inline>
+          </Stack>
+        </Card>
+      </Stack>
+    </DSConfirmationModal>
   );
 };
 
@@ -319,42 +298,35 @@ const UnlinkWarningModal = ({
   confirmation: string;
   onConfirmationChange: (value: string) => void;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-red-800">⚠️ High Risk Action</h2>
-        <p className="mb-4 text-gray-700">
-          This is a High Risk Action. By entering 'CONFIRM' in the text box and pressing the 'Unlink' button you understand that there must NOT be any subscriptions linked.
-        </p>
-        <div className="mb-6">
-          <input
-            type="text"
-            value={confirmation}
-            onChange={(e) => onConfirmationChange(e.target.value)}
-            placeholder="Type 'CONFIRM' to proceed"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-            autoFocus
-          />
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={onConfirm}
-            disabled={confirmation !== 'CONFIRM'}
-          >
-            Unlink
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="High Risk Action"
+      size="md"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+        {
+          id: 'unlink',
+          label: 'Unlink',
+          variant: 'danger',
+          onClick: onConfirm,
+          disabled: confirmation !== 'CONFIRM',
+        },
+      ]}
+    >
+      <Stack gap="sm">
+        <Text size="sm" c="dimmed">
+          By entering <Text span fw={700}>CONFIRM</Text> and pressing Unlink, you understand there must NOT be any subscriptions linked.
+        </Text>
+        <TextInput
+          value={confirmation}
+          onChange={(e) => onConfirmationChange(e.currentTarget.value)}
+          placeholder="Type 'CONFIRM' to proceed"
+          autoFocus
+        />
+      </Stack>
+    </Modal>
   );
 };
 
@@ -406,147 +378,105 @@ const CreateTenantModal = ({
     }
   };
 
-  if (!open) return null;
+  const isValid = !!(
+    formData.companyName &&
+    formData.domain &&
+    formData.email &&
+    formData.firstName &&
+    formData.lastName &&
+    formData.addressLine1 &&
+    formData.city &&
+    formData.state &&
+    formData.country &&
+    formData.postalCode
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Create New Tenant</h2>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
-            <input
-              type="text"
-              value={formData.companyName}
-              onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Domain *</label>
-            <input
-              type="text"
-              value={formData.domain}
-              onChange={(e) => setFormData({...formData, domain: e.target.value})}
-              placeholder="company.onmicrosoft.com"
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-            <input
-              type="text"
-              value={formData.firstName}
-              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-            <input
-              type="text"
-              value={formData.lastName}
-              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
-            <input
-              type="text"
-              value={formData.addressLine1}
-              onChange={(e) => setFormData({...formData, addressLine1: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-            <input
-              type="text"
-              value={formData.city}
-              onChange={(e) => setFormData({...formData, city: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">State/Province *</label>
-            <input
-              type="text"
-              value={formData.state}
-              onChange={(e) => setFormData({...formData, state: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-            <select
-              value={formData.country}
-              onChange={(e) => setFormData({...formData, country: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="US">United States</option>
-              <option value="CA">Canada</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AU">Australia</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code *</label>
-            <input
-              type="text"
-              value={formData.postalCode}
-              onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <input
-              type="tel"
-              value={formData.phoneNumber}
-              onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleSubmit}
-            disabled={!formData.companyName || !formData.domain || !formData.email || !formData.firstName || 
-                     !formData.lastName || !formData.addressLine1 || !formData.city || !formData.state || 
-                     !formData.country || !formData.postalCode}
-          >
-            Create Tenant
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Create New Tenant"
+      size="xl"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+        { id: 'create', label: 'Create Tenant', variant: 'primary', onClick: handleSubmit, disabled: !isValid },
+      ]}
+    >
+      <Grid cols={{ base: 1, sm: 2 }} spacing="md">
+        <TextInput
+          label="Company Name"
+          value={formData.companyName}
+          onChange={(e) => setFormData({ ...formData, companyName: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="Domain"
+          value={formData.domain}
+          onChange={(e) => setFormData({ ...formData, domain: e.currentTarget.value })}
+          placeholder="company.onmicrosoft.com"
+          required
+        />
+        <TextInput
+          label="Email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="First Name"
+          value={formData.firstName}
+          onChange={(e) => setFormData({ ...formData, firstName: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="Last Name"
+          value={formData.lastName}
+          onChange={(e) => setFormData({ ...formData, lastName: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="Address Line 1"
+          value={formData.addressLine1}
+          onChange={(e) => setFormData({ ...formData, addressLine1: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="City"
+          value={formData.city}
+          onChange={(e) => setFormData({ ...formData, city: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="State/Province"
+          value={formData.state}
+          onChange={(e) => setFormData({ ...formData, state: e.currentTarget.value })}
+          required
+        />
+        <Select
+          label="Country"
+          value={formData.country}
+          onChange={(v) => setFormData({ ...formData, country: v || 'US' })}
+          data={[
+            { value: 'US', label: 'United States' },
+            { value: 'CA', label: 'Canada' },
+            { value: 'GB', label: 'United Kingdom' },
+            { value: 'AU', label: 'Australia' },
+          ]}
+        />
+        <TextInput
+          label="Postal Code"
+          value={formData.postalCode}
+          onChange={(e) => setFormData({ ...formData, postalCode: e.currentTarget.value })}
+          required
+        />
+        <TextInput
+          label="Phone Number"
+          value={formData.phoneNumber}
+          onChange={(e) => setFormData({ ...formData, phoneNumber: e.currentTarget.value })}
+          showOptional
+        />
+      </Grid>
+    </Modal>
   );
 };
 
@@ -568,40 +498,27 @@ const LinkTenantModal = ({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Link Existing Tenant</h2>
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Microsoft Tenant Domain</label>
-          <input
-            type="text"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="company.onmicrosoft.com"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            autoFocus
-          />
-        </div>
-        <div className="flex justify-end space-x-3">
-          <button
-            className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleSubmit}
-            disabled={!domain.trim()}
-          >
-            Link Tenant
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Link Existing Tenant"
+      size="md"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', closeOnClick: true },
+        { id: 'link', label: 'Link Tenant', variant: 'primary', onClick: handleSubmit, disabled: !domain.trim() },
+      ]}
+    >
+      <Stack gap="sm">
+        <TextInput
+          label="Customer Microsoft Tenant Domain"
+          value={domain}
+          onChange={(e) => setDomain(e.currentTarget.value)}
+          placeholder="company.onmicrosoft.com"
+          autoFocus
+        />
+      </Stack>
+    </Modal>
   );
 };
 
@@ -618,23 +535,26 @@ const SyncModal = ({
   title: string;
   message: string;
 }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">{title}</h2>
-        <p className="mb-6 text-gray-700">{message}</p>
-        <div className="flex justify-end">
-          <button
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            onClick={onConfirm}
-          >
-            Acknowledge
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title={title}
+      size="md"
+      actions={[
+        {
+          id: 'ack',
+          label: 'Acknowledge',
+          variant: 'primary',
+          onClick: onConfirm,
+          closeOnClick: true,
+        },
+      ]}
+    >
+      <Text size="sm" c="dimmed">
+        {message}
+      </Text>
+    </Modal>
   );
 };
 
@@ -653,9 +573,6 @@ const McaAttestationModal = ({
     email: '',
     phone: '',
   });
-  const [step, setStep] = useState(1);
-
-  if (!open) return null;
 
   const isStep1Valid = formData.firstName && formData.lastName && formData.email && formData.phone;
 
@@ -663,141 +580,86 @@ const McaAttestationModal = ({
     onSubmit(formData);
     // Reset form
     setFormData({ firstName: '', lastName: '', email: '', phone: '' });
-    setStep(1);
   };
 
   const handleClose = () => {
     setFormData({ firstName: '', lastName: '', email: '', phone: '' });
-    setStep(1);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
-        {/* Header */}
-        <div className="bg-gray-100 px-6 py-4 flex items-center justify-between border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Accept Microsoft Customer Agreement</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
-          >
-            ×
-          </button>
+    <Modal
+      opened={open}
+      onClose={handleClose}
+      title="Accept Microsoft Customer Agreement"
+      size="lg"
+      actions={[
+        { id: 'cancel', label: 'Cancel', variant: 'outline', onClick: handleClose, closeOnClick: true },
+      ]}
+    >
+      <Stack gap="md">
+        <div>
+          <Title order={3} fw={700} m={0}>
+            Generate Microsoft Customer Agreement
+          </Title>
+          <Text size="sm" c="dimmed">
+            The customer needs to accept the Microsoft Customer Agreement.
+          </Text>
         </div>
 
-        {/* Body */}
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">Generate Microsoft Customer Agreement</h3>
-          <p className="text-gray-600 mb-6">The customer needs to accept the Microsoft Customer Agreement.</p>
+        <Card>
+          <Stack gap="sm">
+            <Text fw={700}>Step 1: Customer information</Text>
+            <Text size="sm" c="dimmed">
+              Enter your primary contact information to generate the agreement.
+            </Text>
 
-          {/* Step 1 */}
-          <div className="flex mb-6">
-            <div className="mr-4">
-              <div className={`w-10 h-10 rounded flex items-center justify-center text-lg font-bold ${
-                step >= 1 ? 'bg-lime-400 text-lime-900' : 'bg-gray-200 text-gray-500'
-              }`} style={{ clipPath: 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)' }}>
-                1
-              </div>
-              <div className="w-0.5 h-full bg-gray-200 mx-auto mt-1"></div>
-            </div>
-            <div className="flex-1">
-              <h4 className="text-lg font-semibold text-gray-800 mb-1">Customer information</h4>
-              <p className="text-sm text-gray-600 mb-4">Enter your primary contact information to generate the agreement.</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="text-red-500">*</span> First name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    placeholder="First name"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="text-red-500">*</span> Last name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    placeholder="Last name"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="text-red-500">*</span> Email address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="Email address"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="text-red-500">*</span> Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Phone number"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+            <Grid cols={{ base: 1, sm: 2 }} spacing="md">
+              <TextInput
+                label="First name"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.currentTarget.value })}
+                required
+              />
+              <TextInput
+                label="Last name"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.currentTarget.value })}
+                required
+              />
+              <TextInput
+                label="Email address"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.currentTarget.value })}
+                required
+              />
+              <TextInput
+                label="Phone number"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.currentTarget.value })}
+                required
+              />
+            </Grid>
+          </Stack>
+        </Card>
 
-          {/* Step 2 */}
-          <div className="flex">
-            <div className="mr-4">
-              <div className={`w-10 h-10 rounded border-2 flex items-center justify-center text-lg font-bold ${
-                isStep1Valid ? 'border-gray-400 text-gray-700' : 'border-gray-200 text-gray-400'
-              }`}>
-                2
-              </div>
+        <Card>
+          <Inline justify="space-between" align="center" wrap="nowrap">
+            <div>
+              <Text fw={700}>Step 2: Send the agreement to customer</Text>
+              <Text size="sm" c="dimmed">
+                The Microsoft Customer Agreement has been generated and is ready to share. You can now send the acceptance request to your customer.
+              </Text>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-1">Send the agreement to customer</h4>
-                  <p className="text-sm text-gray-600">
-                    The Microsoft Customer Agreement has been generated and is ready to share. You can now send the acceptance request to your customer.
-                  </p>
-                </div>
-                <button
-                  onClick={handleShareAgreement}
-                  disabled={!isStep1Valid}
-                  className={`ml-4 px-4 py-2 rounded-lg font-medium flex items-center gap-2 whitespace-nowrap ${
-                    isStep1Valid
-                      ? 'bg-cyan-500 text-white hover:bg-cyan-600'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  Share Agreement
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200"></div>
-      </div>
-    </div>
+            <Button onClick={handleShareAgreement} disabled={!isStep1Valid}>
+              Share Agreement
+            </Button>
+          </Inline>
+        </Card>
+      </Stack>
+    </Modal>
   );
 };
 
@@ -1175,51 +1037,44 @@ export const MicrosoftSection = () => {
 
     if (hasActiveAzureGdap) {
       return (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-green-700 font-medium">
+        <Inline justify="space-between" align="center" wrap="nowrap">
+          <Text size="sm" fw={700} style={{ color: 'var(--mantine-color-green-7)' }}>
             The correct permissions to manage the customers Azure subscription are correct and present!
-          </div>
-          <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-1">Active</span>
-        </div>
+          </Text>
+          <Badge size="sm" color="success" variant="outline">
+            Active
+          </Badge>
+        </Inline>
       );
     }
 
     if (hasPendingAzureGdap) {
       return (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+        <Inline justify="space-between" align="center" wrap="nowrap">
+          <Text size="sm" c="dimmed">
             Azure GDAP relationship requested
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              className="px-3 py-1 text-xs rounded border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
-              disabled
-            >
+          </Text>
+          <Inline gap="xs" align="center" wrap="nowrap">
+            <Button variant="disabled" size="xs">
               Requested
-            </button>
-            <button
-              className="text-xs font-bold uppercase rounded px-2 py-1 cursor-pointer text-yellow-700 bg-yellow-100 hover:bg-yellow-200"
-              onClick={handleToggleAzureStatus}
-            >
+            </Button>
+            <Button variant="outline" size="xs" onClick={handleToggleAzureStatus}>
               Pending
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Inline>
+        </Inline>
       );
     }
 
     return (
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-red-700">
+      <Inline justify="space-between" align="center" wrap="nowrap">
+        <Text size="sm" style={{ color: 'var(--mantine-color-red-7)' }}>
           The correct permissions are not present - would you like to request these?
-        </div>
-        <button
-          className="px-3 py-1 text-xs rounded border border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-          onClick={handleRequestAzureGdap}
-        >
+        </Text>
+        <Button variant="outline" size="xs" onClick={handleRequestAzureGdap}>
           Request Telstra Azure GDAP
-        </button>
-      </div>
+        </Button>
+      </Inline>
     );
   };
 
@@ -1267,141 +1122,160 @@ export const MicrosoftSection = () => {
   const microsoftLogo = '/microsoft (1).png';
 
   return (
-    <div className="mb-8">
-      <h3 className="text-lg font-bold text-gray-800 mb-2">Microsoft</h3>
+    <div style={{ marginBottom: 32 }}>
+      <Title order={4} fw={700} mb="xs">
+        Microsoft
+      </Title>
       
       {isTenantLinked ? (
         <>
           {/* Section 1: Customer Tenant Information - Always visible, not collapsible */}
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-3 mb-2">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-semibold text-gray-800">Customer Tenant Information</h4>
-            </div>
+          <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-3)' }}>
+            <Inline justify="space-between" align="center" mb="sm">
+              <Text fw={700} size="sm">
+                Customer Tenant Information
+              </Text>
+            </Inline>
             
             {/* Customer Tenant Information & Administration Information - Side by side */}
-            <div className="flex gap-2 mb-1">
+            <Inline gap="sm" align="stretch" wrap="nowrap">
               {/* Customer Tenant Information */}
-              <div className="bg-white border border-gray-300 rounded-lg flex-1 shadow-sm">
-              <div className="flex items-start p-2">
-                <img src={microsoftLogo} alt="Microsoft Logo" className="w-8 h-8 mr-3 rounded flex-shrink-0" />
-                <div className="flex-1">
+              <Card style={{ flex: 1 }}>
+              <Inline gap="sm" align="flex-start" wrap="nowrap">
+                <img
+                  src={microsoftLogo}
+                  alt="Microsoft Logo"
+                  style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0 }}
+                />
+                <div style={{ flex: 1 }}>
                   {/* Tenant Name Row */}
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100">
-                    <div className="flex items-baseline">
-                      <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">Tenant Name</span>
-                      <span className="text-sm font-semibold text-gray-800">AppDirect Demonstration 5</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-0.5">Active</span>
-                      <button 
-                        className="px-3 py-0.5 text-xs rounded border border-red-300 bg-red-50 text-red-700 hover:bg-red-100 w-[100px] text-center whitespace-nowrap"
-                        onClick={handleUnlinkTenant}
-                      >
+                  <Inline justify="space-between" align="center" wrap="nowrap" style={{ paddingBottom: 6, borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+                    <Inline gap="sm" align="baseline" wrap="nowrap">
+                      <Text size="xs" c="dimmed" style={{ width: 90 }}>
+                        Tenant Name
+                      </Text>
+                      <Text fw={700} size="sm">
+                        AppDirect Demonstration 5
+                      </Text>
+                    </Inline>
+                    <Inline gap="xs" align="center" wrap="nowrap">
+                      <Badge size="sm" color="success" variant="outline">
+                        Active
+                      </Badge>
+                      <Button variant="danger" size="xs" onClick={handleUnlinkTenant}>
                         Unlink Tenant
-                      </button>
-                    </div>
-                  </div>
+                      </Button>
+                    </Inline>
+                  </Inline>
                   
                   {/* Tenant UUID Row */}
-                  <div className="flex items-baseline py-1 border-b border-gray-100">
-                    <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">Tenant UUID</span>
-                    <span className="text-xs text-gray-700 font-mono">{tenantData.tenantId}</span>
-                  </div>
+                  <Inline gap="sm" align="baseline" wrap="nowrap" style={{ paddingTop: 6, paddingBottom: 6, borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+                    <Text size="xs" c="dimmed" style={{ width: 90 }}>
+                      Tenant UUID
+                    </Text>
+                    <Text size="xs" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-gray-7)' }}>
+                      {tenantData.tenantId}
+                    </Text>
+                  </Inline>
                   
                   {/* MCA Status Row */}
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-baseline">
-                      <span className="text-xs text-gray-500 font-medium w-20 flex-shrink-0">MCA Status</span>
-                      <span className="text-xs text-gray-600">
+                  <Inline justify="space-between" align="center" wrap="nowrap" style={{ paddingTop: 6 }}>
+                    <Inline gap="sm" align="baseline" wrap="nowrap">
+                      <Text size="xs" c="dimmed" style={{ width: 90 }}>
+                        MCA Status
+                      </Text>
+                      <Text size="xs" c="dimmed">
                         {mcaStatus === 'valid' && `Signed ${tenantData.agreementDate}`}
                         {mcaStatus === 'pending' && 'Awaiting acceptance'}
                         {mcaStatus === 'invalid' && 'Agreement required'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
+                      </Text>
+                    </Inline>
+                    <Inline gap="xs" align="center" wrap="nowrap">
+                      <ActionIcon
+                        aria-label="Demo: cycle MCA statuses"
                         onClick={toggleMcaStatus}
-                        className="flex items-center justify-center px-1 py-0.5 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
-                        title="Demo: Cycle through MCA statuses"
+                        customFill="var(--mantine-color-gray-0)"
+                        customBorder="1px solid var(--mantine-color-gray-3)"
                       >
-                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                      </button>
+                      </ActionIcon>
                       {mcaStatus === 'valid' && (
-                        <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-2 py-0.5">Valid</span>
+                        <>
+                          <Badge size="sm" color="success" variant="outline">
+                            Valid
+                          </Badge>
+                          <Button variant="outline" size="xs" onClick={() => setShowMcaModal(true)}>
+                            Reattest
+                          </Button>
+                        </>
                       )}
                       {mcaStatus === 'pending' && (
-                        <span className="text-xs font-bold uppercase text-amber-700 bg-amber-100 rounded px-2 py-0.5">Pending</span>
+                        <>
+                          <Badge size="sm" color="pending" variant="outline">
+                            Pending
+                          </Badge>
+                          <Button variant="outline" size="xs" onClick={() => setMcaStatus('invalid')}>
+                            Cancel
+                          </Button>
+                        </>
                       )}
                       {mcaStatus === 'invalid' && (
-                        <span className="text-xs font-bold uppercase text-red-700 bg-red-100 rounded px-2 py-0.5">Required</span>
+                        <>
+                          <Badge size="sm" color="danger" variant="outline">
+                            Required
+                          </Badge>
+                          <Button variant="outline" size="xs" onClick={() => setShowMcaModal(true)}>
+                            Request
+                          </Button>
+                        </>
                       )}
-                      {mcaStatus === 'valid' && (
-                        <button 
-                          className="px-3 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 w-[100px] text-center whitespace-nowrap"
-                          onClick={() => setShowMcaModal(true)}
-                        >
-                          Reattest
-                        </button>
-                      )}
-                      {mcaStatus === 'pending' && (
-                        <button 
-                          className="px-3 py-0.5 text-xs rounded border border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100 w-[100px] text-center whitespace-nowrap"
-                          onClick={() => setMcaStatus('invalid')}
-                        >
-                          Cancel
-                        </button>
-                      )}
-                      {mcaStatus === 'invalid' && (
-                        <button 
-                          className="px-3 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 w-[100px] text-center whitespace-nowrap"
-                          onClick={() => setShowMcaModal(true)}
-                        >
-                          Request
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                    </Inline>
+                  </Inline>
                 </div>
-              </div>
-              </div>
+              </Inline>
+              </Card>
 
               {/* Administration Information - Right side */}
-              <div className="flex-1">
+              <div style={{ flex: 1 }}>
                 <ExpandableSection 
                   title="Administration Information" 
                   open={adminSectionOpen}
                   onToggle={setAdminSectionOpen}
-                  className="h-full"
                   helpContent="Administration Information displays the users with administrative privileges in your Microsoft 365 tenant. This includes Global Administrators who have full control and Billing Administrators who manage subscriptions."
                 >
-                  <div className="mb-3">
-                    <div className="text-xs font-semibold text-gray-700 mb-1">Global Admin User(s)</div>
-                    <ul className="text-xs text-gray-700 space-y-1">
-                      {tenantData.globalAdmins.map((admin, index) => (
-                        <li key={index} className="flex items-center">
-                          <span className="mr-1.5 text-green-400">•</span>
-                          {admin}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
+                  <Stack gap="sm">
                   <div>
-                    <div className="text-xs font-semibold text-gray-700 mb-1">Billing Admin User(s)</div>
-                    <ul className="text-xs text-gray-700 space-y-1">
-                      {tenantData.billingAdmins.map((admin, index) => (
-                        <li key={index} className="flex items-center">
-                          <span className="mr-1.5 text-green-400">•</span>
+                    <Text size="xs" fw={700}>
+                      Global Admin User(s)
+                    </Text>
+                    <ul style={{ fontSize: 12, color: 'var(--mantine-color-gray-7)', margin: '6px 0 0', paddingLeft: 18 }}>
+                      {tenantData.globalAdmins.map((admin, index) => (
+                        <li key={index} style={{ marginBottom: 4 }}>
+                          <span style={{ marginRight: 6, color: 'var(--mantine-color-green-6)' }}>•</span>
                           {admin}
                         </li>
                       ))}
                     </ul>
                   </div>
+                  <div>
+                    <Text size="xs" fw={700}>
+                      Billing Admin User(s)
+                    </Text>
+                    <ul style={{ fontSize: 12, color: 'var(--mantine-color-gray-7)', margin: '6px 0 0', paddingLeft: 18 }}>
+                      {tenantData.billingAdmins.map((admin, index) => (
+                        <li key={index} style={{ marginBottom: 4 }}>
+                          <span style={{ marginRight: 6, color: 'var(--mantine-color-green-6)' }}>•</span>
+                          {admin}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  </Stack>
                 </ExpandableSection>
               </div>
-            </div>
+            </Inline>
 
             {/* Partner Center Insights */}
             <PartnerCenterInsights />
@@ -1412,44 +1286,42 @@ export const MicrosoftSection = () => {
             {/* GDAP Relationships Subsection */}
             <ExpandableSection
               title={
-                <div className="flex items-center w-full">
-                  <span className="flex-1">GDAP Relationships</span>
-                  <div className="flex items-center space-x-1">
+                <Inline justify="space-between" align="center" wrap="nowrap" style={{ width: '100%' }}>
+                  <Text fw={800} size="sm">GDAP Relationships</Text>
+                  <Inline gap="xs" align="center" wrap="nowrap">
                     <ActionButton onClick={handleGdapNew}>New</ActionButton>
                     <ActionButton onClick={handleGdapSync}>Sync</ActionButton>
-                  </div>
-                </div>
+                  </Inline>
+                </Inline>
               }
               open={gdapSectionOpen}
               onToggle={setGdapSectionOpen}
-              className="mb-1"
               helpContent="GDAP (Granular Delegated Admin Privileges) Relationships define the specific permissions your organization has to manage your customer's Microsoft 365 environment. These relationships specify which administrative roles you can perform, such as user management, license assignment, and security settings. Each relationship has a defined scope and expiration date."
             >
               {gdapRelationships.map((rel, idx) => (
                 <ExpandableSection
                   key={rel.name}
                   title={
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs">{rel.name}</span>
+                    <Inline justify="space-between" align="center" wrap="nowrap" style={{ width: '100%' }}>
+                      <Text size="xs" fw={700}>{rel.name}</Text>
                       {rel.active ? (
-                        <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5 ml-1">Active</span>
+                        <Badge size="xs" color="success" variant="outline">Active</Badge>
                       ) : (
-                        <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-1.5 py-0.5 ml-1">Pending</span>
+                        <Badge size="xs" color="pending" variant="outline">Pending</Badge>
                       )}
-                    </div>
+                    </Inline>
                   }
                   defaultOpen={false}
-                  className="mb-1 ml-2 border border-gray-200 bg-gray-50"
                 >
-                  <div className="space-y-1">
+                  <Stack gap={6}>
                     {rel.name.startsWith('Default_') ? (
-                      <div className="text-xs text-gray-600">Default GDAP relationship assigned when tenant was created.</div>
+                      <Text size="xs" c="dimmed">Default GDAP relationship assigned when tenant was created.</Text>
                     ) : !rel.active ? (
-                      <div className="text-xs text-gray-600">GDAP request sent to customer, awaiting approval.</div>
+                      <Text size="xs" c="dimmed">GDAP request sent to customer, awaiting approval.</Text>
                     ) : (
-                      <div className="text-xs text-gray-600">GDAP relationship requested and accepted by customer.</div>
+                      <Text size="xs" c="dimmed">GDAP relationship requested and accepted by customer.</Text>
                     )}
-                    <div className="text-xs text-gray-500">
+                    <Text size="xs" c="dimmed">
                       {!rel.active ? (
                         'Awaiting approval'
                       ) : rel.autoExtend ? (
@@ -1457,21 +1329,21 @@ export const MicrosoftSection = () => {
                       ) : (
                         `Valid: ${rel.dateRange} (no renewal)`
                       )}
-                    </div>
+                    </Text>
                     {rel.active && (
-                      <div className="flex items-center justify-end py-0.5">
-                        <span className="text-xs text-gray-700 mr-1">Auto-renew</span>
+                      <Inline justify="flex-end" align="center" wrap="nowrap">
+                        <Text size="xs" c="dimmed" mr={6}>Auto-renew</Text>
                         <Toggle enabled={rel.autoExtend} onChange={(val) => handleAutoExtendToggle(idx, val)} size="sm" />
-                      </div>
+                      </Inline>
                     )}
-                    <ul className="text-xs text-gray-700 space-y-0.5">
+                    <ul style={{ fontSize: 12, color: 'var(--mantine-color-gray-7)', margin: 0, paddingLeft: 18 }}>
                       {rel.roles.map((role) => (
-                        <li key={role} className="flex items-center">
-                          <span className="mr-1.5 text-green-400">✔</span> {role}
+                        <li key={role} style={{ marginBottom: 2 }}>
+                          <span style={{ marginRight: 6, color: 'var(--mantine-color-green-6)' }}>✔</span> {role}
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </Stack>
                 </ExpandableSection>
               ))}
             </ExpandableSection>
@@ -1479,93 +1351,99 @@ export const MicrosoftSection = () => {
             {/* Special Qualifications Subsection */}
             <ExpandableSection
               title={
-                <div className="flex items-center w-full">
-                  <span className="flex-1">Special Qualification Status</span>
-                  <div className="flex items-center space-x-1">
+                <Inline justify="space-between" align="center" wrap="nowrap" style={{ width: '100%' }}>
+                  <Text fw={800} size="sm">Special Qualification Status</Text>
+                  <Inline gap="xs" align="center" wrap="nowrap">
                     <ActionButton onClick={handleQualificationNew}>New</ActionButton>
                     <ActionButton onClick={handleSpecialQualificationsSync}>Sync</ActionButton>
-                  </div>
-                </div>
+                  </Inline>
+                </Inline>
               }
               open={specialQualificationsSectionOpen}
               onToggle={setSpecialQualificationsSectionOpen}
-              className="mb-1"
               helpContent="Special Qualification Status shows your organization's eligibility for specific Microsoft programs and benefits. These qualifications can include government contracts, educational status, nonprofit status, or other specialized programs that provide additional benefits, discounts, or access to specific Microsoft services and features."
             >
-              <div className="space-y-1">
+              <Stack gap={6}>
                 {specialQualifications.map((qual, idx) => (
-                  <div key={`${qual.name}-${qual.domain}-${idx}`} className="flex items-center justify-between py-0.5">
+                  <Inline key={`${qual.name}-${qual.domain}-${idx}`} justify="space-between" align="center" wrap="nowrap">
                     <div>
-                      <span className="text-xs font-semibold text-gray-700">{qual.name}</span>
-                      {!qual.active && <span className="text-xs text-gray-500 ml-2">({qual.domain})</span>}
-                      <span className="text-xs text-gray-500 ml-2">
+                      <Text span size="xs" fw={700}>{qual.name}</Text>
+                      {!qual.active && (
+                        <Text span size="xs" c="dimmed" ml={8}>
+                          ({qual.domain})
+                        </Text>
+                      )}
+                      <Text span size="xs" c="dimmed" ml={8}>
                         {!qual.active ? '- Awaiting approval' : `- ${qual.lastModified}`}
-                      </span>
+                      </Text>
                     </div>
                     {qual.active ? (
-                      <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>
+                      <Badge size="xs" color="success" variant="outline">Active</Badge>
                     ) : (
-                      <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-1.5 py-0.5">Pending</span>
+                      <Badge size="xs" color="pending" variant="outline">Pending</Badge>
                     )}
-                  </div>
+                  </Inline>
                 ))}
-              </div>
+              </Stack>
             </ExpandableSection>
 
             {/* Azure Subsection */}
             <ExpandableSection 
               title="Azure Settings" 
               sectionId="microsoft-azure-settings"
-              className="mb-1"
               helpContent="Azure Settings configure permissions and access levels for Azure services, including reservations, cost management, and subscription usage. These settings determine what Azure resources your organization can manage and purchase."
             >
-              <div className="space-y-1.5">
-                <div className="bg-gray-50 border border-gray-200 rounded p-2 flex items-center justify-between">
-                  <div className="flex-1 mr-2">
-                    <div className="font-semibold text-xs">Azure Reservations</div>
-                    <div className="text-xs text-gray-500">Allow customers to purchase Azure Reservations</div>
-                  </div>
-                  <div className="flex items-center">
+              <Stack gap="sm">
+                <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+                  <Inline justify="space-between" align="center" wrap="nowrap">
+                    <div style={{ flex: 1, marginRight: 8 }}>
+                      <Text size="xs" fw={700}>Azure Reservations</Text>
+                      <Text size="xs" c="dimmed">Allow customers to purchase Azure Reservations</Text>
+                    </div>
+                    <Inline gap="xs" align="center" wrap="nowrap">
                     <Toggle enabled={azureReservations} onChange={setAzureReservations} size="sm" />
-                    <span className={`text-xs ml-1.5 w-6 ${azureReservations ? 'text-green-700' : 'text-gray-400'}`}>{azureReservations ? 'On' : 'Off'}</span>
-                  </div>
-                </div>
-                <div className="bg-gray-50 border border-gray-200 rounded p-2 flex items-center justify-between">
-                  <div className="flex-1 mr-2">
-                    <div className="font-semibold text-xs">Azure Subscription Usage</div>
-                    <div className="text-xs text-gray-500">Show consumption in Azure portal</div>
-                  </div>
-                  <div className="flex items-center">
+                    <Text size="xs" fw={700} style={{ width: 24, color: azureReservations ? 'var(--mantine-color-green-7)' : 'var(--mantine-color-gray-5)' }}>
+                      {azureReservations ? 'On' : 'Off'}
+                    </Text>
+                    </Inline>
+                  </Inline>
+                </Card>
+                <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+                  <Inline justify="space-between" align="center" wrap="nowrap">
+                    <div style={{ flex: 1, marginRight: 8 }}>
+                      <Text size="xs" fw={700}>Azure Subscription Usage</Text>
+                      <Text size="xs" c="dimmed">Show consumption in Azure portal</Text>
+                    </div>
+                    <Inline gap="xs" align="center" wrap="nowrap">
                     <Toggle enabled={azureUsage} onChange={setAzureUsage} size="sm" />
-                    <span className={`text-xs ml-1.5 w-6 ${azureUsage ? 'text-green-700' : 'text-gray-400'}`}>{azureUsage ? 'On' : 'Off'}</span>
-                  </div>
-                </div>
-                <div className="bg-gray-50 border border-gray-200 rounded p-2">
-                  <div className="font-semibold text-xs mb-1">Azure Management Permissions</div>
+                    <Text size="xs" fw={700} style={{ width: 24, color: azureUsage ? 'var(--mantine-color-green-7)' : 'var(--mantine-color-gray-5)' }}>
+                      {azureUsage ? 'On' : 'Off'}
+                    </Text>
+                    </Inline>
+                  </Inline>
+                </Card>
+                <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+                  <Text size="xs" fw={700} mb={6}>Azure Management Permissions</Text>
                   <AzureManagementPermissions />
-                </div>
-              </div>
+                </Card>
+              </Stack>
             </ExpandableSection>
-          </div>
+          </Card>
         </>
       ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-          <div className="text-lg font-semibold text-gray-700 mb-4">No tenant linked</div>
-          <div className="flex justify-center space-x-4">
-            <button
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              onClick={handleCreateNewTenant}
-            >
-              Create New Tenant
-            </button>
-            <button
-              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition-colors"
-              onClick={handleLinkTenant}
-            >
-              Link Tenant
-            </button>
-          </div>
-        </div>
+        <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+          <Stack align="center" gap="sm">
+            <Text fw={700} size="lg">
+              No tenant linked
+            </Text>
+            <Inline gap="sm" justify="center">
+              <Button onClick={handleCreateNewTenant}>Create New Tenant</Button>
+              <Button variant="outline" onClick={handleLinkTenant}>
+                Link Tenant
+              </Button>
+            </Inline>
+          </Stack>
+        </Card>
       )}
 
       {/* GDAP Options Modal */}

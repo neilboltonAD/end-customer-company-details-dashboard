@@ -5,6 +5,7 @@ import {
   Badge, 
   Button, 
   Group, 
+  Loader,
   Stack,
   Accordion,
   Table,
@@ -63,7 +64,7 @@ const SummaryCard: React.FC<{
     padding="md" 
     radius="md" 
     withBorder
-    className="flex-1 min-w-[180px] hover:shadow-md transition-shadow cursor-pointer"
+    style={{ flex: 1, minWidth: 180, cursor: onClick ? 'pointer' : undefined }}
     onClick={onClick}
   >
     <Group justify="space-between" mb="xs">
@@ -123,15 +124,15 @@ const TransferRow: React.FC<{
       radius="md" 
       withBorder 
       mb="xs"
-      className={isUrgent ? 'border-l-4 border-l-orange-500' : ''}
+      style={isUrgent ? { borderLeft: '4px solid var(--mantine-color-orange-6)' } : undefined}
     >
       <Group justify="space-between" wrap="nowrap">
-        <div className="flex-1">
+        <div style={{ flex: 1 }}>
           <Group gap="xs" mb={4}>
             {transfer.direction === 'Incoming' ? (
-              <ArrowDownLeft size={14} className="text-blue-600" />
+              <ArrowDownLeft size={14} color="var(--mantine-color-blue-6)" />
             ) : (
-              <ArrowUpRight size={14} className="text-teal-600" />
+              <ArrowUpRight size={14} color="var(--mantine-color-blue-6)" />
             )}
             <Text size="sm" fw={600}>
               {transfer.direction === 'Incoming' ? 'From: ' : 'To: '}
@@ -142,7 +143,7 @@ const TransferRow: React.FC<{
           <Text size="xs" c="dimmed">
             {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo est.
             {transfer.status === 'Pending' && (
-              <span className={isUrgent ? 'text-orange-600 font-medium' : ''}>
+              <span style={isUrgent ? { color: 'var(--mantine-color-orange-7)', fontWeight: 600 } : undefined}>
                 {' '}• {transfer.direction === 'Incoming' ? 'Expires' : 'Created'}: {formatDate(transfer.direction === 'Incoming' ? transfer.expirationDate : transfer.createdDate)}
                 {isUrgent && ` (${daysRemaining} days)`}
               </span>
@@ -380,18 +381,18 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
   };
 
   return (
-    <div className="border border-gray-300 rounded-lg bg-white mb-2 shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-        <div className="flex items-center gap-2">
-          <Text fw={600} size="sm">📦 P2P Subscription Transfers</Text>
-          {summary.incomingPending > 0 && (
-            <Badge color="red" size="sm" circle>
-              {summary.incomingPending}
-            </Badge>
-          )}
-        </div>
-        <Group gap="xs">
+    <Card withBorder shadow="xs" style={{ marginBottom: 8 }}>
+      <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+        <Group justify="space-between" align="center">
+          <Group gap="xs">
+            <Text fw={600} size="sm">📦 P2P Subscription Transfers</Text>
+            {summary.incomingPending > 0 && (
+              <Badge color="red" size="sm" circle>
+                {summary.incomingPending}
+              </Badge>
+            )}
+          </Group>
+          <Group gap="xs">
           <Tooltip
             label="Outbound transfers are disabled in Indirect mode"
             disabled={allowOutbound}
@@ -411,18 +412,23 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
           <Button 
             size="xs" 
             variant="light" 
-            leftSection={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+            leftSection={
+              isLoading
+                ? <Loader size="xs" />
+                : <RefreshCw size={14} />
+            }
             onClick={handleSync}
             loading={isLoading}
           >
             Sync
           </Button>
+          </Group>
         </Group>
-      </div>
+      </Card>
 
-      <div className="p-4">
+      <div style={{ padding: 16 }}>
         {/* Summary Cards */}
-        <div className="flex gap-4 mb-4 flex-wrap">
+        <Group gap="md" mb="md" wrap="wrap">
           <SummaryCard
             icon={<ArrowDownLeft size={18} />}
             iconColor="blue"
@@ -439,7 +445,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
           />
           <SummaryCard
             icon={<ArrowUpRight size={18} />}
-            iconColor="teal"
+            iconColor="blue"
             title="Outgoing"
             count={allowOutbound ? summary.outgoingPending : 0}
             subtitle="Pending"
@@ -453,7 +459,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
             subtitle="Last 90 days"
             onClick={() => {}}
           />
-        </div>
+        </Group>
 
         <Accordion variant="separated" radius="md" multiple defaultValue={["subscriptions", "active"]}>
           {/* Available Subscriptions */}
@@ -471,7 +477,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
                   placeholder="Customer name or subscription ID"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                  className="flex-1"
+                  style={{ flex: 1 }}
                 />
                 <Button
                   size="sm"
@@ -508,7 +514,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
                   </Table.Thead>
                   <Table.Tbody>
                     {filteredEligibleSubscriptions.map((sub) => (
-                      <Table.Tr key={sub.id} className={!sub.transferEligible ? 'opacity-50' : ''}>
+                      <Table.Tr key={sub.id} style={!sub.transferEligible ? { opacity: 0.5 } : undefined}>
                         <Table.Td>
                           <Text size="sm" fw={500}>{sub.productName}</Text>
                           <Text size="xs" c="dimmed">{sub.sku}</Text>
@@ -546,7 +552,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
               {incomingPending.length > 0 && (
                 <>
                   <Group gap="xs" mb="xs">
-                    <ArrowDownLeft size={14} className="text-blue-600" />
+                    <ArrowDownLeft size={14} color="var(--mantine-color-blue-6)" />
                     <Text size="xs" fw={600} c="dimmed" tt="uppercase">Incoming</Text>
                   </Group>
                   {incomingPending.map(transfer => (
@@ -565,7 +571,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
               {outgoingPending.length > 0 && (
                 <>
                   <Group gap="xs" mb="xs">
-                    <ArrowUpRight size={14} className="text-teal-600" />
+                    <ArrowUpRight size={14} color="var(--mantine-color-blue-6)" />
                     <Text size="xs" fw={600} c="dimmed" tt="uppercase">Outgoing</Text>
                   </Group>
                   {outgoingPending.map(transfer => (
@@ -641,7 +647,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
         }}
         transfer={selectedTransfer}
       />
-    </div>
+    </Card>
   );
 };
 

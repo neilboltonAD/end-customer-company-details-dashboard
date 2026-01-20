@@ -13,6 +13,7 @@ import {
   CopyButton,
   ActionIcon,
   Tooltip,
+  SimpleGrid,
 } from '@mantine/core';
 import { 
   ArrowDownLeft, 
@@ -106,7 +107,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
           title: 'Processing by Microsoft',
           date: 'In progress...',
           active: true,
-          icon: <Loader size={12} className="animate-spin" />,
+          icon: <Loader size={12} style={{ animation: 'mantine-rotate 1s linear infinite' }} />,
         }
       );
     } else if (transfer.status === 'Pending') {
@@ -130,7 +131,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
       title={
         <Group gap="sm">
           <Text fw={600} size="lg">Transfer Details</Text>
-          <Text size="sm" c="dimmed" className="font-mono">{transfer.id}</Text>
+          <Text size="sm" c="dimmed" style={{ fontFamily: 'monospace' }}>{transfer.id}</Text>
         </Group>
       }
       size="xl"
@@ -141,9 +142,9 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
         <Group justify="space-between">
           <Group gap="xs">
             {isIncoming ? (
-              <ArrowDownLeft size={18} className="text-blue-600" />
+              <ArrowDownLeft size={18} color="var(--mantine-color-blue-6)" />
             ) : (
-              <ArrowUpRight size={18} className="text-teal-600" />
+              <ArrowUpRight size={18} color="var(--mantine-color-blue-6)" />
             )}
             <Text size="sm" fw={500}>
               {isIncoming ? 'Incoming' : 'Outgoing'} Transfer
@@ -153,7 +154,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
         </Group>
 
         {/* Partner Information */}
-        <div className="grid grid-cols-2 gap-4">
+        <SimpleGrid cols={2} spacing="md">
           <Card withBorder padding="md" radius="md">
             <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb="xs">
               From (Source Partner)
@@ -161,7 +162,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
             <Text size="sm" fw={600}>{transfer.sourcePartner.name}</Text>
             <Group gap="xs" mt={4}>
               <Text size="xs" c="dimmed">Tenant:</Text>
-              <Text size="xs" className="font-mono">{transfer.sourcePartner.tenantId.slice(0, 8)}...</Text>
+              <Text size="xs" style={{ fontFamily: 'monospace' }}>{transfer.sourcePartner.tenantId.slice(0, 8)}...</Text>
               <CopyButton value={transfer.sourcePartner.tenantId}>
                 {({ copied, copy }) => (
                   <Tooltip label={copied ? 'Copied!' : 'Copy'}>
@@ -184,7 +185,7 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
             <Text size="sm" fw={600}>{transfer.targetPartner.name}</Text>
             <Group gap="xs" mt={4}>
               <Text size="xs" c="dimmed">Tenant:</Text>
-              <Text size="xs" className="font-mono">{transfer.targetPartner.tenantId.slice(0, 8)}...</Text>
+              <Text size="xs" style={{ fontFamily: 'monospace' }}>{transfer.targetPartner.tenantId.slice(0, 8)}...</Text>
               <CopyButton value={transfer.targetPartner.tenantId}>
                 {({ copied, copy }) => (
                   <Tooltip label={copied ? 'Copied!' : 'Copy'}>
@@ -199,14 +200,14 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
               <Text size="xs" c="dimmed" mt={2}>MPN: {transfer.targetPartner.mpnId}</Text>
             )}
           </Card>
-        </div>
+        </SimpleGrid>
 
         {/* Customer Tenant */}
         <Card withBorder padding="sm" radius="md" bg="gray.0">
           <Group gap="xs">
             <Text size="xs" c="dimmed">Customer Tenant:</Text>
             <Text size="xs" fw={500}>{transfer.customerName}</Text>
-            <Text size="xs" c="dimmed" className="font-mono">({transfer.customerTenantId})</Text>
+            <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace' }}>({transfer.customerTenantId})</Text>
           </Group>
         </Card>
 
@@ -258,15 +259,15 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
           {/* Summary */}
           <Card withBorder padding="sm" radius="md" bg="gray.0" mt="xs">
             <Group justify="space-around">
-              <div className="text-center">
+              <div style={{ textAlign: 'center' }}>
                 <Text size="xs" c="dimmed">Subscriptions</Text>
                 <Text size="md" fw={700}>{transfer.lineItems.length}</Text>
               </div>
-              <div className="text-center">
+              <div style={{ textAlign: 'center' }}>
                 <Text size="xs" c="dimmed">Total Seats</Text>
                 <Text size="md" fw={700}>{totalSeats}</Text>
               </div>
-              <div className="text-center">
+              <div style={{ textAlign: 'center' }}>
                 <Text size="xs" c="dimmed">Est. Monthly Value</Text>
                 <Text size="md" fw={700}>~{formatCurrency(transfer.totalMonthlyValue)}</Text>
               </div>
@@ -300,8 +301,8 @@ export const TransferDetailsModal: React.FC<TransferDetailsModalProps> = ({
               <Text size="sm" fw={600} mb="xs">Activity Log</Text>
               <Stack gap={4}>
                 {auditLog.map((log) => (
-                  <Group key={log.id} gap="xs" className="text-xs">
-                    <Text size="xs" c="dimmed" className="w-32">{formatDateTime(log.timestamp)}</Text>
+                  <Group key={log.id} gap="xs">
+                    <Text size="xs" c="dimmed" style={{ width: 140 }}>{formatDateTime(log.timestamp)}</Text>
                     <Text size="xs">{log.action}</Text>
                     {log.user !== 'system' && (
                       <Text size="xs" c="dimmed">by {log.user}</Text>

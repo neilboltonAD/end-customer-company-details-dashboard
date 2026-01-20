@@ -1,57 +1,71 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { SearchIcon, PlusIcon, BellIcon, Settings2Icon, ArrowDownLeft, ArrowUpRight, Clock, X, ExternalLink, PlugZap, RefreshCw } from 'lucide-react'
+import { SearchIcon, PlusIcon, BellIcon, Settings2Icon, ArrowDownLeft, ArrowUpRight, Clock, ExternalLink, PlugZap } from 'lucide-react'
 import { Avatar } from '../misc/Avatar'
 import { mockTransferRequests, formatDate, getDaysUntilExpiration, formatCurrency } from '../company/p2p/mockData'
 import { getPartnerCenterHealth, getPartnerCenterStatus } from '../../api/partnerCenter'
 import { PartnerCenterConnectorModal } from '../microsoft/PartnerCenterConnectorModal'
+import { ActionIcon, Badge, Button, Card, Inline, Popover, Stack, Text, TextInput, Title } from 'components/DesignSystem'
 
-const NavLink = ({ to, children, active, isNew }: { to: string; children: React.ReactNode; active?: boolean; isNew?: boolean }) => (
+const NavLink = ({
+  to,
+  children,
+  active,
+  isNew,
+}: {
+  to: string
+  children: React.ReactNode
+  active?: boolean
+  isNew?: boolean
+}) => (
   <Link
     to={to}
-    className={`text-sm font-medium px-1 py-1 relative ${
-      active ? 'text-white' : 'text-gray-300 hover:text-white'
-    }`}
+    style={{
+      textDecoration: 'none',
+      color: active ? 'white' : 'var(--mantine-color-gray-3)',
+      padding: '4px 6px',
+      position: 'relative',
+      fontSize: 14,
+      fontWeight: 600,
+    }}
   >
-    <span className="flex items-center gap-1.5">
-      {children}
+    <Inline gap={6} align="center" wrap="nowrap">
+      <Text size="sm" style={{ color: active ? 'white' : 'var(--mantine-color-gray-3)' }}>
+        {children}
+      </Text>
       {isNew && (
-        <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
+        <Badge size="xs" color="success" variant="filled">
           New
-        </span>
+        </Badge>
       )}
-    </span>
+    </Inline>
     {active && (
-      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 -mb-3"></span>
+      <span
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -10,
+          height: 2,
+          background: 'var(--mantine-color-blue-6)',
+        }}
+      />
     )}
   </Link>
 )
 
-export const TopNavbar = () => {
+export const TopNavbar = ({ embedded }: { embedded?: boolean }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const currentPath = location.pathname
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const [connectorStatus, setConnectorStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown')
   const [connectorModalOpen, setConnectorModalOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   // Get pending P2P transfers for notifications
   const pendingIncoming = mockTransferRequests.filter(t => t.direction === 'Incoming' && t.status === 'Pending')
   const pendingOutgoing = mockTransferRequests.filter(t => t.direction === 'Outgoing' && t.status === 'Pending')
   const totalPending = pendingIncoming.length + pendingOutgoing.length
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setNotificationsOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   // Background health check on load.
   useEffect(() => {
@@ -92,31 +106,63 @@ export const TopNavbar = () => {
   }
 
   return (
-    <nav className="flex items-center justify-between bg-gray-900 text-white px-4 py-3">
-      <div className="flex items-center space-x-6">
+    <nav
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        color: 'white',
+        paddingLeft: 16,
+        paddingRight: 16,
+        height: '100%',
+        background: embedded ? 'transparent' : 'var(--mantine-color-gray-9)',
+      }}
+    >
+      <Inline gap="xl" align="center" wrap="nowrap">
         {/* App Grid Icon */}
-        <div className="grid grid-cols-3 gap-0.5">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="h-1 w-1 bg-gray-400 rounded-sm"></div>
+            <div
+              key={i}
+              style={{
+                width: 4,
+                height: 4,
+                background: 'var(--mantine-color-gray-5)',
+                borderRadius: 2,
+              }}
+            />
           ))}
         </div>
 
-        <div className="flex items-center space-x-5">
+        <Inline gap="lg" align="center" wrap="nowrap">
           {/* Marketplace Logo */}
-          <Link to="/home" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center bg-blue-600 rounded p-1.5">
-              <svg viewBox="0 0 24 24" className="h-4 w-4 text-white" fill="currentColor">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold">Marketplace</span>
+          <Link to="/home" style={{ textDecoration: 'none', color: 'white' }}>
+            <Inline gap="sm" align="center" wrap="nowrap">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--mantine-color-blue-6)',
+                  borderRadius: 8,
+                  padding: 6,
+                }}
+              >
+                <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }} fill="currentColor">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+              </div>
+              <Text size="sm" fw={700} style={{ color: 'white' }}>
+                Marketplace
+              </Text>
+            </Inline>
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex items-center space-x-4">
+          <Inline gap="md" align="center" wrap="nowrap">
             <NavLink to="/home" active={currentPath === '/home'}>
               Home
             </NavLink>
@@ -138,50 +184,72 @@ export const TopNavbar = () => {
             <NavLink to="/programs" active={currentPath === '/programs'}>
               Programs
             </NavLink>
-          </div>
-        </div>
-      </div>
+          </Inline>
+        </Inline>
+      </Inline>
 
-      <div className="flex items-center space-x-3">
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-gray-800 text-white rounded pl-3 pr-10 py-1.5 text-sm w-44 placeholder-gray-400 border border-gray-700 focus:outline-none focus:border-gray-600"
-          />
-          <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        </div>
+      <Inline gap="sm" align="center" wrap="nowrap">
+        <TextInput
+          placeholder="Search"
+          size="sm"
+          leftIcon={<SearchIcon size={14} />}
+          styles={{
+            input: {
+              background: 'rgba(255,255,255,0.08)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.16)',
+            },
+          }}
+        />
 
-        {/* Create Button */}
-        <button className="flex items-center bg-blue-600 text-white rounded px-4 py-1.5 text-sm font-medium hover:bg-blue-700">
+        <Button variant="primary" size="sm" rightIcon={<PlusIcon size={16} />}>
           Create
-          <PlusIcon className="h-4 w-4 ml-1.5" />
-        </button>
+        </Button>
 
-        {/* Connector Sync */}
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleConnectorSync}
-          className={`flex items-center rounded px-3 py-1.5 text-sm font-medium border transition-colors ${
-            connectorStatus === 'connected'
-              ? 'bg-emerald-50 text-emerald-900 border-emerald-200 hover:bg-emerald-100'
-              : connectorStatus === 'disconnected'
-              ? 'bg-rose-50 text-rose-900 border-rose-200 hover:bg-rose-100'
-              : 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700'
-          }`}
-        >
-          <span
-            className={`h-2 w-2 rounded-full mr-2 ${
+          rightIcon={<PlugZap size={16} />}
+          style={{
+            background:
               connectorStatus === 'connected'
-                ? 'bg-emerald-500'
+                ? 'var(--mantine-color-green-0)'
                 : connectorStatus === 'disconnected'
-                ? 'bg-rose-500'
-                : 'bg-gray-400'
-            }`}
-          />
+                ? 'var(--mantine-color-red-0)'
+                : 'rgba(255,255,255,0.08)',
+            borderColor:
+              connectorStatus === 'connected'
+                ? 'var(--mantine-color-green-2)'
+                : connectorStatus === 'disconnected'
+                ? 'var(--mantine-color-red-2)'
+                : 'rgba(255,255,255,0.16)',
+            color:
+              connectorStatus === 'connected'
+                ? 'var(--mantine-color-green-9)'
+                : connectorStatus === 'disconnected'
+                ? 'var(--mantine-color-red-9)'
+                : 'white',
+          }}
+          leftIcon={
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background:
+                  connectorStatus === 'connected'
+                    ? 'var(--mantine-color-green-6)'
+                    : connectorStatus === 'disconnected'
+                    ? 'var(--mantine-color-red-6)'
+                    : 'var(--mantine-color-gray-5)',
+                display: 'inline-block',
+              }}
+            />
+          }
+        >
           Connector Sync
-          <PlugZap className="h-4 w-4 ml-2" />
-        </button>
+        </Button>
 
         <PartnerCenterConnectorModal
           opened={connectorModalOpen}
@@ -194,175 +262,196 @@ export const TopNavbar = () => {
         />
 
         {/* Notifications */}
-        <div className="relative" ref={dropdownRef}>
-          <button 
-            className={`relative p-1.5 rounded transition-colors ${notificationsOpen ? 'bg-blue-600' : 'hover:bg-gray-800'}`}
-            onClick={() => setNotificationsOpen(!notificationsOpen)}
-          >
-            <BellIcon className={`h-5 w-5 ${notificationsOpen ? 'text-white' : 'text-gray-300'}`} />
-            {totalPending > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-green-500 rounded-full text-[10px] font-medium flex items-center justify-center">
-                {totalPending}
-              </span>
-            )}
-          </button>
-
-          {/* Notification Dropdown */}
-          {notificationsOpen && (
-            <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-900">Notifications</span>
-                  {totalPending > 0 && (
-                    <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
-                      {totalPending}
-                    </span>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setNotificationsOpen(false)}
-                  className="p-1 hover:bg-gray-200 rounded"
+        <Popover
+          width={420}
+          position="bottom"
+          opened={notificationsOpen}
+          onChange={setNotificationsOpen}
+          trigger={
+            <div style={{ position: 'relative' }}>
+              <ActionIcon
+                aria-label="Notifications"
+                onClick={() => setNotificationsOpen((v) => !v)}
+                customFill={notificationsOpen ? 'var(--mantine-color-blue-6)' : 'rgba(255,255,255,0.08)'}
+                customBorder="1px solid rgba(255,255,255,0.16)"
+                style={{ color: 'white' }}
+              >
+                <BellIcon size={18} />
+              </ActionIcon>
+              {totalPending > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    width: 16,
+                    height: 16,
+                    borderRadius: 999,
+                    background: 'var(--mantine-color-green-6)',
+                    color: 'white',
+                    fontSize: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid var(--mantine-color-dark-9)',
+                  }}
                 >
-                  <X className="h-4 w-4 text-gray-500" />
-                </button>
-              </div>
-
-              {/* P2P Transfer Notifications */}
-              <div className="max-h-96 overflow-y-auto">
-                {/* Incoming Transfers Section */}
-                {pendingIncoming.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
-                      <div className="flex items-center gap-2">
-                        <ArrowDownLeft className="h-4 w-4 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-800 uppercase">
-                          Incoming P2P Transfers
-                        </span>
-                        <span className="px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
-                          {pendingIncoming.length}
-                        </span>
-                      </div>
-                    </div>
-                    {pendingIncoming.map((transfer) => {
-                      const daysRemaining = getDaysUntilExpiration(transfer.expirationDate)
-                      const isUrgent = daysRemaining <= 7
-
-                      return (
-                        <div 
-                          key={transfer.id}
-                          className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${isUrgent ? 'bg-orange-50' : ''}`}
-                          onClick={() => handleTransferClick(transfer.customerName)}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium text-gray-900">
-                                  Transfer from {transfer.sourcePartner.name}
-                                </span>
-                                {isUrgent && (
-                                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">
-                                    URGENT
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-600 mb-1">
-                                {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo
-                              </p>
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Clock className="h-3 w-3" />
-                                <span className={isUrgent ? 'text-orange-600 font-medium' : ''}>
-                                  Expires {formatDate(transfer.expirationDate)} ({daysRemaining} days)
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded">
-                                Pending
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {/* Outgoing Transfers Section */}
-                {pendingOutgoing.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 bg-teal-50 border-b border-teal-100">
-                      <div className="flex items-center gap-2">
-                        <ArrowUpRight className="h-4 w-4 text-teal-600" />
-                        <span className="text-xs font-semibold text-teal-800 uppercase">
-                          Outgoing P2P Transfers
-                        </span>
-                        <span className="px-1.5 py-0.5 text-xs font-bold bg-teal-600 text-white rounded-full">
-                          {pendingOutgoing.length}
-                        </span>
-                      </div>
-                    </div>
-                    {pendingOutgoing.map((transfer) => (
-                      <div 
-                        key={transfer.id}
-                        className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleTransferClick(transfer.customerName)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900 mb-1">
-                              Transfer to {transfer.targetPartner.name}
-                            </div>
-                            <p className="text-xs text-gray-600 mb-1">
-                              {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo
-                            </p>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Clock className="h-3 w-3" />
-                              <span>Awaiting partner response</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
-                              Awaiting
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* No notifications */}
-                {totalPending === 0 && (
-                  <div className="px-4 py-8 text-center">
-                    <BellIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No pending notifications</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-                <button 
-                  onClick={handleViewAll}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-                >
-                  <span>View all P2P Transfers</span>
-                  <ExternalLink className="h-4 w-4" />
-                </button>
-              </div>
+                  {totalPending}
+                </span>
+              )}
             </div>
-          )}
-        </div>
+          }
+        >
+          <Stack gap="sm">
+            <Inline justify="space-between" align="center" wrap="nowrap">
+              <Title order={5} m={0}>
+                Notifications
+              </Title>
+              {totalPending > 0 && (
+                <Badge size="sm" color="danger" variant="filled">
+                  {totalPending}
+                </Badge>
+              )}
+            </Inline>
+
+            <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+              <Stack gap="sm">
+                {pendingIncoming.length > 0 && (
+                  <Card>
+                    <Stack gap="xs">
+                      <Inline gap="xs" align="center" wrap="nowrap">
+                        <ArrowDownLeft size={16} />
+                        <Text size="xs" fw={700} style={{ textTransform: 'uppercase' }}>
+                          Incoming P2P Transfers
+                        </Text>
+                        <Badge size="xs" color="info">
+                          {pendingIncoming.length}
+                        </Badge>
+                      </Inline>
+                      <Stack gap="xs">
+                        {pendingIncoming.map((transfer) => {
+                          const daysRemaining = getDaysUntilExpiration(transfer.expirationDate)
+                          const isUrgent = daysRemaining <= 7
+                          return (
+                            <Card
+                              key={transfer.id}
+                              interactive
+                              onClick={() => handleTransferClick(transfer.customerName)}
+                              style={isUrgent ? { border: '1px solid var(--mantine-color-yellow-3)', background: 'var(--mantine-color-yellow-0)' } : undefined}
+                            >
+                              <Stack gap={6}>
+                                <Inline justify="space-between" align="flex-start" wrap="nowrap">
+                                  <Inline gap="xs" align="center" wrap="nowrap">
+                                    <Text fw={700} size="sm">
+                                      Transfer from {transfer.sourcePartner.name}
+                                    </Text>
+                                    {isUrgent && (
+                                      <Badge size="xs" color="pending" variant="filled">
+                                        Urgent
+                                      </Badge>
+                                    )}
+                                  </Inline>
+                                  <Badge size="xs" color="pending" variant="outline">
+                                    Pending
+                                  </Badge>
+                                </Inline>
+                                <Text size="xs" c="dimmed">
+                                  {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo
+                                </Text>
+                                <Inline gap={6} align="center" wrap="nowrap">
+                                  <Clock size={14} />
+                                  <Text size="xs" c="dimmed" style={isUrgent ? { color: 'var(--mantine-color-yellow-9)', fontWeight: 700 } : undefined}>
+                                    Expires {formatDate(transfer.expirationDate)} ({daysRemaining} days)
+                                  </Text>
+                                </Inline>
+                              </Stack>
+                            </Card>
+                          )
+                        })}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
+                {pendingOutgoing.length > 0 && (
+                  <Card>
+                    <Stack gap="xs">
+                      <Inline gap="xs" align="center" wrap="nowrap">
+                        <ArrowUpRight size={16} />
+                        <Text size="xs" fw={700} style={{ textTransform: 'uppercase' }}>
+                          Outgoing P2P Transfers
+                        </Text>
+                        <Badge size="xs" color="default">
+                          {pendingOutgoing.length}
+                        </Badge>
+                      </Inline>
+                      <Stack gap="xs">
+                        {pendingOutgoing.map((transfer) => (
+                          <Card key={transfer.id} interactive onClick={() => handleTransferClick(transfer.customerName)}>
+                            <Stack gap={6}>
+                              <Inline justify="space-between" align="flex-start" wrap="nowrap">
+                                <Text fw={700} size="sm">
+                                  Transfer to {transfer.targetPartner.name}
+                                </Text>
+                                <Badge size="xs" color="default" variant="outline">
+                                  Awaiting
+                                </Badge>
+                              </Inline>
+                              <Text size="xs" c="dimmed">
+                                {transfer.lineItems.length} subscription{transfer.lineItems.length !== 1 ? 's' : ''} • ~{formatCurrency(transfer.totalMonthlyValue)}/mo
+                              </Text>
+                              <Inline gap={6} align="center" wrap="nowrap">
+                                <Clock size={14} />
+                                <Text size="xs" c="dimmed">
+                                  Awaiting partner response
+                                </Text>
+                              </Inline>
+                            </Stack>
+                          </Card>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                )}
+
+                {totalPending === 0 && (
+                  <Card>
+                    <Stack gap="sm" align="center">
+                      <BellIcon size={28} />
+                      <Text size="sm" c="dimmed">
+                        No pending notifications
+                      </Text>
+                    </Stack>
+                  </Card>
+                )}
+              </Stack>
+            </div>
+
+            <Button
+              variant="link"
+              onClick={() => {
+                handleViewAll()
+              }}
+              rightIcon={<ExternalLink size={16} />}
+            >
+              View all P2P Transfers
+            </Button>
+          </Stack>
+        </Popover>
 
         {/* Settings */}
-        <button className="p-1.5 hover:bg-gray-800 rounded">
-          <Settings2Icon className="h-5 w-5 text-gray-300" />
-        </button>
+        <ActionIcon
+          aria-label="Settings"
+          customFill="rgba(255,255,255,0.08)"
+          customBorder="1px solid rgba(255,255,255,0.16)"
+          style={{ color: 'white' }}
+        >
+          <Settings2Icon size={18} />
+        </ActionIcon>
 
         {/* Avatar */}
         <Avatar initials="NB" />
-      </div>
+      </Inline>
     </nav>
   )
 }

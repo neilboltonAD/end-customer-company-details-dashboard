@@ -22,6 +22,7 @@ import {
   Switch,
   Collapse,
   Progress,
+  Loader,
 } from '@mantine/core';
 
 // Helper to get/set distributor config in localStorage
@@ -216,7 +217,7 @@ export const IngramMicroCredentials = () => {
         );
       case 'testing':
         return (
-          <Badge color="blue" variant="light" leftSection={<RefreshCw size={12} className="animate-spin" />}>
+          <Badge color="blue" variant="light" leftSection={<Loader size={12} />}>
             Testing...
           </Badge>
         );
@@ -238,7 +239,7 @@ export const IngramMicroCredentials = () => {
   const completionPercentage = getCompletionPercentage();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: 'var(--mantine-color-gray-0)' }}>
       <TopNavbar />
       
       <Container size="md" py="xl">
@@ -348,7 +349,7 @@ export const IngramMicroCredentials = () => {
                 <Group gap={4}>
                   <span>Customer Number</span>
                   <Tooltip label="Your unique Ingram Micro customer identifier" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -368,7 +369,7 @@ export const IngramMicroCredentials = () => {
                 <Group gap={4}>
                   <span>API Key (Client ID)</span>
                   <Tooltip label="Your public API key from the developer portal" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -388,7 +389,7 @@ export const IngramMicroCredentials = () => {
                 <Group gap={4}>
                   <span>API Secret (Client Secret)</span>
                   <Tooltip label="Your private API secret - keep this secure" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -411,7 +412,7 @@ export const IngramMicroCredentials = () => {
                 <Group gap={4}>
                   <span>Country / Region</span>
                   <Tooltip label="Select your Ingram Micro regional endpoint" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -500,7 +501,7 @@ export const IngramMicroCredentials = () => {
             </div>
           </Group>
 
-          <div className="mb-4">
+          <Box mb="md">
             <Text size="sm" fw={500} mb={8}>Markup fee for physical products</Text>
             <Group gap="xs">
               <TextInput
@@ -516,7 +517,7 @@ export const IngramMicroCredentials = () => {
             <Text size="xs" c="dimmed" mt={8}>
               A markup fee applies to all products selected for publishing from this distributor.
             </Text>
-          </div>
+          </Box>
         </Paper>
 
         {/* Demo Toggle */}
@@ -548,7 +549,7 @@ export const IngramMicroCredentials = () => {
             <Button
               variant="outline"
               color="blue"
-              leftSection={<RefreshCw size={16} className={isTesting ? 'animate-spin' : ''} />}
+              leftSection={isTesting ? <Loader size={16} /> : <RefreshCw size={16} />}
               onClick={handleTestConnection}
               loading={isTesting}
               disabled={isSaving}

@@ -19,9 +19,10 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { TopNavbar } from '../components/navigation/TopNavbar';
 import { Toggle } from '../components/form/Toggle';
 import { getPartnerCenterConnectGdapUrl, getPartnerCenterCustomers, getPartnerCenterGdapRelationships } from '../api/partnerCenter';
+import { OperationsLayout } from '../components/layout/OperationsLayout';
+import { Card } from 'components/DesignSystem';
 
 type Company = {
   id: string;
@@ -55,95 +56,6 @@ type GdapTemplate = {
 };
 
 const EXPIRING_SOON_DAYS = 30;
-
-const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
-  const navigate = useNavigate();
-
-  const SidebarSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="mb-1">
-      <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h3>
-      </div>
-      <div>{children}</div>
-    </div>
-  );
-
-  const SidebarItem = ({
-    label,
-    active,
-    onClick,
-    className = '',
-  }: {
-    label: string;
-    active?: boolean;
-    onClick?: () => void;
-    className?: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2 text-sm transition-colors ${className} ${
-        active ? 'bg-teal-600 text-white' : 'text-gray-700 hover:bg-gray-50'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-      <SidebarSection title="OPERATIONS">
-        <SidebarItem label="Users" active={activeItem === 'Users'} onClick={() => navigate('/operations')} />
-        <SidebarItem label="Companies" active={activeItem === 'Companies'} onClick={() => navigate('/operations/companies')} />
-        <SidebarItem label="Pending Companies" active={activeItem === 'Pending Companies'} />
-        <SidebarItem label="Leads" active={activeItem === 'Leads'} />
-        <SidebarItem label="Quotes" active={activeItem === 'Quotes'} />
-      </SidebarSection>
-
-      <SidebarSection title="BILLING">
-        <SidebarItem label="Dashboard" active={activeItem === 'Dashboard'} />
-        <SidebarItem label="Purchases" active={activeItem === 'Purchases'} />
-        <SidebarItem label="Orders" active={activeItem === 'Orders'} />
-        <SidebarItem label="Invoices" active={activeItem === 'Invoices'} />
-        <SidebarItem label="Payments" active={activeItem === 'Payments'} />
-        <SidebarItem label="Metered Usage" active={activeItem === 'Metered Usage'} />
-      </SidebarSection>
-
-      <SidebarSection title="EVENTS">
-        <SidebarItem label="Event Logs" active={activeItem === 'Event Logs'} />
-        <SidebarItem label="App Usage Logs" active={activeItem === 'App Usage Logs'} />
-        <SidebarItem label="Admin Logs" active={activeItem === 'Admin Logs'} />
-      </SidebarSection>
-
-      <SidebarSection title="ADMIN TASKS">
-        <SidebarItem label="Microsoft" active={activeItem === 'Microsoft'} onClick={() => navigate('/operations/microsoft')} />
-        <SidebarItem
-          label="Reseller: PC Insights"
-          active={activeItem === 'Reseller: PC Insights'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/reseller')}
-        />
-        <SidebarItem
-          label="Reseller: P2P Transfers"
-          active={activeItem === 'Reseller: P2P Transfers'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/p2p')}
-        />
-        <SidebarItem
-          label="Reseller: Customer Onboarding"
-          active={activeItem === 'Reseller: Customer Onboarding'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/onboarding')}
-        />
-        <SidebarItem
-          label="GDAP: Management"
-          active={activeItem === 'GDAP: Management'}
-          className="pl-12"
-          onClick={() => navigate('/operations/microsoft/onboarding/gdap')}
-        />
-      </SidebarSection>
-    </aside>
-  );
-};
 
 const roleOptions = [
   'Directory readers',
@@ -614,27 +526,26 @@ export const OperationsGDAPManagement = () => {
   }, [companyRelationships, statusFilter]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
+    <OperationsLayout>
+      <main>
+        <Group gap="xs" mb="sm">
+          <Button variant="subtle" color="blue" onClick={() => navigate('/operations/microsoft/onboarding')} px={0}>
+            Reseller: Customer Onboarding
+          </Button>
+          <Text size="sm" c="dimmed">/</Text>
+          <Text size="sm">GDAP: Management</Text>
+        </Group>
 
-      <div className="flex">
-        <OperationsSidebar activeItem="GDAP: Management" />
-
-        <main className="flex-1 p-6">
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <button onClick={() => navigate('/operations/microsoft/onboarding')} className="hover:text-teal-600">
-              Reseller: Customer Onboarding
-            </button>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">GDAP: Management</span>
-          </div>
-
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">GDAP: Management</h1>
-                <p className="text-sm text-gray-500">Marketplace-wide GDAP relationship review and management</p>
-              </div>
+          <Card>
+            <Group justify="space-between" align="flex-start">
+              <Stack gap={2}>
+                <Text fw={700} size="lg">
+                  GDAP: Management
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Marketplace-wide GDAP relationship review and management
+                </Text>
+              </Stack>
               <Group gap="xs">
                 <Button size="sm" variant="light" leftSection={<Plus size={16} />} onClick={openNewRequest} disabled={!selectedCompany}>
                   New
@@ -648,11 +559,11 @@ export const OperationsGDAPManagement = () => {
                   </ActionIcon>
                 </Tooltip>
               </Group>
-            </div>
-          </div>
+            </Group>
+          </Card>
 
           {/* Overview (keep expiring/expired at top under header) */}
-          <div className="bg-white rounded shadow p-4 mb-4">
+          <Card>
             <Text fw={600} size="sm" mb={6}>
               Overview
             </Text>
@@ -671,24 +582,33 @@ export const OperationsGDAPManagement = () => {
             />
 
             {selectedCompany && (
-              <div className="mt-3 text-sm text-gray-700">
-                <span className="font-semibold">Selected Company:</span> {selectedCompany.name}{' '}
-                <span className="text-gray-400">({selectedCompany.defaultDomain})</span>
-              </div>
+              <Text mt="sm" size="sm">
+                <Text span fw={700}>
+                  Selected Company:
+                </Text>{' '}
+                {selectedCompany.name}{' '}
+                <Text span size="sm" c="dimmed">
+                  ({selectedCompany.defaultDomain})
+                </Text>
+              </Text>
             )}
             {companiesError && (
-              <div className="mt-3 text-sm text-red-600">
+              <Text mt="sm" size="sm" style={{ color: 'var(--mantine-color-red-7)' }}>
                 {companiesError}
-              </div>
+              </Text>
             )}
-          </div>
+          </Card>
 
           {/* Expiring / expired */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <button
-              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
-              onClick={() => setExpiringModalOpen(true)}
-            >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 16,
+              marginBottom: 16,
+            }}
+          >
+            <Card interactive onClick={() => setExpiringModalOpen(true)}>
               <Text fw={700} size="sm">
                 Expiring soon
               </Text>
@@ -698,11 +618,8 @@ export const OperationsGDAPManagement = () => {
               <Text fw={800} size="xl" mt={6}>
                 {expiringSoon.length}
               </Text>
-            </button>
-            <button
-              className="bg-white rounded shadow p-4 text-left hover:shadow-md transition-shadow"
-              onClick={() => setExpiredModalOpen(true)}
-            >
+            </Card>
+            <Card interactive onClick={() => setExpiredModalOpen(true)}>
               <Text fw={700} size="sm">
                 Expired
               </Text>
@@ -712,11 +629,11 @@ export const OperationsGDAPManagement = () => {
               <Text fw={800} size="xl" mt={6}>
                 {expired.length}
               </Text>
-            </button>
+            </Card>
           </div>
 
           {/* Relationships */}
-          <div className={`bg-white rounded shadow p-4 ${!selectedCompany ? 'opacity-60' : ''}`}>
+          <Card style={!selectedCompany ? { opacity: 0.6 } : undefined}>
             <Group justify="space-between" mb="sm">
               <div>
                 <Text fw={600} size="sm">
@@ -733,17 +650,15 @@ export const OperationsGDAPManagement = () => {
                 {selectedCompany && (
                   <Group gap="xs">
                     {(['All', 'Active', 'Pending', 'Expired'] as const).map((s) => (
-                      <button
+                      <Button
                         key={s}
+                        size="xs"
+                        variant={statusFilter === s ? 'filled' : 'outline'}
+                        color={statusFilter === s ? 'teal' : 'gray'}
                         onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
-                          statusFilter === s
-                            ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                        }`}
                       >
                         {s}
-                      </button>
+                      </Button>
                     ))}
                   </Group>
                 )}
@@ -751,16 +666,23 @@ export const OperationsGDAPManagement = () => {
             </Group>
 
             {selectedCompany && relationshipsLoading && (
-              <div className="border border-dashed border-gray-300 rounded p-5 text-center text-sm text-gray-600">
-                Loading GDAP relationships…
-              </div>
+              <Card style={{ border: '1px dashed var(--mantine-color-gray-3)', background: 'var(--mantine-color-gray-0)' }}>
+                <Text size="sm" c="dimmed" ta="center">
+                  Loading GDAP relationships…
+                </Text>
+              </Card>
             )}
             {selectedCompany && !relationshipsLoading && relationshipsError && (
-              <div className="border border-red-200 bg-red-50 rounded p-5 text-sm text-red-700 flex items-center justify-between gap-4">
-                <div>
-                  <div className="font-semibold">Unable to load GDAP relationships</div>
-                  <div className="text-sm">{relationshipsError}</div>
-                </div>
+              <Card style={{ border: '1px solid var(--mantine-color-red-2)', background: 'var(--mantine-color-red-0)' }}>
+                <Group justify="space-between" align="flex-start" wrap="nowrap">
+                  <div style={{ minWidth: 0 }}>
+                    <Text fw={800} size="sm" style={{ color: 'var(--mantine-color-red-8)' }}>
+                      Unable to load GDAP relationships
+                    </Text>
+                    <Text size="sm" style={{ color: 'var(--mantine-color-red-8)' }}>
+                      {relationshipsError}
+                    </Text>
+                  </div>
                 <Button
                   variant="light"
                   onClick={() => {
@@ -769,12 +691,15 @@ export const OperationsGDAPManagement = () => {
                 >
                   Connect GDAP
                 </Button>
-              </div>
+                </Group>
+              </Card>
             )}
             {selectedCompany && !relationshipsLoading && !relationshipsError && filteredCompanyRelationships.length === 0 && (
-              <div className="border border-dashed border-gray-300 rounded p-5 text-center text-sm text-gray-600">
-                No GDAP relationships found for this company.
-              </div>
+              <Card style={{ border: '1px dashed var(--mantine-color-gray-3)', background: 'var(--mantine-color-gray-0)' }}>
+                <Text size="sm" c="dimmed" ta="center">
+                  No GDAP relationships found for this company.
+                </Text>
+              </Card>
             )}
 
             {selectedCompany &&
@@ -784,17 +709,21 @@ export const OperationsGDAPManagement = () => {
                 const badgeColor = rel.status === 'Active' ? 'green' : rel.status === 'Pending' ? 'yellow' : 'red';
 
                 return (
-                  <div key={rel.id} className="border border-gray-200 rounded-lg bg-gray-50 mb-2">
-                    <div className="flex items-center justify-between px-3 py-2">
+                  <Card key={rel.id} style={{ background: 'var(--mantine-color-gray-0)' }}>
+                    <Group justify="space-between" px="sm" py="xs">
                       <button
-                        className="flex-1 text-left flex items-center gap-2"
+                        style={{ flex: 1, textAlign: 'left', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
                         onClick={() => setExpandedRelId(isExpanded ? null : rel.id)}
                       >
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-gray-900 truncate">{rel.displayName}</div>
-                          <div className="text-xs text-gray-500 truncate">{rel.id}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <Text fw={700} size="sm" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {rel.displayName}
+                          </Text>
+                          <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {rel.id}
+                          </Text>
                         </div>
-                        <Badge color={badgeColor} variant="light" className="ml-2">
+                        <Badge color={badgeColor} variant="light" ml="sm">
                           {rel.status.toUpperCase()}
                         </Badge>
                       </button>
@@ -806,42 +735,48 @@ export const OperationsGDAPManagement = () => {
                         </Tooltip>
                         <ActionIcon variant="subtle" onClick={() => setExpandedRelId(isExpanded ? null : rel.id)}>
                           {isExpanded ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                             </svg>
                           ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
                           )}
                         </ActionIcon>
                       </Group>
-                    </div>
+                    </Group>
 
                     {isExpanded && (
-                      <div className="px-3 pb-3">
-                        <div className="text-xs text-gray-600">{rel.description}</div>
-                        <div className="text-xs text-gray-500 mt-1">Valid: {validLabel}</div>
-                        <div className="flex items-center justify-end py-2">
-                          <span className="text-xs text-gray-700 mr-2">Auto-renew</span>
+                      <div style={{ padding: '0 12px 12px' }}>
+                        <Text size="xs" c="dimmed">
+                          {rel.description}
+                        </Text>
+                        <Text size="xs" c="dimmed" mt={4}>
+                          Valid: {validLabel}
+                        </Text>
+                        <Group justify="flex-end" py="xs">
+                          <Text size="xs" c="dimmed">
+                            Auto-renew
+                          </Text>
                           <Toggle enabled={rel.autoRenew} onChange={(val) => handleAutoRenewToggle(rel.id, val)} size="sm" />
-                        </div>
-                        <ul className="text-xs text-gray-700 space-y-0.5">
+                        </Group>
+                        <ul style={{ fontSize: 12, color: 'var(--mantine-color-gray-7)', margin: 0, paddingLeft: 18 }}>
                           {rel.roles.map((role) => (
-                            <li key={role} className="flex items-center">
-                              <span className="mr-1.5 text-green-400">✔</span> {role}
+                            <li key={role} style={{ marginBottom: 2 }}>
+                              <span style={{ marginRight: 6, color: 'var(--mantine-color-green-6)' }}>✔</span> {role}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
-                  </div>
+                  </Card>
                 );
               })}
-          </div>
+          </Card>
 
           {/* Templates (collapsible) */}
-          <div className="bg-white rounded shadow p-4 mb-4">
+          <Card>
             <Group justify="space-between" mb="sm" align="center">
               <Group gap="xs" align="center">
                 <ActionIcon
@@ -850,11 +785,11 @@ export const OperationsGDAPManagement = () => {
                   aria-label={templatesExpanded ? 'Collapse templates' : 'Expand templates'}
                 >
                   {templatesExpanded ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   )}
@@ -927,7 +862,7 @@ export const OperationsGDAPManagement = () => {
                 </Table.Tbody>
               </Table>
             </Collapse>
-          </div>
+          </Card>
 
           {/* Modals */}
           <Modal opened={templateModalOpen} onClose={() => setTemplateModalOpen(false)} title={editingTemplateId ? 'Edit template' : 'New template'} centered>
@@ -1246,13 +1181,14 @@ export const OperationsGDAPManagement = () => {
               </Table.Tbody>
             </Table>
           </Modal>
-        </main>
-      </div>
+      </main>
 
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon size="lg" radius="xl" variant="filled" color="blue" aria-label="Help">
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
+    </OperationsLayout>
   );
 };
 

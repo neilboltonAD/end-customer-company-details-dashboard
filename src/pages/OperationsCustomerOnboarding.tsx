@@ -7,95 +7,16 @@ import { RichTextEditor } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import { TopNavbar } from '../components/navigation/TopNavbar';
+import { OperationsLayout } from '../components/layout/OperationsLayout';
+import { getPartnerCenterCustomers } from '../api/partnerCenter';
+import { openEmailPreviewWindow } from '../lib/client/emailPreview';
+import { Card } from 'components/DesignSystem';
 
-const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
-  const navigate = useNavigate();
-
-  const SidebarSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="mb-1">
-      <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h3>
-      </div>
-      <div>{children}</div>
-    </div>
-  );
-
-  const SidebarItem = ({
-    label,
-    active,
-    onClick,
-    className = '',
-  }: {
-    label: string;
-    active?: boolean;
-    onClick?: () => void;
-    className?: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2 text-sm transition-colors ${className} ${
-        active ? 'bg-teal-600 text-white' : 'text-gray-700 hover:bg-gray-50'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-      <SidebarSection title="OPERATIONS">
-        <SidebarItem label="Users" active={activeItem === 'Users'} onClick={() => navigate('/operations')} />
-        <SidebarItem label="Companies" active={activeItem === 'Companies'} onClick={() => navigate('/operations/companies')} />
-        <SidebarItem label="Pending Companies" active={activeItem === 'Pending Companies'} />
-        <SidebarItem label="Leads" active={activeItem === 'Leads'} />
-        <SidebarItem label="Quotes" active={activeItem === 'Quotes'} />
-      </SidebarSection>
-
-      <SidebarSection title="BILLING">
-        <SidebarItem label="Dashboard" active={activeItem === 'Dashboard'} />
-        <SidebarItem label="Purchases" active={activeItem === 'Purchases'} />
-        <SidebarItem label="Orders" active={activeItem === 'Orders'} />
-        <SidebarItem label="Invoices" active={activeItem === 'Invoices'} />
-        <SidebarItem label="Payments" active={activeItem === 'Payments'} />
-        <SidebarItem label="Metered Usage" active={activeItem === 'Metered Usage'} />
-      </SidebarSection>
-
-      <SidebarSection title="EVENTS">
-        <SidebarItem label="Event Logs" active={activeItem === 'Event Logs'} />
-        <SidebarItem label="App Usage Logs" active={activeItem === 'App Usage Logs'} />
-        <SidebarItem label="Admin Logs" active={activeItem === 'Admin Logs'} />
-      </SidebarSection>
-
-      <SidebarSection title="ADMIN TASKS">
-        <SidebarItem label="Microsoft" active={activeItem === 'Microsoft'} onClick={() => navigate('/operations/microsoft')} />
-        <SidebarItem
-          label="Reseller: PC Insights"
-          active={activeItem === 'Reseller: PC Insights'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/reseller')}
-        />
-        <SidebarItem
-          label="Reseller: P2P Transfers"
-          active={activeItem === 'Reseller: P2P Transfers'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/p2p')}
-        />
-        <SidebarItem
-          label="Reseller: Customer Onboarding"
-          active={activeItem === 'Reseller: Customer Onboarding'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/onboarding')}
-        />
-        <SidebarItem
-          label="GDAP: Management"
-          active={activeItem === 'GDAP: Management'}
-          className="pl-12"
-          onClick={() => navigate('/operations/microsoft/onboarding/gdap')}
-        />
-      </SidebarSection>
-    </aside>
-  );
+type Company = {
+  id: string;
+  tenantId: string;
+  name: string;
+  defaultDomain: string;
 };
 
 const approvalRows = [
@@ -141,10 +62,41 @@ export const OperationsCustomerOnboarding = () => {
   const [ccAddress, setCcAddress] = useState('');
   const [companyType, setCompanyType] = useState<'new' | 'existing'>('new');
   const [reseller, setReseller] = useState<string | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [emailBody, setEmailBody] = useState('');
   const [resendTarget, setResendTarget] = useState<(typeof approvalRows)[number] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        setCompaniesLoading(true);
+        setCompaniesError(null);
+        const c = await getPartnerCenterCustomers(200);
+        if (!c.ok) throw new Error(c.error || 'Failed to load companies.');
+        const mapped: Company[] = (c.customers || [])
+          .map((x: any) => ({
+            id: String(x.id || x.tenantId || ''),
+            tenantId: String(x.tenantId || x.id || ''),
+            name: String(x.companyName || x.defaultDomain || x.id || 'Unknown'),
+            defaultDomain: String(x.defaultDomain || ''),
+          }))
+          .filter((x: Company) => x.id && x.tenantId);
+        if (!cancelled) setCompanies(mapped);
+      } catch (e: any) {
+        if (!cancelled) setCompaniesError(e?.message || 'Failed to load companies.');
+      } finally {
+        if (!cancelled) setCompaniesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const template = useMemo(() => {
     const domain = defaultDomain || '[customer-domain]';
@@ -197,34 +149,63 @@ export const OperationsCustomerOnboarding = () => {
     setModalOpen(true);
   };
 
+  const handlePreviewEmail = () => {
+    const domain = defaultDomain || '[customer-domain]';
+    const subject = `Action required: approve RRR + GDAP for ${domain}`;
+    const ok = openEmailPreviewWindow({
+      to: emailAddress || '[customer-email]',
+      cc: ccAddress || undefined,
+      subject,
+      html: editor?.getHTML() || emailBody || template,
+    });
+    if (!ok) {
+      notifications.show({
+        title: 'Popup blocked',
+        message: 'Please allow popups for this site to open the email preview.',
+        color: 'orange',
+      });
+      return;
+    }
+    notifications.show({
+      title: 'Preview opened',
+      message: 'A new tab/window was opened with the email preview (no email was sent).',
+      color: 'blue',
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
+    <OperationsLayout>
+      <main>
+        <Group gap="xs" mb="sm">
+          <Button variant="subtle" color="blue" onClick={() => navigate('/operations/companies')} px={0}>
+            Companies
+          </Button>
+          <Text size="sm" c="dimmed">/</Text>
+          <Text size="sm">Microsoft</Text>
+          <Text size="sm" c="dimmed">/</Text>
+          <Text size="sm">Reseller: Customer Onboarding</Text>
+        </Group>
 
-      <div className="flex">
-        <OperationsSidebar activeItem="Reseller: Customer Onboarding" />
+          <Card>
+            <Stack gap={2}>
+              <Text fw={700} size="lg">
+                Reseller: Customer Onboarding
+              </Text>
+              <Text size="sm" c="dimmed">
+                Onboard a new customer for Microsoft Indirect Reseller
+              </Text>
+            </Stack>
+          </Card>
 
-        <main className="flex-1 p-6">
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <button onClick={() => navigate('/operations/companies')} className="hover:text-teal-600">
-              Companies
-            </button>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">Microsoft</span>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">Reseller: Customer Onboarding</span>
-          </div>
-
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Reseller: Customer Onboarding</h1>
-              <p className="text-sm text-gray-500">Onboard a new customer for Microsoft Indirect Reseller</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded shadow p-4 mb-6">
+          <Card>
             <Text fw={600} size="sm" mb="md">Microsoft Tenant Details</Text>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 16,
+              }}
+            >
               <TextInput
                 label="Default Domain"
                 placeholder="myclient123.com"
@@ -275,9 +256,9 @@ export const OperationsCustomerOnboarding = () => {
             <Group justify="flex-end" mt="lg">
               <Button onClick={handleCreate}>Create</Button>
             </Group>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded shadow p-4">
+          <Card>
             <Group justify="space-between" mb="md">
               <Text fw={600} size="sm">Current approvals</Text>
             </Group>
@@ -313,9 +294,8 @@ export const OperationsCustomerOnboarding = () => {
                 ))}
               </Table.Tbody>
             </Table>
-          </div>
-        </main>
-      </div>
+          </Card>
+      </main>
 
       <Modal
         opened={modalOpen}
@@ -334,15 +314,13 @@ export const OperationsCustomerOnboarding = () => {
           {companyType === 'existing' && (
             <Select
               label="Select Company"
-              placeholder="Choose a company"
-              data={[
-                { value: 'Woodgrove Bank', label: 'Woodgrove Bank' },
-                { value: 'Contoso Ltd', label: 'Contoso Ltd' },
-                { value: 'Fabrikam Inc', label: 'Fabrikam Inc' },
-                { value: 'Adventure Works', label: 'Adventure Works' },
-              ]}
-              value={selectedCompany}
-              onChange={setSelectedCompany}
+              searchable
+              clearable
+              placeholder={companiesLoading ? 'Loading companies…' : 'Search by company name or domain'}
+              data={companies.map((c) => ({ value: c.id, label: `${c.name} (${c.defaultDomain})` }))}
+              value={selectedCompanyId}
+              onChange={setSelectedCompanyId}
+              nothingFoundMessage={companiesError || 'No companies found'}
             />
           )}
           <RichTextEditor editor={editor}>
@@ -361,11 +339,20 @@ export const OperationsCustomerOnboarding = () => {
                 <RichTextEditor.Unlink />
               </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
-            <RichTextEditor.Content className="min-h-[320px] border border-blue-200 rounded-md bg-blue-50/30" />
+            <RichTextEditor.Content
+              style={{
+                minHeight: 320,
+                border: '1px solid var(--mantine-color-blue-2)',
+                borderRadius: 8,
+                background: 'var(--mantine-color-blue-0)',
+              }}
+            />
           </RichTextEditor>
           <Group justify="flex-end">
             <Button onClick={() => setModalOpen(false)}>Close</Button>
-            <Button variant="filled">Submit</Button>
+            <Button variant="filled" onClick={handlePreviewEmail}>
+              Submit
+            </Button>
           </Group>
         </Stack>
       </Modal>
@@ -407,9 +394,17 @@ export const OperationsCustomerOnboarding = () => {
         </Stack>
       </Modal>
 
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon
+          size="lg"
+          radius="xl"
+          variant="filled"
+          color="blue"
+          aria-label="Help"
+        >
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
+    </OperationsLayout>
   );
 };

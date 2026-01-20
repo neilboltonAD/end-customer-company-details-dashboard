@@ -17,7 +17,23 @@ import {
   ChevronUp,
   HelpCircle,
 } from 'lucide-react';
-import { TopNavbar } from '../components/navigation/TopNavbar';
+import { CatalogLayout } from '../components/layout/CatalogLayout';
+import { ActionIcon, Badge, Button, Card, Inline, Select, Stack, Text, Title, Tooltip } from 'components/DesignSystem';
+
+function iconBgColor(colorClass: string) {
+  switch (colorClass) {
+    case 'bg-red-500':
+      return 'var(--mantine-color-red-6)';
+    case 'bg-green-500':
+      return 'var(--mantine-color-green-6)';
+    case 'bg-purple-500':
+      return 'var(--mantine-color-violet-6)';
+    case 'bg-pink-500':
+      return 'var(--mantine-color-pink-6)';
+    default:
+      return 'var(--mantine-color-blue-6)';
+  }
+}
 
 // Quick Link Item Component
 const QuickLinkItem = ({
@@ -29,12 +45,25 @@ const QuickLinkItem = ({
   label: string;
   color: string;
 }) => (
-  <div className="flex items-center space-x-3 py-2 cursor-pointer hover:bg-gray-50 rounded px-2 -mx-2">
-    <div className={`p-2 rounded ${color}`}>
-      <Icon className="h-4 w-4 text-white" />
-    </div>
-    <span className="text-sm text-gray-700">{label}</span>
-  </div>
+  <Card interactive>
+    <Inline gap="sm" align="center" wrap="nowrap">
+      <div
+        style={{
+          padding: 8,
+          borderRadius: 8,
+          background: iconBgColor(color),
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={16} />
+      </div>
+      <Text size="sm">{label}</Text>
+    </Inline>
+  </Card>
 );
 
 // Metric Card Component
@@ -49,18 +78,20 @@ const MetricCard = ({
   change: string;
   isPositive: boolean;
 }) => (
-  <div className="text-center">
-    <div className="text-3xl font-light text-gray-900">{value}</div>
-    <div className="text-xs text-gray-500 mt-1">{label}</div>
-    <div className={`flex items-center justify-center text-xs mt-1 ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
-      {isPositive ? (
-        <TrendingUp className="h-3 w-3 mr-1" />
-      ) : (
-        <TrendingDown className="h-3 w-3 mr-1" />
-      )}
-      {change}
-    </div>
-  </div>
+  <Stack gap={4} align="center">
+    <Title order={2} fw={500} m={0}>
+      {value}
+    </Title>
+    <Text size="xs" c="dimmed">
+      {label}
+    </Text>
+    <Inline gap={4} align="center" wrap="nowrap">
+      {isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+      <Text size="xs" fw={700} style={{ color: isPositive ? 'var(--mantine-color-green-7)' : 'var(--mantine-color-red-7)' }}>
+        {change}
+      </Text>
+    </Inline>
+  </Stack>
 );
 
 // Vendor Item Component
@@ -79,81 +110,115 @@ const VendorItem = ({
   onButtonClick?: () => void;
   isNew?: boolean;
 }) => (
-  <div className={`flex items-center justify-between py-3 ${isNew ? 'bg-gradient-to-r from-emerald-50 to-cyan-50 -mx-5 px-5 border-l-4 border-emerald-400' : ''}`}>
-    <div className="flex items-center space-x-3">
-      {logo}
-      <div>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-900">{name}</span>
-          {isNew && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide">
-              New
-            </span>
-          )}
-          <span className="h-2 w-2 bg-green-500 rounded-full"></span>
+  <div
+    style={
+      isNew
+        ? {
+            paddingLeft: 12,
+            borderLeft: '4px solid var(--mantine-color-green-6)',
+            background: 'linear-gradient(90deg, var(--mantine-color-green-0), var(--mantine-color-cyan-0))',
+            borderRadius: 8,
+            paddingRight: 12,
+          }
+        : undefined
+    }
+  >
+    <Inline justify="space-between" align="center" wrap="nowrap" style={{ paddingTop: 8, paddingBottom: 8 }}>
+      <Inline gap="sm" align="center" wrap="nowrap">
+        {logo}
+        <div>
+          <Inline gap="xs" align="center" wrap="nowrap">
+            <Text size="sm" fw={700}>
+              {name}
+            </Text>
+            {isNew && (
+              <Badge color="success" variant="filled">
+                New
+              </Badge>
+            )}
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: 'var(--mantine-color-green-6)',
+                display: 'inline-block',
+              }}
+            />
+          </Inline>
+          <Text size="xs" c="dimmed">
+            {url}
+          </Text>
         </div>
-        <a href="#" className="text-xs text-blue-600 hover:underline">
-          {url}
-        </a>
-      </div>
-    </div>
-    <button 
-      className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50 hover:border-gray-400 transition-colors"
-      onClick={onButtonClick}
-    >
-      {buttonText}
-    </button>
+      </Inline>
+      <Button size="xs" variant="outline" onClick={onButtonClick}>
+        {buttonText}
+      </Button>
+    </Inline>
   </div>
 );
 
 export const MarketplaceHome = () => {
   const navigate = useNavigate();
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(true);
+  const [performanceRange, setPerformanceRange] = useState<string | null>('Trailing Week');
+  const [revenueRange, setRevenueRange] = useState<string | null>('Trailing Week');
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
-
-      <div className="p-6">
+    <CatalogLayout>
+      <main>
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-normal text-gray-900">Good morning, Neil!</h1>
-          <button className="flex items-center text-sm text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-white">
+        <Inline justify="space-between">
+          <div>
+            <Title order={2} fw={500}>
+              Good morning, Neil!
+            </Title>
+            <Text c="dimmed" size="sm">
+              Marketplace overview and quick actions
+            </Text>
+          </div>
+          <Button variant="secondary" rightSection={<ChevronRight size={16} />}>
             View Store
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </button>
-        </div>
+          </Button>
+        </Inline>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)',
+            gap: 24,
+            marginTop: 16,
+          }}
+        >
           {/* Left Column */}
-          <div className="col-span-4 space-y-6">
+          <Stack gap="lg">
             {/* Quick Links */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Quick links</h2>
-              <div className="space-y-1">
-                <QuickLinkItem icon={Package} label="Create a Product" color="bg-red-500" />
-                <QuickLinkItem icon={Layers} label="Create Product Groups" color="bg-red-500" />
-                <QuickLinkItem icon={Users} label="Manage Users" color="bg-green-500" />
-                <QuickLinkItem icon={Building2} label="Manage Companies" color="bg-green-500" />
-                <QuickLinkItem icon={Download} label="Download Reports" color="bg-green-500" />
-                <QuickLinkItem icon={Settings} label="Marketplace Settings" color="bg-purple-500" />
-                <QuickLinkItem icon={Puzzle} label="Marketplace Functionality" color="bg-green-500" />
-                <QuickLinkItem icon={Clock} label="Pending Events" color="bg-pink-500" />
-              </div>
-            </div>
+            <Card>
+              <Stack gap="sm">
+                <Title order={4}>Quick links</Title>
+                <Stack gap="xs">
+                  <QuickLinkItem icon={Package} label="Create a Product" color="bg-red-500" />
+                  <QuickLinkItem icon={Layers} label="Create Product Groups" color="bg-red-500" />
+                  <QuickLinkItem icon={Users} label="Manage Users" color="bg-green-500" />
+                  <QuickLinkItem icon={Building2} label="Manage Companies" color="bg-green-500" />
+                  <QuickLinkItem icon={Download} label="Download Reports" color="bg-green-500" />
+                  <QuickLinkItem icon={Settings} label="Marketplace Settings" color="bg-purple-500" />
+                  <QuickLinkItem icon={Puzzle} label="Marketplace Functionality" color="bg-green-500" />
+                  <QuickLinkItem icon={Clock} label="Pending Events" color="bg-pink-500" />
+                </Stack>
+              </Stack>
+            </Card>
 
             {/* Import Products */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">
-                Import products and start selling
-              </h2>
-              <div className="divide-y divide-gray-100">
+            <Card>
+              <Title order={4}>Import products and start selling</Title>
+              <Stack gap={0}>
                 <VendorItem
                   name="Firstbase"
                   url="firstbase.com"
                   logo={
-                    <div className="h-10 w-10 bg-cyan-100 rounded flex items-center justify-center">
-                      <svg viewBox="0 0 24 24" className="h-6 w-6 text-cyan-600" fill="currentColor">
+                    <div style={{ height: 40, width: 40, background: 'var(--mantine-color-cyan-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, color: 'var(--mantine-color-cyan-7)' }} fill="currentColor">
                         <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                       </svg>
                     </div>
@@ -165,8 +230,8 @@ export const MarketplaceHome = () => {
                   name="TD SYNNEX"
                   url="tdsynnex.com"
                   logo={
-                    <div className="h-10 w-10 bg-teal-600 rounded flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">TD</span>
+                    <div style={{ height: 40, width: 40, background: 'var(--mantine-color-teal-6)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>TD</span>
                     </div>
                   }
                   buttonText="Edit Credentials"
@@ -176,8 +241,8 @@ export const MarketplaceHome = () => {
                   name="Ingram Micro"
                   url="ingrammicro.com"
                   logo={
-                    <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-gray-600 text-[8px] font-bold">INGRAM</span>
+                    <div style={{ height: 40, width: 40, background: 'var(--mantine-color-gray-2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--mantine-color-gray-3)' }}>
+                      <span style={{ color: 'var(--mantine-color-gray-7)', fontSize: 8, fontWeight: 800 }}>INGRAM</span>
                     </div>
                   }
                   buttonText="Edit Credentials"
@@ -187,8 +252,8 @@ export const MarketplaceHome = () => {
                   name="Microsoft Marketplace"
                   url="azure.microsoft.com/marketplace"
                   logo={
-                    <div className="h-10 w-10 rounded flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)' }}>
-                      <svg viewBox="0 0 24 24" className="h-6 w-6 text-white" fill="currentColor">
+                    <div style={{ height: 40, width: 40, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)' }}>
+                      <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, color: 'white' }} fill="currentColor">
                         <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
                       </svg>
                     </div>
@@ -197,275 +262,332 @@ export const MarketplaceHome = () => {
                   onButtonClick={() => navigate('/integrations/microsoft-marketplace')}
                   isNew
                 />
-              </div>
-              <a href="#" className="flex items-center text-sm text-blue-600 mt-4 hover:underline">
+              </Stack>
+              <Button
+                variant="link"
+                size="sm"
+                rightSection={<ChevronRight size={16} />}
+                onClick={() => navigate('/products')}
+              >
                 Go to Catalog
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </a>
-            </div>
+              </Button>
+            </Card>
 
             {/* Knowledge Center */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Knowledge center</h2>
-              <div className="flex items-center justify-between py-2 cursor-pointer hover:bg-gray-50 rounded px-2 -mx-2">
-                <div className="flex items-center space-x-3">
-                  <div className="h-4 w-4 bg-blue-600 rounded"></div>
-                  <span className="text-sm text-gray-700">Training</span>
-                </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-          </div>
+            <Card>
+              <Title order={4}>Knowledge center</Title>
+              <Inline justify="space-between" align="center" style={{ paddingTop: 8, paddingBottom: 8 }}>
+                <Inline gap="sm" align="center" wrap="nowrap">
+                  <div style={{ width: 14, height: 14, borderRadius: 4, background: 'var(--mantine-color-blue-6)' }} />
+                  <Text size="sm">Training</Text>
+                </Inline>
+                <ChevronDown size={16} color="var(--mantine-color-gray-5)" />
+              </Inline>
+            </Card>
+          </Stack>
 
           {/* Right Column */}
-          <div className="col-span-8 space-y-6">
+          <Stack gap="lg">
             {/* What's New Demo Card */}
-            <div className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 rounded-lg shadow-lg p-1">
-              <div className="bg-white rounded-lg p-5">
-                <button 
+            <div
+              style={{
+                borderRadius: 12,
+                padding: 4,
+                background: 'linear-gradient(90deg, var(--mantine-color-green-6), var(--mantine-color-cyan-6), var(--mantine-color-blue-6))',
+                boxShadow: 'var(--mantine-shadow-sm)',
+              }}
+            >
+              <Card>
+                <button
                   onClick={() => setIsDemoGuideOpen(!isDemoGuideOpen)}
-                  className="flex items-center justify-between w-full text-left"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    textAlign: 'left',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-lg">
-                      <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                  <Inline gap="sm" align="center" wrap="nowrap">
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background: 'linear-gradient(90deg, var(--mantine-color-green-5), var(--mantine-color-cyan-5))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Package size={18} />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-gray-900">What's New — Demo Guide</h2>
-                      <p className="text-xs text-gray-500">{isDemoGuideOpen ? 'Click any feature below to explore' : 'Click to expand'}</p>
+                      <Text fw={800} size="sm">What&apos;s New — Demo Guide</Text>
+                      <Text size="xs" c="dimmed">
+                        {isDemoGuideOpen ? 'Click any feature below to explore' : 'Click to expand'}
+                      </Text>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 text-gray-900 rounded-full uppercase tracking-wide animate-pulse">
-                      Demo Mode
-                    </span>
+                  </Inline>
+
+                  <Inline gap="xs" align="center" wrap="nowrap">
+                    <Badge color="pending" variant="filled">Demo Mode</Badge>
                     {isDemoGuideOpen ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                      <ChevronUp size={18} color="var(--mantine-color-gray-5)" />
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                      <ChevronDown size={18} color="var(--mantine-color-gray-5)" />
                     )}
-                  </div>
+                  </Inline>
                 </button>
-                
-                <div className={`grid grid-cols-2 gap-3 overflow-hidden transition-all duration-300 ${isDemoGuideOpen ? 'mt-4 max-h-96 opacity-100' : 'max-h-0 opacity-0 mt-0'}`}>
-                  {/* Product Catalog */}
-                  <Link 
-                    to="/products" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+
+                {isDemoGuideOpen && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                      gap: 12,
+                      marginTop: 16,
+                    }}
                   >
-                    <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                      <Package className="h-4 w-4 text-red-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Product Catalog</div>
-                      <div className="text-xs text-gray-500">Full catalog management</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Staging Catalog */}
-                  <Link 
-                    to="/products/staging" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
-                  >
-                    <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                      <Layers className="h-4 w-4 text-orange-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Staging Catalog</div>
-                      <div className="text-xs text-gray-500">Add products from distributors</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Find & Import Products */}
-                  <Link 
-                    to="/products/find" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
-                  >
-                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                      <Download className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Find & Import Products</div>
-                      <div className="text-xs text-gray-500">Browse distributor catalogs</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Microsoft Marketplace */}
-                  <Link 
-                    to="/integrations/microsoft-marketplace" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 hover:border-emerald-400 transition-all group relative overflow-hidden"
-                  >
-                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-[10px] font-bold text-gray-900 rounded-bl-lg uppercase">
-                      Featured
-                    </div>
-                    <div className="p-2 rounded-lg group-hover:scale-105 transition-transform" style={{ background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)' }}>
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-white" fill="currentColor">
-                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Microsoft Marketplace</div>
-                      <div className="text-xs text-gray-500">Live API catalog browser</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Vendor Integrations */}
-                  <Link 
-                    to="/settings/vendor-integrations" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
-                  >
-                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                      <Puzzle className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Vendor Integrations</div>
-                      <div className="text-xs text-gray-500">Configure distributor APIs</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Import Settings */}
-                  <Link 
-                    to="/products/import-settings" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
-                  >
-                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                      <Settings className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Import Settings</div>
-                      <div className="text-xs text-gray-500">Per-distributor markup fees</div>
-                    </div>
-                  </Link>
-                  
-                  {/* Operations - Company Details */}
-                  <Link 
-                    to="/operations/companies/demoresellercustomer1" 
-                    className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 hover:border-emerald-400 transition-all group relative overflow-hidden col-span-2"
-                  >
-                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-gradient-to-r from-emerald-400 to-cyan-400 text-[10px] font-bold text-gray-900 rounded-bl-lg uppercase">
-                      Operations
-                    </div>
-                    <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                      <Building2 className="h-4 w-4 text-indigo-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">Company Details → Vendor Information</div>
-                      <div className="text-xs text-gray-500">Operations → Companies → Select company → Vendor Information tab</div>
-                    </div>
-                  </Link>
-                </div>
-              </div>
+                    <Link to="/products" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive>
+                        <Inline gap="sm" align="center" wrap="nowrap">
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-red-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Package size={16} color="var(--mantine-color-red-7)" />
+                          </div>
+                          <div>
+                            <Text fw={700} size="sm">Product Catalog</Text>
+                            <Text size="xs" c="dimmed">Full catalog management</Text>
+                          </div>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/products/staging" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive>
+                        <Inline gap="sm" align="center" wrap="nowrap">
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-orange-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Layers size={16} color="var(--mantine-color-orange-7)" />
+                          </div>
+                          <div>
+                            <Text fw={700} size="sm">Staging Catalog</Text>
+                            <Text size="xs" c="dimmed">Add products from distributors</Text>
+                          </div>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/products/find" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive>
+                        <Inline gap="sm" align="center" wrap="nowrap">
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-blue-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Download size={16} color="var(--mantine-color-blue-7)" />
+                          </div>
+                          <div>
+                            <Text fw={700} size="sm">Find &amp; Import Products</Text>
+                            <Text size="xs" c="dimmed">Browse distributor catalogs</Text>
+                          </div>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/integrations/microsoft-marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive style={{ border: '1px solid var(--mantine-color-green-3)', background: 'var(--mantine-color-green-0)' }}>
+                        <Inline justify="space-between" align="flex-start" wrap="nowrap">
+                          <Inline gap="sm" align="center" wrap="nowrap">
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #0078d4 0%, #106ebe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <Text fw={700} size="sm">Microsoft Marketplace</Text>
+                              <Text size="xs" c="dimmed">Live API catalog browser</Text>
+                            </div>
+                          </Inline>
+                          <Badge size="xs" color="success" variant="filled">Featured</Badge>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/settings/vendor-integrations" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive>
+                        <Inline gap="sm" align="center" wrap="nowrap">
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-violet-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Puzzle size={16} color="var(--mantine-color-violet-7)" />
+                          </div>
+                          <div>
+                            <Text fw={700} size="sm">Vendor Integrations</Text>
+                            <Text size="xs" c="dimmed">Configure distributor APIs</Text>
+                          </div>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/products/import-settings" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <Card interactive>
+                        <Inline gap="sm" align="center" wrap="nowrap">
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-green-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Settings size={16} color="var(--mantine-color-green-7)" />
+                          </div>
+                          <div>
+                            <Text fw={700} size="sm">Import Settings</Text>
+                            <Text size="xs" c="dimmed">Per-distributor markup fees</Text>
+                          </div>
+                        </Inline>
+                      </Card>
+                    </Link>
+
+                    <Link to="/operations/companies/demoresellercustomer1" style={{ textDecoration: 'none', color: 'inherit', gridColumn: '1 / span 2' }}>
+                      <Card interactive style={{ border: '1px solid var(--mantine-color-green-3)', background: 'var(--mantine-color-green-0)' }}>
+                        <Inline justify="space-between" align="center" wrap="nowrap">
+                          <Inline gap="sm" align="center" wrap="nowrap">
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mantine-color-indigo-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Building2 size={16} color="var(--mantine-color-indigo-7)" />
+                            </div>
+                            <div>
+                              <Text fw={700} size="sm">Company Details → Vendor Information</Text>
+                              <Text size="xs" c="dimmed">Operations → Companies → Select company → Vendor Information tab</Text>
+                            </div>
+                          </Inline>
+                          <Badge size="xs" color="success" variant="filled">Operations</Badge>
+                        </Inline>
+                      </Card>
+                    </Link>
+                  </div>
+                )}
+              </Card>
             </div>
 
             {/* Marketplace Tasks */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <h2 className="text-base font-semibold text-gray-900 mb-4">Marketplace tasks</h2>
-              <div className="flex items-start space-x-4">
-                <div className="text-4xl font-light text-gray-900">786</div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Customer Purchases</div>
-                  <p className="text-sm text-gray-700">
+            <Card>
+              <Title order={4}>Marketplace tasks</Title>
+              <Inline gap="md" align="flex-start" wrap="nowrap">
+                <Text fw={400} size="xl">786</Text>
+                <Stack gap={6}>
+                  <Text size="xs" c="dimmed">Customer Purchases</Text>
+                  <Text size="sm" c="dimmed">
                     Review customer purchases • There are{' '}
-                    <a href="#" className="text-blue-600 hover:underline">
+                    <Text span fw={800} style={{ color: 'var(--mantine-color-blue-7)' }}>
                       786 customer purchases
-                    </a>{' '}
+                    </Text>{' '}
                     pending your review.
-                  </p>
-                  <a href="#" className="text-sm text-green-600 font-medium hover:underline mt-1 inline-block">
-                    Review Purchases
-                  </a>
-                </div>
-              </div>
-            </div>
+                  </Text>
+                  <Button variant="link" size="sm">Review Purchases</Button>
+                </Stack>
+              </Inline>
+            </Card>
 
             {/* Performance Overview */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-semibold text-gray-900">Performance overview</h2>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-5 bg-blue-500 rounded-full relative">
-                    <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
-                  </div>
-                  <select className="text-sm text-gray-600 border-none bg-transparent cursor-pointer">
-                    <option>Trailing Week</option>
-                    <option>Trailing Month</option>
-                    <option>Trailing Year</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 gap-6">
+            <Card>
+              <Inline justify="space-between" align="center" mb="md" wrap="nowrap">
+                <Title order={4}>Performance overview</Title>
+                <Select
+                  borderless
+                  data={['Trailing Week', 'Trailing Month', 'Trailing Year']}
+                  value={performanceRange}
+                  onChange={setPerformanceRange}
+                  size="sm"
+                />
+              </Inline>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: 24,
+                }}
+              >
                 <MetricCard value="$0" label="Gross Revenue" change="-100%" isPositive={false} />
                 <MetricCard value="$0" label="Net Revenue" change="-100%" isPositive={false} />
                 <MetricCard value="131" label="Total Orders" change="-10.3%" isPositive={false} />
                 <MetricCard value="18" label="Total Signups" change="12.5%" isPositive={true} />
               </div>
-            </div>
+            </Card>
 
             {/* Revenue Chart */}
-            <div className="bg-white rounded-lg shadow p-5">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-semibold text-gray-900">Revenue</h2>
-                <select className="text-sm text-gray-600 border-none bg-transparent cursor-pointer">
-                  <option>Trailing Week</option>
-                  <option>Trailing Month</option>
-                  <option>Trailing Year</option>
-                </select>
-              </div>
-              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                <BarChart3 className="h-12 w-12 mb-4" />
-                <p className="text-base font-medium text-gray-600">There is no data to display here.</p>
-                <p className="text-sm text-gray-500">
+            <Card>
+              <Inline justify="space-between" align="center" mb="md" wrap="nowrap">
+                <Title order={4}>Revenue</Title>
+                <Select
+                  borderless
+                  data={['Trailing Week', 'Trailing Month', 'Trailing Year']}
+                  value={revenueRange}
+                  onChange={setRevenueRange}
+                  size="sm"
+                />
+              </Inline>
+              <Stack gap="xs" align="center" style={{ padding: '48px 0', color: 'var(--mantine-color-gray-6)' }}>
+                <BarChart3 size={40} />
+                <Text fw={700} size="sm">There is no data to display here.</Text>
+                <Text size="sm" c="dimmed">
                   When your marketplace has revenue, it will appear here.
-                </p>
-              </div>
-              <div className="flex items-center space-x-6 mt-4 pt-4 border-t border-gray-100">
-                <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
+                </Text>
+              </Stack>
+              <Inline gap="md" style={{ borderTop: '1px solid var(--mantine-color-gray-2)', paddingTop: 12 }}>
+                <Button variant="link" size="sm" rightSection={<ChevronRight size={16} />}>
                   View Invoices
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </a>
-                <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
+                </Button>
+                <Button variant="link" size="sm" rightSection={<ChevronRight size={16} />}>
                   View Payments
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </a>
-              </div>
-            </div>
+                </Button>
+              </Inline>
+            </Card>
 
             {/* Sign ups and Orders */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-gray-900">Sign ups</h2>
-                  <select className="text-sm text-gray-600 border-none bg-transparent cursor-pointer">
-                    <option>Trailing Week</option>
-                  </select>
-                </div>
-                <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: 24,
+              }}
+            >
+              <Card>
+                <Inline justify="space-between" align="center" mb="sm" wrap="nowrap">
+                  <Title order={4}>Sign ups</Title>
+                  <Select borderless data={['Trailing Week']} value="Trailing Week" size="sm" />
+                </Inline>
+                <div style={{ height: 128, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mantine-color-gray-5)', fontSize: 14 }}>
                   Chart placeholder
                 </div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-semibold text-gray-900">Orders</h2>
-                  <select className="text-sm text-gray-600 border-none bg-transparent cursor-pointer">
-                    <option>Trailing Week</option>
-                  </select>
-                </div>
-                <div className="h-32 flex items-center justify-center text-gray-400 text-sm">
+              </Card>
+              <Card>
+                <Inline justify="space-between" align="center" mb="sm" wrap="nowrap">
+                  <Title order={4}>Orders</Title>
+                  <Select borderless data={['Trailing Week']} value="Trailing Week" size="sm" />
+                </Inline>
+                <div style={{ height: 128, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mantine-color-gray-5)', fontSize: 14 }}>
                   Chart placeholder
                 </div>
-              </div>
+              </Card>
             </div>
-          </div>
+          </Stack>
         </div>
-      </div>
 
       {/* Help Button */}
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+      <Tooltip label="Help">
+        <ActionIcon
+          size="lg"
+          customFill="var(--mantine-color-blue-6)"
+          customBorder="1px solid var(--mantine-color-blue-6)"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            color: 'white',
+            boxShadow: 'var(--mantine-shadow-lg)',
+          }}
+        >
+          <HelpCircle size={20} />
+        </ActionIcon>
+      </Tooltip>
+      </main>
+    </CatalogLayout>
   );
 };
 

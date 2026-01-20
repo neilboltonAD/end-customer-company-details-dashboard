@@ -14,28 +14,43 @@ export const Toggle = ({
       onChange(!enabled)
     }
   }
-  const sizeClasses = {
-    sm: 'w-8 h-4',
-    md: 'w-10 h-5',
-  }
-  const thumbSizeClasses = {
-    sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-  }
-  const thumbPositionClasses = {
-    sm: enabled ? 'translate-x-4' : 'translate-x-0.5',
-    md: enabled ? 'translate-x-5' : 'translate-x-0.5',
-  }
+  const sizes = {
+    sm: { w: 32, h: 16, thumb: 12, pad: 2 },
+    md: { w: 40, h: 20, thumb: 16, pad: 2 },
+  } as const
+  const s = sizes[size]
+  const translateX = enabled ? s.w - s.thumb - s.pad : s.pad
   return (
     <button
       type="button"
-      className={`${sizeClasses[size]} relative inline-flex items-center rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-200'} transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+      style={{
+        width: s.w,
+        height: s.h,
+        borderRadius: 999,
+        border: '1px solid var(--mantine-color-gray-3)',
+        background: enabled ? 'var(--mantine-color-green-6)' : 'var(--mantine-color-gray-2)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        position: 'relative',
+        cursor: 'pointer',
+        transition: 'background 120ms ease, border-color 120ms ease',
+      }}
       onClick={handleChange}
       aria-checked={enabled}
       role="switch"
     >
       <span
-        className={`${thumbSizeClasses[size]} ${thumbPositionClasses[size]} bg-white rounded-full transform transition-transform duration-200 ease-in-out`}
+        style={{
+          width: s.thumb,
+          height: s.thumb,
+          borderRadius: 999,
+          background: 'white',
+          position: 'absolute',
+          left: 0,
+          transform: `translateX(${translateX}px)`,
+          transition: 'transform 150ms ease',
+          boxShadow: 'var(--mantine-shadow-xs)',
+        }}
       />
     </button>
   )

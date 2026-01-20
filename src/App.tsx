@@ -25,10 +25,11 @@ import { OperationsCustomerOnboarding } from './pages/OperationsCustomerOnboardi
 import { OperationsGDAPManagement } from './pages/OperationsGDAPManagement';
 import { OperationsP2PTransfers } from './pages/OperationsP2PTransfers';
 import { PriceSyncTool } from './pages/PriceSyncTool';
+import { mantineTheme } from './styles/mantineTheme';
 
 export function App() {
   return (
-    <MantineProvider>
+    <MantineProvider theme={mantineTheme} defaultColorScheme="light" cssVariablesSelector=":root">
       <Notifications position="bottom-right" />
       <Router>
         <Routes>

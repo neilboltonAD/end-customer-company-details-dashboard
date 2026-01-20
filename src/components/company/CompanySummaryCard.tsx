@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { Badge, Card, Grid, Inline, Stack, Text, Title, Tooltip } from 'components/DesignSystem';
 
 export const CompanySummaryCard = () => {
   // Mock data from Partner Center Insights
@@ -20,36 +21,59 @@ export const CompanySummaryCard = () => {
   const usagePercentage = ((insights.activeUsers / insights.totalSeats) * 100).toFixed(1);
 
   return (
-    <div className="bg-white rounded-t shadow mb-6 p-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center">
-          <div className="flex items-center justify-center w-20 h-20 border border-gray-300 rounded mr-4 bg-white text-gray-400 text-5xl">
-            {/* Company Icon Placeholder */}
-            <span>🏢</span>
-          </div>
-          <div>
-            <div className="flex items-center text-lg font-semibold text-gray-700">
-              Company
-              <span className="ml-3 text-sm flex items-center text-green-700 font-medium">
-                <span className="w-3 h-3 bg-green-400 border border-green-700 rounded-full mr-2"></span>
-                Enabled
-              </span>
+    <Card style={{ marginBottom: 24 }}>
+      <Stack gap="md">
+        <Inline justify="space-between" align="center" wrap="nowrap">
+          <Inline gap="md" align="center" wrap="nowrap">
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                border: '1px solid var(--mantine-color-gray-3)',
+                borderRadius: 12,
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 44,
+              }}
+            >
+              <span>🏢</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-800 mt-1 mb-0">AppDirect Demonstration 5</h1>
-            <div className="flex items-center space-x-3 mt-2">
-              <div className="text-xs text-gray-600">
-                <span className="font-medium">{insights.subscriptions}</span> Active Subscriptions
-              </div>
-              <div className="text-xs text-gray-600">•</div>
-              <div className="text-xs text-gray-600">
-                <span className="font-medium">{usagePercentage}%</span> License Utilization
-              </div>
+            <div>
+              <Inline gap="sm" align="center" wrap="nowrap">
+                <Text fw={700}>Company</Text>
+                <Badge color="success" variant="outline">
+                  Enabled
+                </Badge>
+              </Inline>
+              <Title order={3} fw={800} m={0}>
+                AppDirect Demonstration 5
+              </Title>
+              <Inline gap="xs" align="center">
+                <Text size="xs" c="dimmed">
+                  <Text span fw={700}>
+                    {insights.subscriptions}
+                  </Text>{' '}
+                  Active Subscriptions
+                </Text>
+                <Text size="xs" c="dimmed">
+                  •
+                </Text>
+                <Text size="xs" c="dimmed">
+                  <Text span fw={700}>
+                    {usagePercentage}%
+                  </Text>{' '}
+                  License Utilization
+                </Text>
+              </Inline>
             </div>
-          </div>
-        </div>
-      </div>
-      <div className="flex mt-6 divide-x divide-gray-200 bg-gray-50 rounded-b shadow-inner">
-        {[
+          </Inline>
+        </Inline>
+
+        <Card style={{ background: 'var(--mantine-color-gray-0)' }}>
+          <Grid cols={{ base: 2, sm: 3, md: 6 }} spacing="md">
+            {[
           { 
             label: 'Total Seats', 
             value: insights.totalSeats,
@@ -83,41 +107,39 @@ export const CompanySummaryCard = () => {
             value: insights.unpaidInvoices,
             info: 'Outstanding invoices'
           },
-        ].map((item) => (
-          <div key={item.label} className="flex-1 text-center py-4 group relative">
-            <div className="flex items-center justify-center space-x-1">
-              <div className={`text-xl font-bold ${
-                item.label === 'Active Users (28d)' && insights.trends.activeUsers < 0 ? 'text-yellow-600' :
-                item.label === 'Unpaid Invoices' && insights.unpaidInvoices > 0 ? 'text-red-600' :
-                'text-gray-700'
-              }`}>
-                {item.value}
-              </div>
-              {item.trend !== undefined && (
-                <div className="flex items-center">
-                  {item.trend > 0 ? (
-                    <TrendingUp className="w-3 h-3 text-green-600" />
-                  ) : item.trend < 0 ? (
-                    <TrendingDown className="w-3 h-3 text-red-600" />
-                  ) : null}
-                </div>
-              )}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">{item.label}</div>
-            {item.trend !== undefined && (
-              <div className={`text-xs font-medium mt-0.5 ${
-                item.trend > 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {item.trend > 0 ? '+' : ''}{item.trend}%
-              </div>
-            )}
-            {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-              {item.info}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+            ].map((item) => {
+              const trend = item.trend;
+              const trendColor = trend === undefined ? undefined : trend > 0 ? 'var(--mantine-color-green-7)' : 'var(--mantine-color-red-7)';
+
+              return (
+                <Tooltip key={item.label} label={item.info}>
+                  <Card>
+                    <Stack gap={6} align="center">
+                      <Inline gap={6} align="center" wrap="nowrap">
+                        <Text fw={800}>{item.value}</Text>
+                        {trend !== undefined && (
+                          <>
+                            {trend > 0 ? <TrendingUp size={14} /> : trend < 0 ? <TrendingDown size={14} /> : null}
+                          </>
+                        )}
+                      </Inline>
+                      <Text size="xs" c="dimmed" ta="center">
+                        {item.label}
+                      </Text>
+                      {trend !== undefined && (
+                        <Text size="xs" fw={700} style={{ color: trendColor }}>
+                          {trend > 0 ? '+' : ''}
+                          {trend}%
+                        </Text>
+                      )}
+                    </Stack>
+                  </Card>
+                </Tooltip>
+              );
+            })}
+          </Grid>
+        </Card>
+      </Stack>
+    </Card>
   );
 }; 

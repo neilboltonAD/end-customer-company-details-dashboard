@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  Search,
   Star,
   Settings,
   ChevronDown,
@@ -9,184 +8,88 @@ import {
   ChevronRight,
   HelpCircle,
 } from 'lucide-react';
-import { TopNavbar } from '../components/navigation/TopNavbar';
+import { CatalogLayout } from '../components/layout/CatalogLayout';
+import { ActionIcon, Badge, Card, DataTable, Inline, NumberInput, Text, Title, Button } from 'components/DesignSystem';
 
-// Sidebar Section Component
-const SidebarSection = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="mb-6">
-    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
-      {title}
-    </h3>
-    <div className="space-y-0.5">{children}</div>
-  </div>
-);
-
-// Sidebar Item Component
-const SidebarItem = ({
-  label,
-  active = false,
-  onClick,
-}: {
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-      active
-        ? 'bg-blue-600 text-white'
-        : 'text-gray-700 hover:bg-gray-100'
-    }`}
-  >
-    {label}
-  </button>
-);
-
-// Product Type Badge Component
-const ProductBadge = ({ type }: { type: string }) => {
-  const styles: Record<string, string> = {
-    'PHYSICAL PRODUCT': 'bg-gray-100 text-gray-600',
-    'STACKABLE': 'bg-gray-100 text-gray-600',
-    'WEB APP': 'bg-gray-100 text-gray-600',
-  };
-
-  return (
-    <span
-      className={`px-2 py-0.5 text-[10px] font-medium rounded ${
-        styles[type] || 'bg-gray-100 text-gray-600'
-      }`}
-    >
-      {type}
-    </span>
-  );
-};
-
-// Product Row Component
-const ProductRow = ({
-  name,
-  productId,
-  types,
-  imageComponent,
-}: {
+type ProductRowData = {
   name: string;
   productId: string;
   types: string[];
   imageComponent?: React.ReactNode;
-}) => (
-  <tr className="border-b border-gray-100 hover:bg-gray-50">
-    <td className="py-3 px-4">
-      <div className="flex items-center space-x-3">
-        <button className="text-gray-300 hover:text-yellow-400">
-          <Star className="h-5 w-5" />
-        </button>
-        {imageComponent || (
-          <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-            <Star className="h-5 w-5 text-gray-300" />
-          </div>
-        )}
-        <div>
-          <a href="#" className="text-sm text-teal-700 hover:underline font-medium">
-            {name}
-          </a>
-          <div className="text-xs text-gray-500">Product ID: {productId}</div>
-        </div>
-      </div>
-    </td>
-    <td className="py-3 px-4">
-      <div className="flex items-center space-x-2">
-        {types.map((type, index) => (
-          <ProductBadge key={index} type={type} />
-        ))}
-      </div>
-    </td>
-    <td className="py-3 px-4 text-right">
-      <button className="text-gray-400 hover:text-gray-600">
-        <Settings className="h-4 w-4 inline" />
-        <ChevronDown className="h-4 w-4 inline" />
-      </button>
-    </td>
-  </tr>
-);
+};
 
 // Product placeholder images (inline SVG icons)
 const ProductImages = {
   rack: (
-    <div className="h-10 w-10 bg-gray-700 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-gray-7)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-gray-3)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm0 6h14M5 15h14" />
       </svg>
     </div>
   ),
   cable: (
-    <div className="h-10 w-10 bg-pink-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-pink-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-pink-6)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </div>
   ),
   power: (
-    <div className="h-10 w-10 bg-yellow-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-yellow-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-yellow-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </div>
   ),
   software: (
-    <div className="h-10 w-10 bg-blue-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-blue-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-blue-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     </div>
   ),
   monitor: (
-    <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-gray-1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-gray-6)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     </div>
   ),
   inverter: (
-    <div className="h-10 w-10 bg-green-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-green-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-green-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </div>
   ),
   phone: (
-    <div className="h-10 w-10 bg-purple-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-grape-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-grape-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
       </svg>
     </div>
   ),
   memory: (
-    <div className="h-10 w-10 bg-indigo-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-indigo-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-indigo-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
       </svg>
     </div>
   ),
   adobe: (
-    <div className="h-10 w-10 bg-red-600 rounded flex items-center justify-center">
-      <span className="text-white text-xs font-bold">Pr</span>
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-red-6)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>Pr</span>
     </div>
   ),
   dimension: (
-    <div className="h-10 w-10 bg-teal-600 rounded flex items-center justify-center">
-      <span className="text-white text-xs font-bold">Dn</span>
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-teal-6)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>Dn</span>
     </div>
   ),
 };
 
 // Sample product data
-const products = [
+const products: ProductRowData[] = [
   {
     name: '2U 19IN 2 POST NETWORK RACK SHELF',
     productId: '646355',
@@ -256,137 +159,119 @@ export const ProductCatalog = () => {
   const productsPerPage = 10;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-          <div className="py-4">
-            <SidebarSection title="Catalog">
-              <SidebarItem label="Production Catalog" active />
-              <SidebarItem label="Staging Catalog" onClick={() => navigate('/products/staging')} />
-              <SidebarItem label="Product Uploader" />
-            </SidebarSection>
-
-            <SidebarSection title="Import Products">
-              <SidebarItem label="Find & Import Distributor Products" onClick={() => navigate('/products/find')} />
-            </SidebarSection>
-
-            <SidebarSection title="Price Management">
-              <SidebarItem label="Price Books" />
-              <SidebarItem label="Discounts" />
-              <SidebarItem label="Disti Price Sync" onClick={() => navigate('/products/price-sync')} />
-            </SidebarSection>
-
-            <SidebarSection title="Promotions">
-              <SidebarItem label="Promotional Products" />
-              <SidebarItem label="Merchandising Options" />
-            </SidebarSection>
-
-            <SidebarSection title="Groups">
-              <SidebarItem label="Product Groups" />
-              <SidebarItem label="Segments" />
-            </SidebarSection>
-
-            <SidebarSection title="Product Content">
-              <SidebarItem label="Media Sources" />
-              <SidebarItem label="Featured Customers" />
-            </SidebarSection>
+    <CatalogLayout>
+      <main>
+        <Inline justify="space-between">
+          <div>
+            <Title order={2} fw={500}>
+              Production Catalog
+            </Title>
+            <Text c="dimmed" size="sm">
+              Manage your production catalog products.
+            </Text>
           </div>
-        </aside>
+          <Button variant="secondary" onClick={() => navigate('/products/staging')}>
+            Add Staging Product
+          </Button>
+        </Inline>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-normal text-gray-900">Production Catalog</h1>
-            <button 
-              className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
-              onClick={() => navigate('/products/staging')}
-            >
-              Add Staging Product
-            </button>
-          </div>
+        <Card>
+          <DataTable
+            data={products}
+            columns={[
+              {
+                accessorKey: 'name',
+                header: 'Product',
+                enableSorting: true,
+                cell: (row) => (
+                  <Inline gap="sm">
+                    <span style={{ display: 'inline-flex', opacity: 0.35 }}>
+                      <Star size={18} />
+                    </span>
+                    <span style={{ width: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {row.imageComponent || <Star size={18} />}
+                    </span>
+                    <div>
+                      <Text fw={600} size="sm">
+                        {row.name}
+                      </Text>
+                      <Text c="dimmed" size="xs">
+                        Product ID: {row.productId}
+                      </Text>
+                    </div>
+                  </Inline>
+                ),
+              },
+              {
+                accessorKey: 'types',
+                header: 'Type',
+                enableSorting: false,
+                cell: (row) => (
+                  <Inline gap="xs">
+                    {row.types.map((t) => (
+                      <Badge key={t} color="default" variant="outline">
+                        {t}
+                      </Badge>
+                    ))}
+                  </Inline>
+                ),
+              },
+              {
+                accessorKey: 'actions',
+                header: '',
+                enableSorting: false,
+                align: 'right',
+                cell: () => (
+                  <Inline gap="xs" justify="flex-end">
+                    <Button variant="link" rightSection={<ChevronDown size={16} />} leftSection={<Settings size={16} />}>
+                      Actions
+                    </Button>
+                  </Inline>
+                ),
+              },
+            ]}
+            minWidth={900}
+            showSearch
+            searchPlaceholder="Search product names and IDs"
+            emptyMessage="No products found."
+          />
 
-          {/* Product Table */}
-          <div className="bg-white rounded-lg shadow">
-            {/* Filters */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <button className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                Show Filters
-              </button>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search product names and IDs"
-                  className="w-72 pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-
-            {/* Table */}
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="py-3 px-4"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product, index) => (
-                  <ProductRow
-                    key={index}
-                    name={product.name}
-                    productId={product.productId}
-                    types={product.types}
-                    imageComponent={product.imageComponent}
-                  />
-                ))}
-              </tbody>
-            </table>
-
-            {/* Pagination */}
-            <div className="p-4 border-t border-gray-200 flex items-center justify-end space-x-4">
-              <span className="text-sm text-gray-600">
-                1-{productsPerPage} of {totalProducts.toLocaleString()}
-              </span>
-              <div className="flex items-center space-x-1">
-                <button
-                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  <ChevronLeft className="h-5 w-5 text-gray-600" />
-                </button>
-                <input
-                  type="text"
-                  value={currentPage}
-                  onChange={(e) => setCurrentPage(Number(e.target.value) || 1)}
-                  className="w-8 text-center py-1 text-sm border border-gray-300 rounded"
-                />
-                <button
-                  className="p-1 rounded hover:bg-gray-100"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  <ChevronRight className="h-5 w-5 text-gray-600" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
+          <Inline justify="flex-end" align="center" mt="md">
+            <Text size="sm" c="dimmed">
+              1-{productsPerPage} of {totalProducts.toLocaleString()}
+            </Text>
+            <Inline gap="xs" align="center">
+              <Button variant="default" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
+                <ChevronLeft size={18} />
+              </Button>
+              <NumberInput
+                value={currentPage}
+                onChange={(v) => setCurrentPage(Number(v) || 1)}
+                min={1}
+                step={1}
+                clampBehavior="strict"
+                w={110}
+              />
+              <Button variant="default" onClick={() => setCurrentPage(currentPage + 1)}>
+                <ChevronRight size={18} />
+              </Button>
+            </Inline>
+          </Inline>
+        </Card>
+      </main>
 
       {/* Help Button */}
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon
+          aria-label="Help"
+          customFill="var(--mantine-color-blue-6)"
+          customBorder="1px solid var(--mantine-color-blue-7)"
+          style={{ color: 'white', boxShadow: 'var(--mantine-shadow-lg)' }}
+        >
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
+    </CatalogLayout>
   );
 };
 

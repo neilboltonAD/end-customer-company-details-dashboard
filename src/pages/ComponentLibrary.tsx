@@ -90,8 +90,8 @@ export const ComponentLibrary = () => {
 
   return (
     <PageLayout title="Sync Settings">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Sync Settings</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Sync Settings</h2>
         <Button variant="primary" onClick={handleSave}>
           Save All Settings
         </Button>
@@ -107,15 +107,24 @@ export const ComponentLibrary = () => {
             title="Company Sync"
             description="When enabled Company Sync will discover companies that don't exist on the marketplace and sync them into the marketplace based on the below settings."
           >
-            <div className="flex items-center space-x-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Toggle enabled={companySync} onChange={handleCompanySyncToggle} />
-              <span className={`text-xs font-semibold px-2 py-1 rounded ${companySync ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  borderRadius: 10,
+                  background: companySync ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-red-1)',
+                  color: companySync ? 'var(--mantine-color-green-8)' : 'var(--mantine-color-red-8)',
+                }}
+              >
                 {companySync ? 'ENABLED' : 'DISABLED'}
               </span>
             </div>
           </SettingItem>
           {companySync && (
-            <div className="ml-6 mt-4 space-y-2">
+            <div style={{ marginLeft: 24, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <SettingItem
                 title="Create Companies Automatically"
                 description="If disabled, companies must be manually created at Manage > Marketplace > Pending Companies."
@@ -155,9 +164,18 @@ export const ComponentLibrary = () => {
             title="Tenant Linking"
             description="When enabled, the Marketplace will allow tenant linking, by sending customers a Reseller Relationship link within an email notification. NOTE: Requires Company Sync to be enabled."
           >
-            <div className="flex items-center space-x-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Toggle enabled={tenantLinking} onChange={handleTenantLinkingToggle} />
-              <span className={`text-xs font-semibold px-2 py-1 rounded ${tenantLinking ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  borderRadius: 10,
+                  background: tenantLinking ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-red-1)',
+                  color: tenantLinking ? 'var(--mantine-color-green-8)' : 'var(--mantine-color-red-8)',
+                }}
+              >
                 {tenantLinking ? 'ENABLED' : 'DISABLED'}
               </span>
             </div>
@@ -172,9 +190,18 @@ export const ComponentLibrary = () => {
             title="Sync Tool"
             description="Enable or disable the Microsoft Sync Tool."
           >
-            <div className="flex items-center space-x-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Toggle enabled={syncTool} onChange={handleSyncToolToggle} />
-              <span className={`text-xs font-semibold px-2 py-1 rounded ${syncTool ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  borderRadius: 10,
+                  background: syncTool ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-red-1)',
+                  color: syncTool ? 'var(--mantine-color-green-8)' : 'var(--mantine-color-red-8)',
+                }}
+              >
                 {syncTool ? 'ENABLED' : 'DISABLED'}
               </span>
             </div>
@@ -189,15 +216,24 @@ export const ComponentLibrary = () => {
             title="User Sync"
             description="When enabled User Sync will sync user information from the Microsoft Online Portal to the marketplace. It will create new users if required on the marketplace."
           >
-            <div className="flex items-center space-x-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Toggle enabled={userSync} onChange={handleUserSyncToggle} />
-              <span className={`text-xs font-semibold px-2 py-1 rounded ${userSync ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  borderRadius: 10,
+                  background: userSync ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-red-1)',
+                  color: userSync ? 'var(--mantine-color-green-8)' : 'var(--mantine-color-red-8)',
+                }}
+              >
                 {userSync ? 'ENABLED' : 'DISABLED'}
               </span>
             </div>
           </SettingItem>
           {userSync && (
-            <div className="ml-6 mt-4 space-y-2">
+            <div style={{ marginLeft: 24, marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <SettingItem
                 title="Enable invitation of Microsoft synced users"
                 description="This setting enables a Company Administrator to invite Microsoft synced external users to the marketplace."
@@ -231,9 +267,18 @@ export const ComponentLibrary = () => {
             title="Google User Sync"
             description="Enable or disable Google User Sync."
           >
-            <div className="flex items-center space-x-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Toggle enabled={googleUserSync} onChange={handleGoogleUserSyncToggle} />
-              <span className={`text-xs font-semibold px-2 py-1 rounded ${googleUserSync ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  padding: '4px 8px',
+                  borderRadius: 10,
+                  background: googleUserSync ? 'var(--mantine-color-green-1)' : 'var(--mantine-color-red-1)',
+                  color: googleUserSync ? 'var(--mantine-color-green-8)' : 'var(--mantine-color-red-8)',
+                }}
+              >
                 {googleUserSync ? 'ENABLED' : 'DISABLED'}
               </span>
             </div>

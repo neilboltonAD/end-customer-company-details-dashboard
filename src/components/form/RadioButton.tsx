@@ -1,4 +1,5 @@
 import React from 'react'
+import { Text } from 'components/DesignSystem'
 type RadioButtonProps = {
   id: string
   name: string
@@ -16,26 +17,30 @@ export const RadioButton = ({
   description,
 }: RadioButtonProps) => {
   return (
-    <div className="flex items-start mb-2">
-      <div className="flex items-center h-5">
+    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', height: 20 }}>
         <input
           id={id}
           name={name}
           type="radio"
           checked={checked}
           onChange={onChange}
-          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+          style={{ width: 16, height: 16 }}
         />
       </div>
       {(label || description) && (
-        <div className="ml-2">
+        <div style={{ marginLeft: 8 }}>
           {label && (
-            <label htmlFor={id} className="text-sm font-medium text-gray-700">
-              {label}
+            <label htmlFor={id}>
+              <Text size="sm" fw={700}>
+                {label}
+              </Text>
             </label>
           )}
           {description && (
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
+            <Text size="xs" c="dimmed" style={{ marginTop: 4 }}>
+              {description}
+            </Text>
           )}
         </div>
       )}

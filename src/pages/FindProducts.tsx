@@ -6,9 +6,10 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
-  ChevronDown,
 } from 'lucide-react';
-import { TopNavbar } from '../components/navigation/TopNavbar';
+import { CatalogLayout } from '../components/layout/CatalogLayout';
+import { ActionIcon, Badge, Button, Card, Inline, Stack, Tabs, Text, TextInput, Title, DataTable } from 'components/DesignSystem';
+import type { DataTableColumn } from 'components/DesignSystem';
 
 // Sidebar Section Component
 const SidebarSection = ({
@@ -18,14 +19,14 @@ const SidebarSection = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="mb-1">
-    <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-      <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+  <Stack gap={6}>
+    <Card style={{ background: 'var(--mantine-color-gray-0)' }}>
+      <Text size="xs" fw={800} style={{ textTransform: 'uppercase', letterSpacing: 0.6 }}>
         {title}
-      </h3>
-    </div>
-    <div className="py-1">{children}</div>
-  </div>
+      </Text>
+    </Card>
+    <Stack gap={4}>{children}</Stack>
+  </Stack>
 );
 
 // Sidebar Item Component
@@ -44,25 +45,20 @@ const SidebarItem = ({
   indent?: number;
   onClick?: () => void;
 }) => (
-  <button
+  <Button
+    variant={active ? 'primary' : 'link'}
     onClick={onClick}
-    className={`w-full text-left py-2 text-sm transition-colors flex items-center justify-between ${
-      active
-        ? 'bg-teal-700 text-white font-medium'
-        : 'text-gray-700 hover:bg-gray-50'
-    }`}
-    style={{ paddingLeft: `${16 + indent * 12}px`, paddingRight: '16px' }}
+    fullWidth
+    style={{
+      justifyContent: 'space-between',
+      paddingLeft: 16 + indent * 12,
+      paddingRight: 16,
+    }}
+    leftIcon={hasArrow ? <span style={{ fontSize: 12 }}>{expanded ? '▼' : '▶'}</span> : undefined}
+    rightIcon={!active && !hasArrow && indent === 0 ? <ChevronRight size={16} /> : undefined}
   >
-    <span className="flex items-center">
-      {hasArrow && (
-        <span className="mr-1 text-xs">{expanded ? '▼' : '▶'}</span>
-      )}
-      {label}
-    </span>
-    {!active && !hasArrow && indent === 0 && (
-      <ChevronRight className="h-4 w-4 text-gray-400" />
-    )}
-  </button>
+    {label}
+  </Button>
 );
 
 // Category Item Component
@@ -77,15 +73,23 @@ const CategoryItem = ({
   expanded?: boolean;
   onClick?: () => void;
 }) => (
-  <button
+  <Button
+    variant="link"
     onClick={onClick}
-    className="w-full text-left pl-8 pr-4 py-1.5 text-sm text-gray-600 hover:bg-gray-50 flex items-center justify-between"
+    fullWidth
+    style={{ justifyContent: 'space-between', paddingLeft: 32, paddingRight: 12 }}
+    rightIcon={
+      hasChildren ? (
+        <span style={{ display: 'inline-flex', transform: expanded ? 'rotate(90deg)' : undefined, transition: 'transform 120ms ease' }}>
+          <ChevronRight size={16} />
+        </span>
+      ) : undefined
+    }
   >
-    <span>{label}</span>
-    {hasChildren && (
-      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
-    )}
-  </button>
+    <Text size="sm" c="dimmed">
+      {label}
+    </Text>
+  </Button>
 );
 
 // Subcategory Item Component
@@ -96,12 +100,16 @@ const SubcategoryItem = ({
   label: string;
   onClick?: () => void;
 }) => (
-  <button
+  <Button
+    variant="link"
     onClick={onClick}
-    className="w-full text-left pl-12 pr-4 py-1.5 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+    fullWidth
+    style={{ justifyContent: 'flex-start', paddingLeft: 48, paddingRight: 12 }}
   >
-    {label}
-  </button>
+    <Text size="sm" c="dimmed">
+      {label}
+    </Text>
+  </Button>
 );
 
 // Product categories data
@@ -143,101 +151,70 @@ const productCategories = [
   },
 ];
 
-// Distributor Tab Component
-const DistributorTab = ({
-  name,
-  active,
-  onClick,
-}: {
-  name: string;
-  active: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-      active
-        ? 'border-teal-600 text-gray-900'
-        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-    }`}
-  >
-    <span className="h-2.5 w-2.5 bg-green-500 rounded-full"></span>
-    <span>{name}</span>
-  </button>
-);
-
 // Profile Badge Component
 const ProfileBadge = ({ type }: { type: 'Basic' | 'Enriched' | 'Partially Enriched' }) => {
-  const colors = {
-    Basic: 'text-gray-600',
-    Enriched: 'text-green-600',
-    'Partially Enriched': 'text-yellow-600',
-  };
+  const color: 'default' | 'success' | 'pending' =
+    type === 'Enriched' ? 'success' : type === 'Partially Enriched' ? 'pending' : 'default';
 
   return (
-    <div className="flex items-center space-x-1">
-      <span className={`h-4 w-4 rounded-full flex items-center justify-center text-xs ${
-        type === 'Basic' ? 'bg-gray-200' : type === 'Enriched' ? 'bg-green-100' : 'bg-yellow-100'
-      }`}>
-        <span className={colors[type]}>i</span>
-      </span>
-      <span className={`text-sm ${colors[type]}`}>{type}</span>
-    </div>
+    <Badge size="sm" variant="outline" color={color}>
+      {type}
+    </Badge>
   );
 };
 
 // Product Images
 const ProductImages = {
   laptop: (
-    <div className="h-10 w-10 bg-blue-900 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: '#0B1B3F', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: '#93C5FD' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     </div>
   ),
   lenovo: (
-    <div className="h-10 w-10 bg-red-600 rounded flex items-center justify-center">
-      <span className="text-white text-[8px] font-bold">Lenovo</span>
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-red-6)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'white', fontSize: 8, fontWeight: 800 }}>Lenovo</span>
     </div>
   ),
   cable: (
-    <div className="h-10 w-10 bg-pink-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-pink-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-pink-6)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </div>
   ),
   phone: (
-    <div className="h-10 w-10 bg-purple-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-violet-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-violet-6)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
       </svg>
     </div>
   ),
   inverter: (
-    <div className="h-10 w-10 bg-green-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-green-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-green-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     </div>
   ),
   memory: (
-    <div className="h-10 w-10 bg-indigo-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-indigo-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-indigo-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
       </svg>
     </div>
   ),
   network: (
-    <div className="h-10 w-10 bg-orange-100 rounded flex items-center justify-center">
-      <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-orange-0)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg style={{ width: 24, height: 24, color: 'var(--mantine-color-orange-7)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
       </svg>
     </div>
   ),
   adobe: (
-    <div className="h-10 w-10 bg-red-600 rounded flex items-center justify-center">
-      <span className="text-white text-xs font-bold">A</span>
+    <div style={{ width: 40, height: 40, background: 'var(--mantine-color-red-6)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'white', fontSize: 12, fontWeight: 800 }}>A</span>
     </div>
   ),
 };
@@ -308,6 +285,8 @@ export const FindProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [findProductsExpanded, setFindProductsExpanded] = useState(true);
   const [expandedCategory, setExpandedCategory] = useState<string | null>('ucc-mobility');
+  const [query, setQuery] = useState('');
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
 
   const getProducts = () => {
     switch (activeTab) {
@@ -323,249 +302,285 @@ export const FindProducts = () => {
   };
 
   const { products, total, columns } = getProducts();
+  const tableData = products.map((p, i) => ({ ...p, __rowId: `${activeTab}-${i}` }));
+
+  const toggleRow = (id: string) => {
+    setSelectedRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const visibleRowIds = tableData.map((r) => r.__rowId as string);
+  const allSelected = visibleRowIds.length > 0 && visibleRowIds.every((id) => selectedRowIds.has(id));
+  const toggleAll = () => {
+    setSelectedRowIds(() => (allSelected ? new Set() : new Set(visibleRowIds)));
+  };
+
+  const baseColumns: DataTableColumn<any>[] = [
+    {
+      accessorKey: '__select',
+      header: (
+        <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all" />
+      ) as any,
+      enableSorting: false,
+      align: 'center',
+      cell: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedRowIds.has(row.__rowId)}
+          onChange={() => toggleRow(row.__rowId)}
+          aria-label="Select row"
+        />
+      ),
+    },
+    {
+      accessorKey: 'name',
+      header: 'Product',
+      enableSorting: true,
+      cell: (row) => (
+        <Inline gap="sm" align="center" wrap="nowrap">
+          {row.image || (
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                background: 'var(--mantine-color-gray-1)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Star size={18} style={{ color: 'var(--mantine-color-gray-4)' }} />
+            </div>
+          )}
+          <div>
+            <Text fw={700} size="sm">
+              {row.name}
+            </Text>
+            <Text size="xs" c="dimmed">
+              by {row.vendor}
+            </Text>
+          </div>
+        </Inline>
+      ),
+    },
+    {
+      accessorKey: 'profile',
+      header: 'Profile',
+      enableSorting: true,
+      cell: (row) => <ProfileBadge type={row.profile} />,
+    },
+  ];
+
+  const distributorColumns: DataTableColumn<any>[] =
+    columns === 'tdsynnex'
+      ? [
+          { accessorKey: 'id', header: 'ID', enableSorting: true },
+          { accessorKey: 'availability', header: 'Availability', enableSorting: true },
+        ]
+      : columns === 'microsoftmarketplace'
+      ? [
+          { accessorKey: 'productId', header: 'Product ID', enableSorting: true },
+          {
+            accessorKey: 'pricing',
+            header: 'Pricing',
+            enableSorting: true,
+            cell: (row) => {
+              const pricing = row.pricing as string;
+              const badgeColor: 'default' | 'success' | 'info' | 'pending' =
+                pricing === 'Free'
+                  ? 'success'
+                  : pricing === 'Subscription'
+                  ? 'info'
+                  : pricing === 'PayAsYouGo'
+                  ? 'pending'
+                  : 'default';
+              return (
+                <Badge size="sm" color={badgeColor} variant="outline">
+                  {pricing}
+                </Badge>
+              );
+            },
+          },
+        ]
+      : [{ accessorKey: 'partNumber', header: 'Part Number', enableSorting: true }];
+
+  const msrpColumn: DataTableColumn<any>[] =
+    columns === 'microsoftmarketplace' ? [] : [{ accessorKey: 'msrp', header: 'MSRP', enableSorting: true }];
+
+  const tableColumns: DataTableColumn<any>[] = [...baseColumns, ...distributorColumns, ...msrpColumn];
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
+    <CatalogLayout>
+      <main>
+        <Inline gap="lg" align="flex-start" wrap="nowrap">
+          <div style={{ width: 320, flexShrink: 0 }}>
+            <Card>
+              <SidebarSection title="Import Products">
+                <SidebarItem
+                  label="Find Products"
+                  active
+                  hasArrow
+                  expanded={findProductsExpanded}
+                  onClick={() => setFindProductsExpanded(!findProductsExpanded)}
+                />
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200 overflow-y-auto">
-          <SidebarSection title="IMPORT PRODUCTS">
-            <SidebarItem 
-              label="Find Products" 
-              active 
-              hasArrow
-              expanded={findProductsExpanded}
-              onClick={() => setFindProductsExpanded(!findProductsExpanded)}
-            />
-            
-            {/* Expandable Categories */}
-            {findProductsExpanded && (
-              <div className="bg-gray-50 border-y border-gray-100">
-                {productCategories.map((category) => (
-                  <div key={category.id}>
-                    <CategoryItem
-                      label={category.label}
-                      hasChildren={category.hasChildren}
-                      expanded={expandedCategory === category.id}
-                      onClick={() => setExpandedCategory(
-                        expandedCategory === category.id ? null : category.id
-                      )}
-                    />
-                    
-                    {/* Subcategories */}
-                    {expandedCategory === category.id && category.subcategories && (
-                      <div className="bg-white border-t border-gray-100">
-                        <div className="pl-8 pr-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Categories
-                        </div>
-                        {category.subcategories.map((sub) => (
-                          <SubcategoryItem
-                            key={sub}
-                            label={sub}
-                            onClick={() => {/* Filter by subcategory */}}
+                {findProductsExpanded && (
+                  <Card style={{ background: 'var(--mantine-color-gray-0)' }}>
+                    <Stack gap={4}>
+                      {productCategories.map((category) => (
+                        <div key={category.id}>
+                          <CategoryItem
+                            label={category.label}
+                            hasChildren={category.hasChildren}
+                            expanded={expandedCategory === category.id}
+                            onClick={() => setExpandedCategory(expandedCategory === category.id ? null : category.id)}
                           />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <SidebarItem label="Product Imports" />
-            <SidebarItem 
-              label="Settings" 
-              onClick={() => navigate('/products/import-settings')}
-            />
-          </SidebarSection>
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">
-          {/* Back Link */}
-          <button
-            onClick={() => navigate('/products')}
-            className="flex items-center text-sm text-teal-700 hover:text-teal-800 mb-4"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Product Imports</span>
-          </button>
-
-          {/* Header */}
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Find Products</h1>
-          <p className="text-sm text-gray-600 mb-6">
-            Connect with distributor accounts, import and configure more product catalogs.
-          </p>
-
-          {/* Distributor Tabs */}
-          <div className="flex space-x-4 border-b border-gray-200 mb-6">
-            <DistributorTab
-              name="Firstbase"
-              active={activeTab === 'firstbase'}
-              onClick={() => setActiveTab('firstbase')}
-            />
-            <DistributorTab
-              name="TD SYNNEX"
-              active={activeTab === 'tdsynnex'}
-              onClick={() => setActiveTab('tdsynnex')}
-            />
-            <DistributorTab
-              name="Ingram Micro"
-              active={activeTab === 'ingrammicro'}
-              onClick={() => setActiveTab('ingrammicro')}
-            />
-            <DistributorTab
-              name="Microsoft Marketplace"
-              active={activeTab === 'microsoftmarketplace'}
-              onClick={() => setActiveTab('microsoftmarketplace')}
-            />
-          </div>
-
-        {/* Info Banner (for TD SYNNEX, Ingram Micro and Microsoft Marketplace) */}
-        {(activeTab === 'tdsynnex' || activeTab === 'ingrammicro' || activeTab === 'microsoftmarketplace') && (
-          <div className="bg-teal-50 border-l-4 border-teal-500 p-4 mb-6">
-            <p className="text-sm text-gray-700">
-              Browse the Distributor catalog and select products to import to marketplace catalog with a 15% default markup. Click{' '}
-              <a href="#" className="text-teal-700 font-medium hover:underline">here</a>{' '}
-              to change the Markup percentage.
-            </p>
-          </div>
-        )}
-
-        {/* Product Table */}
-        <div className="bg-white rounded-lg shadow">
-          {/* Toolbar */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <button className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                Show Filters
-              </button>
-              <button className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center">
-                Import
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-72 pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-
-          {/* Table */}
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 w-8">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Profile
-                </th>
-                {columns === 'tdsynnex' ? (
-                  <>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
-                  </>
-                ) : columns === 'microsoftmarketplace' ? (
-                  <>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Product ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Pricing</th>
-                  </>
-                ) : (
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Part Number</th>
-                )}
-                {columns !== 'microsoftmarketplace' && (
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">MSRP</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <input type="checkbox" className="rounded border-gray-300" />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center space-x-3">
-                      {product.image || (
-                        <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-                          <Star className="h-5 w-5 text-gray-300" />
+                          {expandedCategory === category.id && category.subcategories && (
+                            <Card>
+                              <Stack gap={6}>
+                                <Text size="xs" fw={800} c="dimmed" style={{ textTransform: 'uppercase' }}>
+                                  Categories
+                                </Text>
+                                <Stack gap={2}>
+                                  {category.subcategories.map((sub) => (
+                                    <SubcategoryItem key={sub} label={sub} onClick={() => {}} />
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            </Card>
+                          )}
                         </div>
-                      )}
-                      <div>
-                        <div className="text-sm text-gray-900 font-medium">{product.name}</div>
-                        <div className="text-xs text-gray-500">by {product.vendor}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <ProfileBadge type={product.profile} />
-                  </td>
-                  {columns === 'tdsynnex' ? (
-                    <>
-                      <td className="py-3 px-4 text-sm text-gray-600">{(product as any).id}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{(product as any).availability}</td>
-                    </>
-                  ) : columns === 'microsoftmarketplace' ? (
-                    <>
-                      <td className="py-3 px-4 text-sm text-gray-600">{(product as any).productId}</td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
-                        <span className={`px-2 py-0.5 text-xs rounded ${
-                          (product as any).pricing === 'Free' ? 'bg-green-100 text-green-800' :
-                          (product as any).pricing === 'Subscription' ? 'bg-blue-100 text-blue-800' :
-                          (product as any).pricing === 'PayAsYouGo' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {(product as any).pricing}
-                        </span>
-                      </td>
-                    </>
-                  ) : (
-                    <td className="py-3 px-4 text-sm text-gray-600">{(product as any).partNumber}</td>
-                  )}
-                  {columns !== 'microsoftmarketplace' && (
-                    <td className="py-3 px-4 text-sm text-gray-900">{(product as any).msrp}</td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      ))}
+                    </Stack>
+                  </Card>
+                )}
 
-          {/* Pagination */}
-          <div className="p-4 border-t border-gray-200 flex items-center justify-end space-x-4">
-            <span className="text-sm text-gray-600">
-              1-10 of {total.toLocaleString()}
-            </span>
-            <div className="flex items-center space-x-1">
-              <button
-                className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-5 w-5 text-gray-600" />
-              </button>
-              <button className="p-1 rounded hover:bg-gray-100">
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-            </div>
+                <SidebarItem label="Product Imports" onClick={() => navigate('/products')} />
+                <SidebarItem label="Settings" onClick={() => navigate('/products/import-settings')} />
+              </SidebarSection>
+            </Card>
           </div>
-        </main>
-      </div>
 
-      {/* Help Button */}
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-teal-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-teal-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+          <div style={{ flex: 1 }}>
+            <Button variant="link" onClick={() => navigate('/products')} leftIcon={<ChevronLeft size={16} />}>
+              Product Imports
+            </Button>
+
+            <Title order={2} fw={700}>
+              Find Products
+            </Title>
+            <Text size="sm" c="dimmed">
+              Connect with distributor accounts, import and configure more product catalogs.
+            </Text>
+
+            <Card>
+              <Tabs
+                value={activeTab}
+                onTabChange={(v) => setActiveTab((v as Distributor) || 'firstbase')}
+                tabs={[
+                  { id: 'firstbase', label: 'Firstbase' },
+                  { id: 'tdsynnex', label: 'TD SYNNEX' },
+                  { id: 'ingrammicro', label: 'Ingram Micro' },
+                  { id: 'microsoftmarketplace', label: 'Microsoft Marketplace' },
+                ]}
+              />
+            </Card>
+
+            {(activeTab === 'tdsynnex' || activeTab === 'ingrammicro' || activeTab === 'microsoftmarketplace') && (
+              <Card style={{ border: '1px solid var(--mantine-color-blue-2)', background: 'var(--mantine-color-blue-0)' }}>
+                <Text size="sm">
+                  Browse the Distributor catalog and select products to import to marketplace catalog with a 15% default markup. Click{' '}
+                  <Text span fw={700} style={{ color: 'var(--mantine-color-blue-7)' }}>
+                    here
+                  </Text>{' '}
+                  to change the Markup percentage.
+                </Text>
+              </Card>
+            )}
+
+            <Card>
+              <Inline justify="space-between" align="center" wrap="nowrap">
+                <Inline gap="sm" align="center" wrap="nowrap">
+                  <Button variant="outline" size="sm">
+                    Show Filters
+                  </Button>
+                  <Button variant="primary" size="sm" rightIcon={<ChevronRight size={16} />}>
+                    Import
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={toggleAll} disabled={tableData.length === 0}>
+                    {allSelected ? 'Clear selection' : 'Select all'}
+                  </Button>
+                </Inline>
+
+                <TextInput
+                  placeholder="Search"
+                  value={query}
+                  onChange={(e) => setQuery(e.currentTarget.value)}
+                  leftIcon={<Search size={14} />}
+                  style={{ width: 320 }}
+                />
+              </Inline>
+
+              <DataTable
+                data={tableData.filter((row) => {
+                  const q = query.trim().toLowerCase();
+                  if (!q) return true;
+                  const r = row as any;
+                  return (
+                    String(r.name).toLowerCase().includes(q) ||
+                    String(r.vendor).toLowerCase().includes(q) ||
+                    String(r.profile).toLowerCase().includes(q) ||
+                    String(r.partNumber || '').toLowerCase().includes(q) ||
+                    String(r.productId || '').toLowerCase().includes(q) ||
+                    String(r.id || '').toLowerCase().includes(q)
+                  );
+                })}
+                columns={tableColumns}
+                showSearch={false}
+                getRowId={(row) => row.__rowId}
+                minWidth={900}
+                emptyMessage="No products found"
+              />
+
+              <Inline justify="flex-end" align="center" wrap="nowrap">
+                <Text size="sm" c="dimmed">
+                  1-10 of {total.toLocaleString()}
+                </Text>
+                <Inline gap="xs" align="center" wrap="nowrap">
+                  <ActionIcon
+                    aria-label="Previous page"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft size={18} />
+                  </ActionIcon>
+                  <ActionIcon aria-label="Next page" onClick={() => setCurrentPage((p) => p + 1)}>
+                    <ChevronRight size={18} />
+                  </ActionIcon>
+                </Inline>
+              </Inline>
+            </Card>
+          </div>
+        </Inline>
+      </main>
+
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon
+          aria-label="Help"
+          customFill="var(--mantine-color-blue-6)"
+          customBorder="1px solid var(--mantine-color-blue-7)"
+          style={{ color: 'white', boxShadow: 'var(--mantine-shadow-lg)' }}
+        >
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
+    </CatalogLayout>
   );
 };
 

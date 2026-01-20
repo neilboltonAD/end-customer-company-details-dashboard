@@ -1,7 +1,8 @@
 import React from 'react'
+import { AppShell, Stack } from '@mantine/core'
 import { TopNavbar } from '../navigation/TopNavbar'
-import { SecondaryNavbar } from '../navigation/SecondaryNavbar'
 import { Sidebar } from '../navigation/Sidebar'
+import { AppDirectBrandingColors } from '../../styles/appdirectBrandingColors'
 
 type PageLayoutProps = {
   children: React.ReactNode
@@ -11,16 +12,22 @@ type PageLayoutProps = {
 
 export const PageLayout = ({ children, title, activeItem }: PageLayoutProps) => {
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <TopNavbar />
-      <div className="flex flex-1 overflow-hidden">
+    <AppShell
+      header={{ height: 68 }}
+      navbar={{ width: 256, breakpoint: 'sm', collapsed: { mobile: false } }}
+      padding="lg"
+    >
+      <AppShell.Header style={{ background: AppDirectBrandingColors.Navy }}>
+        <TopNavbar embedded />
+      </AppShell.Header>
+      <AppShell.Navbar pt={0} pb="md" pl="md" pr={0}>
         <Sidebar activeItem={activeItem} />
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
+      </AppShell.Navbar>
+      <AppShell.Main>
+        <Stack gap="xl">
+          {children}
+        </Stack>
+      </AppShell.Main>
+    </AppShell>
   )
 }

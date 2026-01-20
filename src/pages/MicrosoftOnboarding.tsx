@@ -4,6 +4,7 @@ import { PageLayout } from '../components/layout/PageLayout';
 import { ChevronLeft, ExternalLink } from 'lucide-react';
 import { getPartnerCenterHealth, getPartnerCenterStatus } from '../api/partnerCenter';
 import { PartnerCenterConnectorModal } from '../components/microsoft/PartnerCenterConnectorModal';
+import { Badge, Button, Card, Inline, Stack, Text, Title } from 'components/DesignSystem';
 
 export const MicrosoftOnboarding = () => {
   const navigate = useNavigate();
@@ -39,81 +40,64 @@ export const MicrosoftOnboarding = () => {
 
   return (
     <PageLayout title="Microsoft Onboarding" activeItem="Vendor Integrations">
-      <div className="max-w-4xl">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/settings/vendor-integrations')}
-          className="flex items-center text-sm text-teal-700 hover:text-teal-800 mb-4"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Back</span>
-        </button>
+      <Stack gap="md" style={{ maxWidth: 900 }}>
+        <Button variant="link" onClick={() => navigate('/settings/vendor-integrations')} leftIcon={<ChevronLeft size={16} />}>
+          Back
+        </Button>
 
-        {/* Header */}
-        <h1 className="text-2xl font-semibold text-gray-900 mb-4">Microsoft Onboarding</h1>
+        <Title order={2} fw={700}>
+          Microsoft Onboarding
+        </Title>
 
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+        <Text size="sm" c="dimmed">
           Use this settings page to configure your marketplace with Microsoft. When you have authorized with Microsoft, and configured the
           countries where you are licensed to sell through the CSP program, you will be able to publish Microsoft products to your marketplace
           and transact with customers. For more information, see{' '}
-          <a 
-            href="https://docs.microsoft.com/partner-center" 
-            target="_blank" 
+          <a
+            href="https://docs.microsoft.com/partner-center"
+            target="_blank"
             rel="noopener noreferrer"
-            className="text-teal-700 hover:text-teal-800 hover:underline"
+            style={{ color: 'var(--mantine-color-blue-7)', fontWeight: 700, textDecoration: 'none' }}
           >
-            Integrate your marketplace with Microsoft
+            Integrate your marketplace with Microsoft <ExternalLink size={14} style={{ verticalAlign: 'middle' }} />
           </a>
           .
-        </p>
+        </Text>
 
-        {/* Microsoft Authorization Card */}
-        <div className="border border-gray-200 rounded mb-8">
-          {/* Card Header */}
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              MICROSOFT AUTHORIZATION
-            </h2>
-          </div>
+        <Card>
+          <Stack gap="sm">
+            <Text size="xs" fw={800} c="dimmed" style={{ textTransform: 'uppercase' }}>
+              Microsoft Authorization
+            </Text>
 
-          {/* Card Content */}
-          <div className="p-4">
-            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-              To start the process for onboarding Microsoft products, select "Authorize" below. When you click the button you will be redirected
+            <Text size="sm" c="dimmed">
+              To start the process for onboarding Microsoft products, select “Authorize” below. When you click the button you will be redirected
               to a Microsoft website to authorize the marketplace to connect with Microsoft to transact on your behalf.
-            </p>
+            </Text>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleAuthorize}
-                className="px-4 py-2 bg-teal-700 text-white text-sm font-medium rounded hover:bg-teal-800 transition-colors"
-              >
-                Authorize
-              </button>
+            <Inline gap="sm" align="center" wrap="nowrap">
+              <Button onClick={handleAuthorize}>Authorize</Button>
               {isConnected && (
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-1">
+                <Badge size="sm" color="success" variant="outline">
                   Connected
-                </span>
+                </Badge>
               )}
-            </div>
-          </div>
-        </div>
+            </Inline>
+          </Stack>
+        </Card>
 
-        {/* Add Reseller Account Section */}
-        <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-          If you have multiple Microsoft reseller tenants you can select the "Add Reseller Account" button below to create a new onboarding form
-          for this tenant. This will be used to configure and authorize the marketplace to connect with the additional Microsoft reseller tenant. The
-          countries you add to this account should reflect the regions that the new reseller tenant can operate in.
-        </p>
+        <Text size="sm" c="dimmed">
+          If you have multiple Microsoft reseller tenants you can select the “Add Reseller Account” button below to create a new onboarding form
+          for this tenant. This will be used to configure and authorize the marketplace to connect with the additional Microsoft reseller tenant.
+          The countries you add to this account should reflect the regions that the new reseller tenant can operate in.
+        </Text>
 
-        <button
-          onClick={handleAddResellerAccount}
-          className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
-        >
-          Add Reseller Account
-        </button>
-      </div>
+        <Inline>
+          <Button variant="danger" onClick={handleAddResellerAccount}>
+            Add Reseller Account
+          </Button>
+        </Inline>
+      </Stack>
 
       <PartnerCenterConnectorModal
         opened={connectorModalOpen}

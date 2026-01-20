@@ -450,7 +450,7 @@ export const MicrosoftMarketplaceCredentials = () => {
         );
       case 'testing':
         return (
-          <Badge color="blue" variant="light" leftSection={<RefreshCw size={12} className="animate-spin" />}>
+          <Badge color="blue" variant="light" leftSection={<Loader size={12} />}>
             Testing...
           </Badge>
         );
@@ -485,7 +485,7 @@ export const MicrosoftMarketplaceCredentials = () => {
   const completionPercentage = getCompletionPercentage();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: 'var(--mantine-color-gray-0)' }}>
       <TopNavbar />
       
       <Container size="lg" py="xl">
@@ -527,7 +527,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                   justifyContent: 'center',
                 }}
               >
-                <Cloud className="h-7 w-7 text-white" />
+                <Cloud size={28} color="white" />
               </Box>
               <Stack gap={4}>
                 <Group gap="sm">
@@ -605,7 +605,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                     <Group gap={4}>
                       <span>Tenant ID (Directory ID)</span>
                       <Tooltip label="Your Azure AD tenant identifier" withArrow>
-                        <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                        <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                       </Tooltip>
                     </Group>
                   }
@@ -622,7 +622,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                     <Group gap={4}>
                       <span>Client ID (Application ID)</span>
                       <Tooltip label="Your registered application's client ID" withArrow>
-                        <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                        <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                       </Tooltip>
                     </Group>
                   }
@@ -639,7 +639,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                     <Group gap={4}>
                       <span>Client Secret</span>
                       <Tooltip label="Your application's client secret" withArrow>
-                        <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                        <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                       </Tooltip>
                     </Group>
                   }
@@ -678,7 +678,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                   <Group gap={4}>
                     <span>API Key</span>
                     <Tooltip label="Self-serve onboarded API key for public endpoints" withArrow>
-                      <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                      <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                     </Tooltip>
                   </Group>
                 }
@@ -704,7 +704,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                 </div>
               </Group>
 
-              <div className="mb-4">
+              <Box mb="md">
                 <Text size="sm" fw={500} mb={8}>Markup fee for cloud products</Text>
                 <Group gap="xs">
                   <TextInput
@@ -721,7 +721,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                 <Text size="xs" c="dimmed" mt={8}>
                   A markup fee applies to all products selected for publishing from Microsoft Marketplace.
                 </Text>
-              </div>
+              </Box>
             </Paper>
 
             {/* Security Notice */}
@@ -767,7 +767,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                 <Button
                   variant="outline"
                   color="blue"
-                  leftSection={<RefreshCw size={16} className={isTesting ? 'animate-spin' : ''} />}
+                  leftSection={isTesting ? <Loader size={16} /> : <RefreshCw size={16} />}
                   onClick={handleTestConnection}
                   loading={isTesting}
                   disabled={isSaving}
@@ -948,7 +948,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                                 justifyContent: 'center',
                               }}
                             >
-                              <Package size={20} className="text-white" />
+                              <Package size={20} color="white" />
                             </Box>
                             <div>
                               <Text size="sm" fw={500}>{product.displayName}</Text>
@@ -1047,7 +1047,7 @@ export const MicrosoftMarketplaceCredentials = () => {
         onClose={() => setDetailsModalOpen(false)}
         title={
           <Group>
-            <Cloud size={20} className="text-blue-600" />
+            <Cloud size={20} style={{ color: 'var(--mantine-color-blue-6)' }} />
             <Text fw={600}>Product Details</Text>
           </Group>
         }
@@ -1067,7 +1067,7 @@ export const MicrosoftMarketplaceCredentials = () => {
                   justifyContent: 'center',
                 }}
               >
-                <Package size={28} className="text-white" />
+                <Package size={28} color="white" />
               </Box>
               <div>
                 <Title order={4}>{selectedProduct.displayName}</Title>

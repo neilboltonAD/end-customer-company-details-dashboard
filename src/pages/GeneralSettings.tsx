@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 import { PageLayout } from '../components/layout/PageLayout';
+import {
+  Button,
+  Card,
+  Checkbox as DSCheckbox,
+  Inline,
+  Stack,
+  Text,
+  TextArea as DSTextArea,
+  TextInput as DSTextInput,
+  Title,
+} from 'components/DesignSystem';
 
 // Form Section Component
 const FormSection = ({
@@ -9,14 +20,14 @@ const FormSection = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="border border-gray-200 rounded mb-6">
-    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-      <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+  <Card>
+    <Stack gap="sm">
+      <Text size="xs" fw={800} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: 0.6 }}>
         {title}
-      </h2>
-    </div>
-    <div className="p-4 space-y-4">{children}</div>
-  </div>
+      </Text>
+      <Stack gap="md">{children}</Stack>
+    </Stack>
+  </Card>
 );
 
 // Form Field Component
@@ -31,16 +42,20 @@ const FormField = ({
   description?: React.ReactNode;
   children: React.ReactNode;
 }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      {required && <span className="text-red-500 mr-1">*</span>}
-      {label}
-    </label>
+  <Stack gap={6}>
+    <Inline gap={6} align="center" wrap="nowrap">
+      <Text size="sm" fw={700}>
+        {label}
+      </Text>
+      {required && <Text size="sm" style={{ color: 'var(--mantine-color-red-6)' }}>*</Text>}
+    </Inline>
     {children}
     {description && (
-      <p className="text-xs text-gray-500 mt-1">{description}</p>
+      <Text size="xs" c="dimmed">
+        {description}
+      </Text>
     )}
-  </div>
+  </Stack>
 );
 
 // Text Input Component
@@ -55,12 +70,12 @@ const TextInput = ({
   placeholder?: string;
   type?: string;
 }) => (
-  <input
+  <DSTextInput
     type={type}
     value={value}
-    onChange={(e) => onChange(e.target.value)}
+    onChange={(e) => onChange(e.currentTarget.value)}
     placeholder={placeholder}
-    className="w-full max-w-md px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    style={{ width: '100%', maxWidth: 480 }}
   />
 );
 
@@ -76,12 +91,14 @@ const TextArea = ({
   placeholder?: string;
   rows?: number;
 }) => (
-  <textarea
+  <DSTextArea
     value={value}
-    onChange={(e) => onChange(e.target.value)}
+    onChange={(e) => onChange(e.currentTarget.value)}
     placeholder={placeholder}
     rows={rows}
-    className="w-full max-w-lg px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+    autosize
+    minRows={rows}
+    style={{ width: '100%', maxWidth: 720 }}
   />
 );
 
@@ -91,15 +108,17 @@ const FileInput = ({
 }: {
   onChange: (file: File | null) => void;
 }) => (
-  <div className="flex items-center space-x-3">
-    <input
-      type="text"
+  <Inline gap="sm" align="center">
+    <DSTextInput
       readOnly
       placeholder="No file chosen"
-      className="flex-1 max-w-xs px-3 py-2 border border-gray-300 rounded text-sm bg-gray-50 text-gray-500"
+      value=""
+      onChange={() => {}}
+      style={{ flex: 1, maxWidth: 360 }}
+      disabled
     />
-    <button
-      type="button"
+    <Button
+      variant="outline"
       onClick={() => {
         const input = document.createElement('input');
         input.type = 'file';
@@ -110,11 +129,10 @@ const FileInput = ({
         };
         input.click();
       }}
-      className="px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
     >
       Choose File
-    </button>
-  </div>
+    </Button>
+  </Inline>
 );
 
 // Checkbox Component
@@ -129,20 +147,18 @@ const Checkbox = ({
   onChange: (checked: boolean) => void;
   description?: string;
 }) => (
-  <div>
-    <label className="flex items-start space-x-2 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-      />
-      <span className="text-sm text-gray-700">{label}</span>
-    </label>
+  <Stack gap={4}>
+    <DSCheckbox
+      label={label}
+      checked={checked}
+      onChange={(e) => onChange(e.currentTarget.checked)}
+    />
     {description && (
-      <p className="text-xs text-gray-500 mt-1 ml-6">{description}</p>
+      <Text size="xs" c="dimmed" style={{ marginLeft: 22 }}>
+        {description}
+      </Text>
     )}
-  </div>
+  </Stack>
 );
 
 export const GeneralSettings = () => {
@@ -186,8 +202,10 @@ export const GeneralSettings = () => {
 
   return (
     <PageLayout title="General Settings" activeItem="General Settings">
-      <div className="max-w-4xl">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">General Settings</h1>
+      <Stack gap="md" style={{ maxWidth: 900 }}>
+        <Title order={2} fw={700}>
+          General Settings
+        </Title>
 
         {/* ABOUT Section */}
         <FormSection title="ABOUT">
@@ -250,9 +268,9 @@ export const GeneralSettings = () => {
 
         {/* SUPPORT RESOURCES Section */}
         <FormSection title="SUPPORT RESOURCES">
-          <p className="text-sm text-gray-600 mb-4">
+          <Text size="sm" c="dimmed">
             Support resources used in emails, your marketplace header or footer, and support text throughout the site.
-          </p>
+          </Text>
 
           <FormField label="Support Center URL">
             <TextInput value={supportCenterUrl} onChange={setSupportCenterUrl} />
@@ -307,9 +325,9 @@ export const GeneralSettings = () => {
               <>
                 The robots.txt file informs search engine crawlers what is excluded from site indexing. For examples and information about
                 configuring robot.txt files,{' '}
-                <a href="#" className="text-blue-600 hover:underline">
+                <Text span fw={700} style={{ color: 'var(--mantine-color-blue-7)' }}>
                   click here
-                </a>
+                </Text>
                 .
               </>
             }
@@ -355,13 +373,12 @@ export const GeneralSettings = () => {
         </FormSection>
 
         {/* Save Button */}
-        <button
-          onClick={handleSave}
-          className="px-6 py-2 bg-teal-700 text-white font-medium rounded hover:bg-teal-800 transition-colors"
-        >
-          Save Settings
-        </button>
-      </div>
+        <Inline justify="flex-end">
+          <Button onClick={handleSave}>
+            Save Settings
+          </Button>
+        </Inline>
+      </Stack>
     </PageLayout>
   );
 };

@@ -1,24 +1,26 @@
 import React from 'react'
+import { Card as DSCard, Text } from 'components/DesignSystem'
+
 type CardProps = {
   children: React.ReactNode
-  className?: string
 }
-export const Card = ({ children, className = '' }: CardProps) => {
+
+export const Card = ({ children }: CardProps) => {
   return (
-    <div
-      className={`bg-white border border-gray-200 rounded-sm p-4 ${className}`}
-    >
+    <DSCard>
       {children}
-    </div>
+    </DSCard>
   )
 }
-export const CardHeader = ({ children, className = '' }: CardProps) => {
+
+export const CardHeader = ({ children }: CardProps) => {
   return (
-    <div className={`font-medium text-gray-700 text-sm mb-3 ${className}`}>
+    <Text fw={600} size="sm" c="dimmed" mb="sm">
       {children}
-    </div>
+    </Text>
   )
 }
-export const CardContent = ({ children, className = '' }: CardProps) => {
-  return <div className={className}>{children}</div>
-} 
+
+export const CardContent = ({ children }: CardProps) => {
+  return <div>{children}</div>
+}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Group, Stack, Text } from '@mantine/core'
 type SettingItemProps = {
   title: string
   description?: string
@@ -10,14 +11,18 @@ export const SettingItem = ({
   children,
 }: SettingItemProps) => {
   return (
-    <div className="py-4 border-b border-gray-200 flex justify-between items-start">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium text-gray-700">{title}</h3>
+    <Group justify="space-between" align="flex-start" py="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+      <Stack gap={4} style={{ flex: 1 }}>
+        <Text size="sm" fw={600} c="dark">
+          {title}
+        </Text>
         {description && (
-          <p className="text-xs text-gray-500 mt-1">{description}</p>
+          <Text size="xs" c="dimmed">
+            {description}
+          </Text>
         )}
-      </div>
-      <div className="ml-4">{children}</div>
-    </div>
+      </Stack>
+      {children && <div style={{ marginLeft: 16 }}>{children}</div>}
+    </Group>
   )
 } 

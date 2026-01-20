@@ -8,12 +8,12 @@ import { VendorInformation } from '../components/company/VendorInformation';
 
 export default function CompanyDetails() {
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--mantine-color-gray-0)' }}>
       <TopNavbar />
       <SecondaryNavbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar />
-        <div className="flex-1 overflow-auto p-8">
+        <div style={{ flex: 1, overflow: 'auto', padding: 32 }}>
           <CompanySummaryCard />
           <CompanyTabs activeTab="Vendor Information" />
           <VendorInformation />

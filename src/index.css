@@ -7,3 +7,20 @@
 /* Mantine CSS imports */
 @import '@mantine/core/styles.css';
 @import '@mantine/notifications/styles.css'; 
+@import '@mantine/dates/styles.css';
+@import '@mantine/dropzone/styles.css';
+@import 'remixicon/fonts/remixicon.css';
+
+/* Global base styles (aligned with cursor-mantine-app UX) */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { TopNavbar } from '../components/navigation/TopNavbar';
 import { DistiPriceSyncPanel } from '../components/company/DistiPriceSyncPanel';
+import { ActionIcon, Button, Card, Stack, Text, Title } from 'components/DesignSystem';
 
 // Sidebar Section Component
 const SidebarSection = ({
@@ -12,12 +13,12 @@ const SidebarSection = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <div className="mb-6">
-    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">
+  <Stack gap="xs" style={{ marginBottom: 24 }}>
+    <Text size="xs" fw={800} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: 0.6, paddingLeft: 16, paddingRight: 16 }}>
       {title}
-    </h3>
-    <div className="space-y-0.5">{children}</div>
-  </div>
+    </Text>
+    <Stack gap={2}>{children}</Stack>
+  </Stack>
 );
 
 // Sidebar Item Component
@@ -30,27 +31,27 @@ const SidebarItem = ({
   active?: boolean;
   onClick?: () => void;
 }) => (
-  <button
+  <Button
+    variant={active ? 'primary' : 'link'}
+    fullWidth
     onClick={onClick}
-    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-      active ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-    }`}
+    style={{ justifyContent: 'flex-start', paddingLeft: 16 }}
   >
     {label}
-  </button>
+  </Button>
 );
 
 export const PriceSyncTool = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div style={{ minHeight: '100vh', background: 'var(--mantine-color-gray-0)' }}>
       <TopNavbar />
 
-      <div className="flex">
+      <div style={{ display: 'flex' }}>
         {/* Sidebar */}
-        <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-          <div className="py-4">
+        <aside style={{ width: 224, background: 'white', minHeight: 'calc(100vh - 56px)', borderRight: '1px solid var(--mantine-color-gray-2)' }}>
+          <div style={{ paddingTop: 16, paddingBottom: 16 }}>
             <SidebarSection title="Catalog">
               <SidebarItem label="Production Catalog" onClick={() => navigate('/products')} />
               <SidebarItem label="Staging Catalog" onClick={() => navigate('/products/staging')} />
@@ -80,24 +81,33 @@ export const PriceSyncTool = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-normal text-gray-900">Disti Price Sync</h1>
-              <p className="text-sm text-gray-500 mt-1">
+        <main style={{ flex: 1, padding: 24 }}>
+          <Card>
+            <Stack gap={2}>
+              <Title order={2} fw={500}>
+                Disti Price Sync
+              </Title>
+              <Text size="sm" c="dimmed">
                 Review and sync distributor pricing across the marketplace
-              </p>
-            </div>
-          </div>
+              </Text>
+            </Stack>
+          </Card>
 
           <DistiPriceSyncPanel />
         </main>
       </div>
 
       {/* Help Button */}
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon
+          aria-label="Help"
+          customFill="var(--mantine-color-blue-6)"
+          customBorder="1px solid var(--mantine-color-blue-7)"
+          style={{ color: 'white', boxShadow: 'var(--mantine-shadow-lg)' }}
+        >
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
     </div>
   );
 };

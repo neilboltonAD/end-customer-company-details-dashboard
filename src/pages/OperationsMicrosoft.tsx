@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Group } from '@mantine/core';
 import {
   Search,
   ChevronLeft,
@@ -15,101 +16,10 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react';
-import { TopNavbar } from '../components/navigation/TopNavbar';
 import { ExpandableSection } from '../components/layout/ExpandableSection';
-
-const OperationsSidebar = ({ activeItem }: { activeItem: string }) => {
-  const navigate = useNavigate();
-
-  const SidebarSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="mb-1">
-      <div className="bg-gray-100 border-y border-gray-200 px-4 py-2">
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h3>
-      </div>
-      <div>{children}</div>
-    </div>
-  );
-
-  const SidebarItem = ({
-    label,
-    active,
-    onClick,
-    className = '',
-  }: {
-    label: string;
-    active?: boolean;
-    onClick?: () => void;
-    className?: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2 text-sm transition-colors ${className} ${
-        active ? 'bg-teal-600 text-white' : 'text-gray-700 hover:bg-gray-50'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <aside className="w-56 bg-white min-h-[calc(100vh-56px)] border-r border-gray-200">
-      <SidebarSection title="OPERATIONS">
-        <SidebarItem label="Users" active={activeItem === 'Users'} onClick={() => navigate('/operations')} />
-        <SidebarItem label="Companies" active={activeItem === 'Companies'} onClick={() => navigate('/operations/companies')} />
-        <SidebarItem label="Pending Companies" active={activeItem === 'Pending Companies'} />
-        <SidebarItem label="Leads" active={activeItem === 'Leads'} />
-        <SidebarItem label="Quotes" active={activeItem === 'Quotes'} />
-      </SidebarSection>
-
-      <SidebarSection title="BILLING">
-        <SidebarItem label="Dashboard" active={activeItem === 'Dashboard'} />
-        <SidebarItem label="Purchases" active={activeItem === 'Purchases'} />
-        <SidebarItem label="Orders" active={activeItem === 'Orders'} />
-        <SidebarItem label="Invoices" active={activeItem === 'Invoices'} />
-        <SidebarItem label="Payments" active={activeItem === 'Payments'} />
-        <SidebarItem label="Metered Usage" active={activeItem === 'Metered Usage'} />
-      </SidebarSection>
-
-      <SidebarSection title="EVENTS">
-        <SidebarItem label="Event Logs" active={activeItem === 'Event Logs'} />
-        <SidebarItem label="App Usage Logs" active={activeItem === 'App Usage Logs'} />
-        <SidebarItem label="Admin Logs" active={activeItem === 'Admin Logs'} />
-      </SidebarSection>
-
-      <SidebarSection title="ADMIN TASKS">
-        <SidebarItem
-          label="Microsoft"
-          active={activeItem === 'Microsoft'}
-          onClick={() => navigate('/operations/microsoft')}
-        />
-        <SidebarItem
-          label="Reseller: PC Insights"
-          active={activeItem === 'Reseller: PC Insights'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/reseller')}
-        />
-        <SidebarItem
-          label="Reseller: P2P Transfers"
-          active={activeItem === 'Reseller: P2P Transfers'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/p2p')}
-        />
-        <SidebarItem
-          label="Reseller: Customer Onboarding"
-          active={activeItem === 'Reseller: Customer Onboarding'}
-          className="pl-8"
-          onClick={() => navigate('/operations/microsoft/onboarding')}
-        />
-        <SidebarItem
-          label="GDAP: Management"
-          active={activeItem === 'GDAP: Management'}
-          className="pl-12"
-          onClick={() => navigate('/operations/microsoft/onboarding/gdap')}
-        />
-      </SidebarSection>
-    </aside>
-  );
-};
+import { OperationsLayout } from '../components/layout/OperationsLayout';
+import { ActionIcon, Badge, Button, Card, Text, Title } from 'components/DesignSystem';
+import { Inline, Stack, TextInput } from 'components/DesignSystem';
 
 const customers = [
   { name: 'demoresellercustomer1', status: 'Enabled', subscriptions: 14, lastSync: '2h ago' },
@@ -233,52 +143,65 @@ const MetricCard = ({
   subtitle?: string;
   status?: 'good' | 'warning' | 'poor' | 'neutral';
 }) => {
-  const getStatusColor = () => {
+  const getStatusStyle = (): React.CSSProperties => {
     switch (status) {
-      case 'good': return 'border-green-200 bg-green-50';
-      case 'warning': return 'border-yellow-200 bg-yellow-50';
-      case 'poor': return 'border-red-200 bg-red-50';
-      default: return 'border-gray-200 bg-white';
+      case 'good':
+        return { backgroundColor: 'var(--mantine-color-green-0)', borderColor: 'var(--mantine-color-green-2)' };
+      case 'warning':
+        return { backgroundColor: 'var(--mantine-color-yellow-0)', borderColor: 'var(--mantine-color-yellow-2)' };
+      case 'poor':
+        return { backgroundColor: 'var(--mantine-color-red-0)', borderColor: 'var(--mantine-color-red-2)' };
+      default:
+        return { backgroundColor: 'var(--mantine-color-white)', borderColor: 'var(--mantine-color-gray-3)' };
     }
   };
 
   const getTrendIcon = () => {
     if (trend === undefined) return null;
-    if (trend > 0) return <TrendingUp className="w-3 h-3 text-green-600" />;
-    if (trend < 0) return <TrendingDown className="w-3 h-3 text-red-600" />;
-    return <Minus className="w-3 h-3 text-gray-600" />;
+    if (trend > 0) return <TrendingUp size={12} color="var(--mantine-color-green-6)" />;
+    if (trend < 0) return <TrendingDown size={12} color="var(--mantine-color-red-6)" />;
+  return <Minus size={12} style={{ color: 'var(--mantine-color-gray-6)' }} />;
   };
 
   const getTrendColor = () => {
     if (trend === undefined) return '';
-    if (trend > 0) return 'text-green-600';
-    if (trend < 0) return 'text-red-600';
-    return 'text-gray-600';
+    if (trend > 0) return 'var(--mantine-color-green-6)';
+    if (trend < 0) return 'var(--mantine-color-red-6)';
+    return 'var(--mantine-color-gray-6)';
   };
 
   return (
-    <div className={`border rounded-lg p-3 ${getStatusColor()}`}>
-      <div className="flex items-center space-x-3">
-        <div className="p-1.5 bg-blue-100 rounded-lg flex-shrink-0">
+    <Card style={getStatusStyle()} p="sm">
+      <Group gap="sm" wrap="nowrap" align="flex-start">
+        <div style={{ padding: 6, background: 'var(--mantine-color-blue-0)', borderRadius: 10, flexShrink: 0 }}>
           {icon}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-gray-600">{title}</div>
-          <div className="flex items-center space-x-2">
-            <span className="text-lg font-bold text-gray-900">{value}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Text size="xs" c="dimmed">
+            {title}
+          </Text>
+          <Group gap="xs" wrap="nowrap">
+            <Text fw={800} size="lg">
+              {value}
+            </Text>
             {trend !== undefined && (
-              <div className="flex items-center space-x-0.5">
+              <Group gap={4} wrap="nowrap">
                 {getTrendIcon()}
-                <span className={`text-xs font-medium ${getTrendColor()}`}>
-                  {trend > 0 ? '+' : ''}{trend}%
-                </span>
-              </div>
+                <Text size="xs" fw={700} style={{ color: getTrendColor() }}>
+                  {trend > 0 ? '+' : ''}
+                  {trend}%
+                </Text>
+              </Group>
             )}
-          </div>
-          {subtitle && <div className="text-xs text-gray-500">{subtitle}</div>}
+          </Group>
+          {subtitle && (
+            <Text size="xs" c="dimmed">
+              {subtitle}
+            </Text>
+          )}
         </div>
-      </div>
-    </div>
+      </Group>
+    </Card>
   );
 };
 
@@ -308,114 +231,115 @@ export const OperationsMicrosoft = () => {
   const activeUsers = Math.round(totalAssigned * 0.86);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <TopNavbar />
+    <OperationsLayout>
+      <main>
+        <Inline gap="xs" align="center" wrap="nowrap">
+          <Button variant="link" onClick={() => navigate('/operations/companies')}>
+            Companies
+          </Button>
+          <Text size="sm" c="dimmed">/</Text>
+          <Text size="sm">Microsoft</Text>
+          <Text size="sm" c="dimmed">/</Text>
+          <Text size="sm">Reseller: PC Insights</Text>
+        </Inline>
 
-      <div className="flex">
-        <OperationsSidebar activeItem="Reseller: PC Insights" />
-
-        <main className="flex-1 p-6">
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <button onClick={() => navigate('/operations/companies')} className="hover:text-teal-600">
-              Companies
-            </button>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">Microsoft</span>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">Reseller: PC Insights</span>
-          </div>
-
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">Reseller: PC Insights</h1>
-                <p className="text-sm text-gray-500">Marketplace-wide Microsoft tools and subscription insights</p>
-              </div>
+        <Card>
+          <Group justify="space-between" align="flex-start">
+            <div>
+              <Title order={2} fw={600}>
+                Reseller: PC Insights
+              </Title>
+              <Text c="dimmed" size="sm">
+                Marketplace-wide Microsoft tools and subscription insights
+              </Text>
             </div>
-          </div>
+          </Group>
+        </Card>
 
-          <div className="bg-white rounded shadow p-4 mb-4">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">Overview</h2>
-                <p className="text-sm text-gray-500">Performance across all customers and subscriptions</p>
-              </div>
-              <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                  attentionCount > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                }`}
-              >
-                {attentionCount > 0 ? `${attentionCount} attention needed` : 'Healthy'}
-              </span>
+        <Card>
+          <Group justify="space-between" align="flex-start" mb="sm">
+            <div>
+              <Title order={4}>Overview</Title>
+              <Text c="dimmed" size="sm">
+                Performance across all customers and subscriptions
+              </Text>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Badge size="sm" color={attentionCount > 0 ? 'pending' : 'success'} variant="outline">
+              {attentionCount > 0 ? `${attentionCount} attention needed` : 'Healthy'}
+            </Badge>
+          </Group>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 12,
+            }}
+          >
               <MetricCard
                 title="Total Seats"
                 value={totalSeats}
                 trend={5.2}
-                icon={<Users className="w-4 h-4 text-blue-600" />}
+                icon={<Users size={16} color="var(--mantine-color-blue-6)" />}
                 status="good"
               />
               <MetricCard
                 title="Assigned Seats"
                 value={totalAssigned}
                 subtitle={`${assignmentRate}% deployed`}
-                icon={<Package className="w-4 h-4 text-blue-600" />}
+                icon={<Package size={16} color="var(--mantine-color-blue-6)" />}
                 status={assignmentRate >= 85 ? 'good' : 'warning'}
               />
               <MetricCard
                 title="Active Users (28d)"
                 value={activeUsers}
                 trend={-2.3}
-                icon={<Activity className="w-4 h-4 text-blue-600" />}
+                icon={<Activity size={16} color="var(--mantine-color-blue-6)" />}
                 status="warning"
               />
               <MetricCard
                 title="Monthly Revenue"
                 value={`$${totalRevenue.toLocaleString()}`}
                 trend={8.7}
-                icon={<DollarSign className="w-4 h-4 text-blue-600" />}
+                icon={<DollarSign size={16} color="var(--mantine-color-blue-6)" />}
                 status="good"
               />
             </div>
-            <div className="text-xs text-gray-500 mt-3">
-              {customers.length} customers • {totalSubscriptions} subscriptions • {totalProducts} product types
-            </div>
-          </div>
+          <Text size="xs" c="dimmed" mt="sm">
+            {customers.length} customers • {totalSubscriptions} subscriptions • {totalProducts} product types
+          </Text>
+        </Card>
 
           <ExpandableSection
             title="By Customer"
             defaultOpen
-            className="mb-4"
             helpContent="Summary of all reseller customers and their Microsoft subscription activity."
           >
-            <div className="flex items-center justify-between mb-3">
+            <Inline justify="space-between" mb="sm" wrap="wrap">
               <div>
-                <div className="text-xs text-gray-500">Summary</div>
-                <div className="text-sm text-gray-700">
+                <Text size="xs" c="dimmed">
+                  Summary
+                </Text>
+                <Text size="sm" c="dimmed">
                   {customers.length} customers • {customers.reduce((sum, c) => sum + c.subscriptions, 0)} subscriptions
-                </div>
+                </Text>
               </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search customers"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 pl-3 pr-10 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
+              <TextInput
+                placeholder="Search customers"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                leftSection={<Search size={16} />}
+                w={300}
+              />
+            </Inline>
 
-            <div className="bg-white rounded shadow">
-              <table className="w-full">
+            <Card>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500">Customer</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500">Subscriptions</th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500">Last Sync</th>
+                  <tr style={{ borderBottom: '1px solid var(--mantine-color-gray-2)', background: 'var(--mantine-color-gray-0)' }}>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, color: 'var(--mantine-color-gray-6)' }}>Customer</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, color: 'var(--mantine-color-gray-6)' }}>Status</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, color: 'var(--mantine-color-gray-6)' }}>Subscriptions</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, color: 'var(--mantine-color-gray-6)' }}>Last Sync</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -425,61 +349,80 @@ export const OperationsMicrosoft = () => {
 
                     return (
                       <React.Fragment key={customer.name}>
-                        <tr className="border-b border-gray-100">
-                          <td className="py-3 px-4 text-sm text-gray-900">
+                        <tr style={{ borderBottom: '1px solid var(--mantine-color-gray-1)' }}>
+                          <td style={{ padding: '12px 16px', fontSize: 14 }}>
                             <button
                               onClick={() => setExpandedCustomer(isExpanded ? null : customer.name)}
-                              className="flex items-center gap-2 text-teal-700 hover:underline"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                color: 'var(--mantine-color-blue-7)',
+                                background: 'transparent',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                              }}
                             >
                               {isExpanded ? (
-                                <ChevronUp className="h-4 w-4 text-gray-500" />
+                                <ChevronUp size={16} style={{ color: 'var(--mantine-color-gray-6)' }} />
                               ) : (
-                                <ChevronDown className="h-4 w-4 text-gray-500" />
+                                <ChevronDown size={16} style={{ color: 'var(--mantine-color-gray-6)' }} />
                               )}
-                              {customer.name}
+                              <span style={{ color: 'var(--mantine-color-gray-9)', fontWeight: 600 }}>{customer.name}</span>
                             </button>
                           </td>
-                          <td className="py-3 px-4 text-sm">
-                            <span
-                              className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                customer.status === 'Enabled' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                              }`}
+                          <td style={{ padding: '12px 16px' }}>
+                            <Badge
+                              size="sm"
+                              variant="outline"
+                              color={customer.status === 'Enabled' ? 'success' : 'pending'}
                             >
                               {customer.status}
-                            </span>
+                            </Badge>
                           </td>
-                          <td className="py-3 px-4 text-sm text-gray-700">{customer.subscriptions}</td>
-                          <td className="py-3 px-4 text-sm text-gray-600">{customer.lastSync}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <Text size="sm" c="dimmed">
+                              {customer.subscriptions}
+                            </Text>
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <Text size="sm" c="dimmed">
+                              {customer.lastSync}
+                            </Text>
+                          </td>
                         </tr>
                         {isExpanded && (
-                          <tr className="bg-gray-50">
-                            <td colSpan={4} className="p-3">
-                              <div className="text-xs text-gray-500 mb-2">Subscriptions by product type</div>
-                              <div className="space-y-2">
+                          <tr style={{ background: 'var(--mantine-color-gray-0)' }}>
+                            <td colSpan={4} style={{ padding: 12 }}>
+                              <Text size="xs" c="dimmed" mb="xs">
+                                Subscriptions by product type
+                              </Text>
+                              <Stack gap="xs">
                                 {products.map((product) => (
-                                  <div key={product.product} className="border border-gray-200 rounded p-3 bg-white">
-                                    <div className="flex items-center justify-between">
+                                  <Card key={product.product}>
+                                    <Inline justify="space-between" wrap="nowrap">
                                       <div>
-                                        <div className="text-sm font-semibold text-gray-800">{product.product}</div>
-                                        <div className="text-xs text-gray-500">
+                                        <Text fw={700} size="sm">
+                                          {product.product}
+                                        </Text>
+                                        <Text size="xs" c="dimmed">
                                           {product.subscriptions} subscriptions • {product.totalSeats} seats • {product.assignedSeats} assigned (
                                           {product.totalSeats ? Math.round((product.assignedSeats / product.totalSeats) * 100) : 0}%)
-                                        </div>
+                                        </Text>
                                       </div>
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                            product.status === 'Healthy' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                          }`}
-                                        >
+                                      <Inline gap="xs" wrap="nowrap">
+                                        <Badge color={product.status === 'Healthy' ? 'success' : 'pending'} variant="filled" size="sm">
                                           {product.status}
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-800">${product.revenue.toLocaleString()}/mo</span>
-                                      </div>
-                                    </div>
-                                  </div>
+                                        </Badge>
+                                        <Text fw={700} size="sm">
+                                          ${product.revenue.toLocaleString()}/mo
+                                        </Text>
+                                      </Inline>
+                                    </Inline>
+                                  </Card>
                                 ))}
-                              </div>
+                              </Stack>
                             </td>
                           </tr>
                         )}
@@ -490,35 +433,35 @@ export const OperationsMicrosoft = () => {
               </table>
 
               {totalPages > 1 && (
-                <div className="p-4 border-t border-gray-200 flex items-center justify-end space-x-4">
-                  <span className="text-sm text-gray-600">
+                <Inline justify="flex-end" align="center" gap="md" style={{ paddingTop: 12, borderTop: '1px solid var(--mantine-color-gray-2)' }}>
+                  <Text size="sm" c="dimmed">
                     {pageStart + 1}-{Math.min(pageEnd, filteredCustomers.length)} of {filteredCustomers.length}
-                  </span>
-                  <div className="flex items-center space-x-1">
-                    <button
-                      className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                  </Text>
+                  <Inline gap="xs" align="center" wrap="nowrap">
+                    <ActionIcon
+                      aria-label="Previous page"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(currentPage - 1)}
                     >
-                      <ChevronLeft className="h-5 w-5 text-gray-600" />
-                    </button>
-                    <input
-                      type="text"
-                      value={currentPage}
-                      onChange={(e) => setCurrentPage(Number(e.target.value) || 1)}
-                      className="w-8 text-center py-1 text-sm border border-gray-300 rounded"
+                      <ChevronLeft size={18} />
+                    </ActionIcon>
+                    <TextInput
+                      value={String(currentPage)}
+                      onChange={(e) => setCurrentPage(Number(e.currentTarget.value) || 1)}
+                      w={72}
+                      styles={{ input: { textAlign: 'center' } }}
                     />
-                    <button
-                      className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+                    <ActionIcon
+                      aria-label="Next page"
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(currentPage + 1)}
                     >
-                      <ChevronRight className="h-5 w-5 text-gray-600" />
-                    </button>
-                  </div>
-                </div>
+                      <ChevronRight size={18} />
+                    </ActionIcon>
+                  </Inline>
+                </Inline>
               )}
-            </div>
+            </Card>
           </ExpandableSection>
 
           <ExpandableSection
@@ -526,8 +469,10 @@ export const OperationsMicrosoft = () => {
             defaultOpen
             helpContent="Roll-up view of Microsoft subscription insights grouped by product type."
           >
-            <div className="text-xs text-gray-500 mb-3">Product types</div>
-            <div className="space-y-2">
+            <Text size="xs" c="dimmed" mb="sm">
+              Product types
+            </Text>
+            <Stack gap="sm">
               {productTypeSummaries.map((product) => {
                 const customersForProduct = (productTypeCustomers[product.name] || [])
                   .slice()
@@ -537,77 +482,107 @@ export const OperationsMicrosoft = () => {
                   <ExpandableSection
                     key={product.name}
                     title={
-                      <div className="flex items-center justify-between w-full">
+                      <Inline justify="space-between" wrap="nowrap" style={{ width: '100%' }}>
                         <div>
-                          <div className="text-sm font-semibold text-gray-800">{product.name}</div>
-                          <div className="text-xs text-gray-500">{product.subscriptions} subscriptions</div>
-                          <div className="text-xs text-gray-500">
+                          <Text fw={700} size="sm">
+                            {product.name}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {product.subscriptions} subscriptions
+                          </Text>
+                          <Text size="xs" c="dimmed">
                             {product.totalSeats} seats • {product.assignedSeats} assigned (
                             {product.totalSeats ? Math.round((product.assignedSeats / product.totalSeats) * 100) : 0}%)
-                          </div>
+                          </Text>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                              product.status === 'Healthy' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                            }`}
-                          >
+                        <Inline gap="xs" wrap="nowrap">
+                          <Badge color={product.status === 'Healthy' ? 'success' : 'pending'} variant="filled" size="sm">
                             {product.status}
-                          </span>
-                          <span className="text-sm font-semibold text-gray-800">${product.revenue.toLocaleString()}/mo</span>
-                        </div>
-                      </div>
+                          </Badge>
+                          <Text fw={700} size="sm">
+                            ${product.revenue.toLocaleString()}/mo
+                          </Text>
+                        </Inline>
+                      </Inline>
                     }
-                    className="mb-2"
                   >
-                    <div className="border border-gray-200 rounded bg-white">
-                      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50 text-xs text-gray-500">
-                        <span>Customer</span>
-                        <div className="flex items-center gap-6">
+                    <Card>
+                      <Inline justify="space-between" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', paddingBottom: 10, marginBottom: 10 }}>
+                        <Text size="xs" c="dimmed">
+                          Customer
+                        </Text>
+                        <Inline gap="xl">
                           <button
-                            className={`inline-flex items-center gap-1 ${
-                              productSort === 'seats' ? 'text-gray-900' : 'text-gray-500'
-                            }`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              color: productSort === 'seats' ? 'var(--mantine-color-gray-9)' : 'var(--mantine-color-gray-6)',
+                            }}
                             onClick={() => setProductSort('seats')}
                           >
                             Seats
-                            <ChevronDown className={`h-3 w-3 ${productSort === 'seats' ? 'opacity-100' : 'opacity-40'}`} />
+                            <ChevronDown size={12} style={{ opacity: productSort === 'seats' ? 1 : 0.4 }} />
                           </button>
                           <button
-                            className={`inline-flex items-center gap-1 ${
-                              productSort === 'value' ? 'text-gray-900' : 'text-gray-500'
-                            }`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              color: productSort === 'value' ? 'var(--mantine-color-gray-9)' : 'var(--mantine-color-gray-6)',
+                            }}
                             onClick={() => setProductSort('value')}
                           >
                             Value
-                            <ChevronDown className={`h-3 w-3 ${productSort === 'value' ? 'opacity-100' : 'opacity-40'}`} />
+                            <ChevronDown size={12} style={{ opacity: productSort === 'value' ? 1 : 0.4 }} />
                           </button>
-                        </div>
-                      </div>
-                      <div className="divide-y divide-gray-100">
+                        </Inline>
+                      </Inline>
+
+                      <Stack gap="xs">
                         {customersForProduct.map((item) => (
-                          <div key={item.customer} className="flex items-center justify-between px-3 py-2">
-                            <div className="text-sm text-gray-900">{item.customer}</div>
-                            <div className="flex items-center gap-6 text-sm text-gray-700">
-                              <span>{item.seats}</span>
-                              <span>${item.value.toLocaleString()}/mo</span>
-                            </div>
-                          </div>
+                          <Inline key={item.customer} justify="space-between" wrap="nowrap">
+                            <Text size="sm">{item.customer}</Text>
+                            <Inline gap="xl" wrap="nowrap">
+                              <Text size="sm" c="dimmed">
+                                {item.seats}
+                              </Text>
+                              <Text size="sm" c="dimmed">
+                                ${item.value.toLocaleString()}/mo
+                              </Text>
+                            </Inline>
+                          </Inline>
                         ))}
-                      </div>
-                    </div>
+                      </Stack>
+                    </Card>
                   </ExpandableSection>
                 );
               })}
-            </div>
+            </Stack>
           </ExpandableSection>
 
-        </main>
-      </div>
+      </main>
 
-      <button className="fixed bottom-6 right-6 h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700">
-        <HelpCircle className="h-5 w-5" />
-      </button>
-    </div>
+      <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
+        <ActionIcon
+          aria-label="Help"
+          customFill="var(--mantine-color-blue-6)"
+          customBorder="1px solid var(--mantine-color-blue-7)"
+          style={{ color: 'white', boxShadow: 'var(--mantine-shadow-lg)' }}
+        >
+          <HelpCircle size={18} />
+        </ActionIcon>
+      </div>
+    </OperationsLayout>
   );
 };

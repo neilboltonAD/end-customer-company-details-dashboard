@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExpandableSection } from '../layout/ExpandableSection';
-import { TrendingUp, TrendingDown, Minus, DollarSign, Users, Package, Activity, Calendar, X, Edit2, RotateCcw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, DollarSign, Users, Package, Activity, Calendar, Edit2, RotateCcw } from 'lucide-react';
+import { ActionIcon, Badge, Button, Card, ConfirmationModal, Inline, Modal, Progress, Stack, Text, TextInput, Title } from 'components/DesignSystem';
 
 interface MetricCardProps {
   title: string;
@@ -14,52 +15,75 @@ interface MetricCardProps {
 
 // Compact horizontal metric card
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, trend, trendLabel, icon, subtitle, status = 'neutral' }) => {
-  const getStatusColor = () => {
-    switch (status) {
-      case 'good': return 'border-green-200 bg-green-50';
-      case 'warning': return 'border-yellow-200 bg-yellow-50';
-      case 'poor': return 'border-red-200 bg-red-50';
-      default: return 'border-gray-200 bg-white';
-    }
-  };
-
   const getTrendIcon = () => {
     if (trend === undefined) return null;
-    if (trend > 0) return <TrendingUp className="w-3 h-3 text-green-600" />;
-    if (trend < 0) return <TrendingDown className="w-3 h-3 text-red-600" />;
-    return <Minus className="w-3 h-3 text-gray-600" />;
+    if (trend > 0) return <TrendingUp size={14} color="var(--mantine-color-green-6)" />;
+    if (trend < 0) return <TrendingDown size={14} color="var(--mantine-color-red-6)" />;
+    return <Minus size={14} color="var(--mantine-color-gray-6)" />;
   };
 
   const getTrendColor = () => {
     if (trend === undefined) return '';
-    if (trend > 0) return 'text-green-600';
-    if (trend < 0) return 'text-red-600';
-    return 'text-gray-600';
+    if (trend > 0) return 'var(--mantine-color-green-6)';
+    if (trend < 0) return 'var(--mantine-color-red-6)';
+    return 'var(--mantine-color-gray-6)';
+  };
+
+  const getStatusBadge = () => {
+    switch (status) {
+      case 'good':
+        return <Badge color="success" variant="outline">Good</Badge>;
+      case 'warning':
+        return <Badge color="pending" variant="outline">Monitor</Badge>;
+      case 'poor':
+        return <Badge color="danger" variant="outline">Risk</Badge>;
+      default:
+        return <Badge color="default" variant="outline">Info</Badge>;
+    }
   };
 
   return (
-    <div className={`border rounded-lg p-3 ${getStatusColor()}`}>
-      <div className="flex items-center space-x-3">
-        <div className="p-1.5 bg-blue-100 rounded-lg flex-shrink-0">
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-gray-600">{title}</div>
-          <div className="flex items-center space-x-2">
-            <span className="text-lg font-bold text-gray-900">{value}</span>
-            {trend !== undefined && (
-              <div className="flex items-center space-x-0.5">
-                {getTrendIcon()}
-                <span className={`text-xs font-medium ${getTrendColor()}`}>
-                  {trend > 0 ? '+' : ''}{trend}%
-                </span>
-              </div>
-            )}
+    <Card>
+      <Inline justify="space-between" align="flex-start" wrap="nowrap">
+        <Inline gap="sm" align="flex-start" wrap="nowrap">
+          <div style={{ padding: 8, background: 'var(--mantine-color-blue-1)', borderRadius: 8, flexShrink: 0 }}>
+            {icon}
           </div>
-          {subtitle && <div className="text-xs text-gray-500">{subtitle}</div>}
-        </div>
-      </div>
-    </div>
+          <Stack gap={2}>
+            <Inline gap="xs">
+              <Text size="sm" c="dimmed">
+                {title}
+              </Text>
+              {getStatusBadge()}
+            </Inline>
+            <Inline gap="sm" align="baseline">
+              <Title order={4} fw={800} m={0}>
+                {value}
+              </Title>
+              {trend !== undefined && (
+                <Inline gap={4} align="center" wrap="nowrap">
+                  {getTrendIcon()}
+                  <Text size="sm" fw={700} style={{ color: getTrendColor() }}>
+                    {trend > 0 ? '+' : ''}
+                    {trend}%
+                  </Text>
+                  {trendLabel && (
+                    <Text size="sm" c="dimmed">
+                      {trendLabel}
+                    </Text>
+                  )}
+                </Inline>
+              )}
+            </Inline>
+            {subtitle && (
+              <Text size="sm" c="dimmed">
+                {subtitle}
+              </Text>
+            )}
+          </Stack>
+        </Inline>
+      </Inline>
+    </Card>
   );
 };
 
@@ -85,41 +109,44 @@ const RevertConfirmModal: React.FC<{
   currentName: string;
   originalName: string;
 }> = ({ open, onClose, onConfirm, currentName, originalName }) => {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-5">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Revert Subscription Name?</h3>
-        <p className="text-sm text-gray-600 mb-4">
+    <ConfirmationModal
+      opened={open}
+      onClose={onClose}
+      title="Revert Subscription Name?"
+      confirmLabel="Revert"
+      cancelLabel="Cancel"
+      confirmVariant="danger"
+      onConfirm={onConfirm}
+      onCancel={onClose}
+      size="sm"
+    >
+      <Stack gap="sm">
+        <Text size="sm" c="dimmed">
           Are you sure you want to revert the subscription nickname back to the original name?
-        </p>
-        <div className="bg-gray-50 rounded p-3 mb-4 text-sm">
-          <div className="flex justify-between mb-1">
-            <span className="text-gray-500">Current:</span>
-            <span className="font-medium text-gray-800">{currentName}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Original:</span>
-            <span className="font-medium text-gray-800">{originalName}</span>
-          </div>
-        </div>
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-3 py-1.5 text-sm rounded bg-orange-500 text-white hover:bg-orange-600"
-          >
-            Revert
-          </button>
-        </div>
-      </div>
-    </div>
+        </Text>
+        <Card>
+          <Stack gap={6}>
+            <Inline justify="space-between">
+              <Text size="sm" c="dimmed">
+                Current
+              </Text>
+              <Text size="sm" fw={700}>
+                {currentName}
+              </Text>
+            </Inline>
+            <Inline justify="space-between">
+              <Text size="sm" c="dimmed">
+                Original
+              </Text>
+              <Text size="sm" fw={700}>
+                {originalName}
+              </Text>
+            </Inline>
+          </Stack>
+        </Card>
+      </Stack>
+    </ConfirmationModal>
   );
 };
 
@@ -146,11 +173,23 @@ const SubscriptionRow: React.FC<{
   const getStatusBadge = () => {
     switch (subscription.status) {
       case 'active':
-        return <span className="text-xs font-bold uppercase text-green-700 bg-green-100 rounded px-1.5 py-0.5">Active</span>;
+        return (
+          <Badge color="success" variant="outline">
+            Active
+          </Badge>
+        );
       case 'suspended':
-        return <span className="text-xs font-bold uppercase text-yellow-700 bg-yellow-100 rounded px-1.5 py-0.5">Suspended</span>;
+        return (
+          <Badge color="pending" variant="outline">
+            Suspended
+          </Badge>
+        );
       case 'expired':
-        return <span className="text-xs font-bold uppercase text-red-700 bg-red-100 rounded px-1.5 py-0.5">Expired</span>;
+        return (
+          <Badge color="danger" variant="outline">
+            Expired
+          </Badge>
+        );
     }
   };
 
@@ -160,57 +199,69 @@ const SubscriptionRow: React.FC<{
   };
 
   const ChangeButton = ({ onClick }: { onClick?: () => void }) => (
-    <button 
-      onClick={onClick}
-      className="px-1.5 py-0.5 text-xs text-blue-600 border border-blue-300 rounded hover:bg-blue-50"
-    >
+    <Button variant="link" size="xs" onClick={onClick}>
       Change
-    </button>
+    </Button>
   );
 
   return (
-    <div className="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between">
+    <Card interactive>
+      <Inline justify="space-between" align="flex-start" wrap="nowrap">
         {/* Left side - Product info */}
-        <div className="flex-1 min-w-0 pr-4">
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
           {/* Product name and editable subscription name */}
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-1">
-            <div className="flex items-center space-x-2">
-              <h4 className="font-semibold text-gray-800 text-sm">{subscription.productName}</h4>
-              {getStatusBadge()}
-            </div>
+          <Inline gap="sm" style={{ marginBottom: 6 }}>
+            <Title order={5} fw={700} m={0}>
+              {subscription.productName}
+            </Title>
+            {getStatusBadge()}
             
             {/* Editable Subscription Name/Nickname */}
-            <div className="flex items-center">
+            <div>
               {isEditing ? (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
+                <Inline gap="xs" align="center">
+                  <TextInput
                     value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="text-xs text-gray-700 border border-blue-300 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500 w-40"
+                    onChange={(e) => setEditName(e.currentTarget.value)}
+                    size="xs"
+                    w={240}
                     autoFocus
                   />
-                  <button onClick={handleSaveName} className="text-xs text-blue-600 hover:underline">Save</button>
-                  <button onClick={() => { setIsEditing(false); setEditName(subscription.displayName); }} className="text-xs text-gray-500 hover:underline">Cancel</button>
-                </div>
+                  <Button variant="link" size="xs" onClick={handleSaveName}>
+                    Save
+                  </Button>
+                  <Button
+                    variant="link"
+                    size="xs"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditName(subscription.displayName);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Inline>
               ) : (
-                <div className="flex items-center space-x-1 bg-gray-100 rounded px-2 py-0.5">
-                  <span className="text-xs text-gray-500">{isCustomName ? 'Subscription Nickname:' : 'Subscription Name:'}</span>
-                  <span className="text-xs text-gray-700 font-medium">{subscription.displayName}</span>
-                  <button onClick={() => setIsEditing(true)} className="text-gray-400 hover:text-blue-600 ml-1">
-                    <Edit2 className="w-3 h-3" />
-                  </button>
+                <Inline gap="xs" align="center">
+                  <Text size="sm" c="dimmed">
+                    {isCustomName ? 'Nickname:' : 'Name:'}
+                  </Text>
+                  <Text size="sm" fw={700}>
+                    {subscription.displayName}
+                  </Text>
+                  <ActionIcon size="xs" onClick={() => setIsEditing(true)} aria-label="Edit nickname">
+                    <Edit2 size={14} />
+                  </ActionIcon>
                   {isCustomName && (
-                    <button 
-                      onClick={() => setShowRevertConfirm(true)} 
-                      className="text-gray-400 hover:text-orange-600 ml-0.5"
-                      title="Revert to original name"
+                    <ActionIcon
+                      size="xs"
+                      onClick={() => setShowRevertConfirm(true)}
+                      aria-label="Revert to original name"
                     >
-                      <RotateCcw className="w-3 h-3" />
-                    </button>
+                      <RotateCcw size={14} />
+                    </ActionIcon>
                   )}
-                </div>
+                </Inline>
               )}
             </div>
             
@@ -222,65 +273,69 @@ const SubscriptionRow: React.FC<{
               currentName={subscription.displayName}
               originalName={subscription.sku}
             />
-          </div>
+          </Inline>
           
           {/* Renewal with Change button */}
           {subscription.renewalDate && (
-            <div className="flex items-center space-x-2 text-xs text-gray-600">
-              <span>Renewal: {subscription.renewalDate}</span>
+            <Inline gap="xs">
+              <Text size="sm" c="dimmed">
+                Renewal: {subscription.renewalDate}
+              </Text>
               <ChangeButton />
-            </div>
+            </Inline>
           )}
           
           {/* Revenue */}
-          <div className="mt-2">
-            <span className="text-sm font-bold text-gray-900">${subscription.revenue.toLocaleString()}</span>
-            <span className="text-xs text-gray-500 ml-1">/mo</span>
-          </div>
+          <Inline gap={6} mt="xs">
+            <Text fw={800}>${subscription.revenue.toLocaleString()}</Text>
+            <Text size="sm" c="dimmed">
+              /mo
+            </Text>
+          </Inline>
         </div>
 
         {/* Right side - Metrics as compact list with progress bars */}
-        <div className="w-64 space-y-1.5 border-l border-gray-200 pl-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-600">Total Seats</span>
-            <div className="flex items-center space-x-1.5">
-              <span className="text-sm font-semibold text-gray-900">{subscription.seats}</span>
-              <ChangeButton />
-            </div>
-          </div>
+        <div style={{ width: 300, borderLeft: '1px solid var(--mantine-color-gray-3)', paddingLeft: 16 }}>
+          <Stack gap={8}>
+            <Inline justify="space-between" align="center">
+              <Text size="sm" c="dimmed">
+                Total Seats
+              </Text>
+              <Inline gap="xs" align="center">
+                <Text fw={800}>{subscription.seats}</Text>
+                <ChangeButton />
+              </Inline>
+            </Inline>
           
           {/* Assigned with progress bar */}
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500 w-14">Assigned</span>
-            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-              <div 
-                className={`h-1.5 rounded-full ${
-                  deploymentPercentage >= 90 ? 'bg-green-500' : 
-                  deploymentPercentage >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${deploymentPercentage}%` }}
-              ></div>
-            </div>
-            <span className="text-xs text-gray-600 w-20 text-right">{subscription.assignedSeats} ({deploymentPercentage.toFixed(0)}%)</span>
-          </div>
+            <Stack gap={4}>
+              <Inline justify="space-between">
+                <Text size="sm" c="dimmed">
+                  Assigned
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {subscription.assignedSeats} ({deploymentPercentage.toFixed(0)}%)
+                </Text>
+              </Inline>
+              <Progress value={Math.min(100, Math.max(0, deploymentPercentage))} size="xs" />
+            </Stack>
           
           {/* Active Users with progress bar */}
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500 w-14">Active</span>
-            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-              <div 
-                className={`h-1.5 rounded-full ${
-                  usagePercentage >= 80 ? 'bg-green-500' : 
-                  usagePercentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${usagePercentage}%` }}
-              ></div>
-            </div>
-            <span className="text-xs text-gray-600 w-20 text-right">{subscription.activeUsers} ({usagePercentage.toFixed(0)}%)</span>
-          </div>
+            <Stack gap={4}>
+              <Inline justify="space-between">
+                <Text size="sm" c="dimmed">
+                  Active
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {subscription.activeUsers} ({usagePercentage.toFixed(0)}%)
+                </Text>
+              </Inline>
+              <Progress value={Math.min(100, Math.max(0, usagePercentage))} size="xs" />
+            </Stack>
+          </Stack>
         </div>
-      </div>
-    </div>
+      </Inline>
+    </Card>
   );
 };
 
@@ -292,8 +347,6 @@ const AllSubscriptionsModal: React.FC<{
 }> = ({ open, onClose, subscriptions }) => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  if (!open) return null;
-
   // Group subscriptions by productName (Offer/Edition)
   const groupedSubscriptions = subscriptions.reduce((acc, sub) => {
     if (!acc[sub.productName]) {
@@ -302,14 +355,6 @@ const AllSubscriptionsModal: React.FC<{
     acc[sub.productName].push(sub);
     return acc;
   }, {} as Record<string, SubscriptionData[]>);
-
-  const getTermTypeColor = (termType: string) => {
-    if (termType.includes('Triannual')) return 'bg-purple-100 text-purple-700 border-purple-200';
-    if (termType.includes('Annual') && termType.includes('Up Front')) return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (termType.includes('Annual') && termType.includes('Monthly')) return 'bg-sky-50 text-sky-700 border-sky-200';
-    if (termType.includes('Monthly')) return 'bg-green-100 text-green-700 border-green-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
-  };
 
   // Calculate churn risk based on usage/assignment
   const getChurnRisk = (sub: SubscriptionData) => {
@@ -324,9 +369,9 @@ const AllSubscriptionsModal: React.FC<{
   const getChurnRiskBadge = (risk: string) => {
     switch (risk) {
       case 'high':
-        return <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">⚠ High Churn Risk</span>;
+        return <Badge size="xs" color="danger" variant="outline">⚠ High Churn Risk</Badge>;
       case 'medium':
-        return <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">⚡ Monitor</span>;
+        return <Badge size="xs" color="pending" variant="outline">⚡ Monitor</Badge>;
       default:
         return null;
     }
@@ -355,50 +400,75 @@ const AllSubscriptionsModal: React.FC<{
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-3 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Microsoft Subscription Summary</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div className="p-3 overflow-y-auto max-h-[calc(90vh-100px)]">
-          <div className="space-y-2">
+    <Modal
+      opened={open}
+      onClose={onClose}
+      title="Microsoft Subscription Summary"
+      size="xl"
+      actions={[
+        {
+          id: 'close',
+          label: 'Close',
+          variant: 'outline',
+          closeOnClick: true,
+        },
+      ]}
+    >
+      <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        <Stack gap="xs">
             {Object.entries(groupedSubscriptions).map(([productName, subs]) => {
               const isExpanded = expandedGroups.has(productName);
               const totals = getGroupTotals(subs);
               const assignmentRate = ((totals.totalAssigned / totals.totalSeats) * 100).toFixed(0);
               
               return (
-                <div key={productName} className="border border-gray-200 rounded-lg overflow-hidden">
+                <Card key={productName} style={{ padding: 0, overflow: 'hidden' }}>
                   {/* Group Header */}
                   <button
                     onClick={() => toggleGroup(productName)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      background: 'var(--mantine-color-gray-0)',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-semibold text-gray-800">{productName}</span>
-                      <span className="text-xs text-gray-500">({subs.length} subscription{subs.length > 1 ? 's' : ''})</span>
+                    <Inline gap="sm" align="center" wrap="nowrap">
+                      <Text fw={800} size="sm">{productName}</Text>
+                      <Text size="xs" c="dimmed">({subs.length} subscription{subs.length > 1 ? 's' : ''})</Text>
                       {totals.hasChurnRisk && (
-                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-red-50 text-red-600">⚠ Attention needed</span>
+                        <Badge size="xs" color="danger" variant="outline">⚠ Attention needed</Badge>
                       )}
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="text-xs text-gray-500">{totals.totalSeats} seats • {assignmentRate}% assigned</div>
-                        <div className="text-sm font-semibold text-gray-800">${totals.totalRevenue.toLocaleString()}/mo</div>
+                    </Inline>
+                    <Inline gap="md" align="center" wrap="nowrap">
+                      <div style={{ textAlign: 'right' }}>
+                        <Text size="xs" c="dimmed">{totals.totalSeats} seats • {assignmentRate}% assigned</Text>
+                        <Text size="sm" fw={800}>${totals.totalRevenue.toLocaleString()}/mo</Text>
                       </div>
-                      <svg className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        width="16"
+                        height="16"
+                        style={{
+                          color: 'var(--mantine-color-gray-6)',
+                          transform: isExpanded ? 'rotate(180deg)' : undefined,
+                          transition: 'transform 120ms ease',
+                        }}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                    </div>
+                    </Inline>
                   </button>
                   
                   {/* Expanded Subscriptions */}
                   {isExpanded && (
-                    <div className="border-t border-gray-200">
+                    <div style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}>
                       {subs.map((sub, idx) => {
                         const churnRisk = getChurnRisk(sub);
                         const assignRate = ((sub.assignedSeats / sub.seats) * 100).toFixed(0);
@@ -407,79 +477,78 @@ const AllSubscriptionsModal: React.FC<{
                         return (
                           <div 
                             key={sub.id} 
-                            className={`px-3 py-2 ${idx > 0 ? 'border-t border-gray-100' : ''} ${churnRisk === 'high' ? 'bg-red-50' : churnRisk === 'medium' ? 'bg-yellow-50' : 'bg-white'}`}
+                            style={{
+                              padding: '10px 12px',
+                              borderTop: idx > 0 ? '1px solid var(--mantine-color-gray-1)' : undefined,
+                              background:
+                                churnRisk === 'high'
+                                  ? 'var(--mantine-color-red-0)'
+                                  : churnRisk === 'medium'
+                                  ? 'var(--mantine-color-yellow-0)'
+                                  : 'white',
+                            }}
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded border ${getTermTypeColor(sub.termType)}`}>
+                            <Inline justify="space-between" align="flex-start" wrap="nowrap">
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Inline gap="xs" align="center" mb={6} wrap="nowrap">
+                                  <Badge size="xs" color="default" variant="outline">
                                     {sub.termType}
-                                  </span>
+                                  </Badge>
                                   {getChurnRiskBadge(churnRisk)}
-                                </div>
-                                <div className="text-xs text-gray-600">
+                                </Inline>
+                                <Text size="xs" c="dimmed">
                                   {sub.displayName !== sub.sku && (
-                                    <span className="font-medium text-gray-800">{sub.displayName} • </span>
+                                    <Text span fw={800} style={{ color: 'var(--mantine-color-gray-8)' }}>{sub.displayName} • </Text>
                                   )}
-                                  <span className="font-mono text-gray-400">{sub.id.substring(0, 8)}...</span>
-                                </div>
+                                  <Text span style={{ fontFamily: 'monospace', color: 'var(--mantine-color-gray-5)' }}>{sub.id.substring(0, 8)}...</Text>
+                                </Text>
                               </div>
-                              <div className="flex items-center space-x-6 text-right">
+                              <Inline gap="xl" align="flex-start" wrap="nowrap" style={{ textAlign: 'right' }}>
                                 <div>
-                                  <div className="text-xs text-gray-500">Seats</div>
-                                  <div className="text-sm font-semibold text-gray-800">{sub.seats}</div>
+                                  <Text size="xs" c="dimmed">Seats</Text>
+                                  <Text size="sm" fw={800}>{sub.seats}</Text>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-gray-500">Assigned</div>
-                                  <div className={`text-sm font-semibold ${parseInt(assignRate) < 70 ? 'text-orange-600' : 'text-gray-800'}`}>
+                                  <Text size="xs" c="dimmed">Assigned</Text>
+                                  <Text size="sm" fw={800} style={parseInt(assignRate) < 70 ? { color: 'var(--mantine-color-orange-7)' } : undefined}>
                                     {sub.assignedSeats} ({assignRate}%)
-                                  </div>
+                                  </Text>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-gray-500">Active</div>
-                                  <div className={`text-sm font-semibold ${parseInt(usageRate) < 60 ? 'text-red-600' : 'text-gray-800'}`}>
+                                  <Text size="xs" c="dimmed">Active</Text>
+                                  <Text size="sm" fw={800} style={parseInt(usageRate) < 60 ? { color: 'var(--mantine-color-red-7)' } : undefined}>
                                     {sub.activeUsers} ({usageRate}%)
-                                  </div>
+                                  </Text>
                                 </div>
-                                <div className="w-20">
-                                  <div className="text-xs text-gray-500">Revenue</div>
-                                  <div className="text-sm font-semibold text-gray-800">${sub.revenue.toLocaleString()}</div>
+                                <div style={{ width: 90 }}>
+                                  <Text size="xs" c="dimmed">Revenue</Text>
+                                  <Text size="sm" fw={800}>${sub.revenue.toLocaleString()}</Text>
                                 </div>
-                              </div>
-                            </div>
+                              </Inline>
+                            </Inline>
                           </div>
                         );
                       })}
                     </div>
                   )}
-                </div>
+                </Card>
               );
             })}
-          </div>
+          </Stack>
           
           {/* Summary Footer */}
-          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-blue-800">
+          <Card style={{ marginTop: 12, background: 'var(--mantine-color-blue-0)', border: '1px solid var(--mantine-color-blue-2)' }}>
+            <Inline justify="space-between" align="center" wrap="nowrap">
+              <Text size="sm" fw={800} style={{ color: 'var(--mantine-color-blue-8)' }}>
                 Total: {subscriptions.length} subscriptions across {Object.keys(groupedSubscriptions).length} products
-              </div>
-              <div className="text-sm font-bold text-blue-900">
+              </Text>
+              <Text size="sm" fw={900} style={{ color: 'var(--mantine-color-blue-9)' }}>
                 ${subscriptions.reduce((sum, s) => sum + s.revenue, 0).toLocaleString()}/mo
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-end p-3 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors text-sm"
-          >
-            Close
-          </button>
-        </div>
+              </Text>
+            </Inline>
+          </Card>
       </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -497,42 +566,39 @@ interface OfficeUsageData {
 
 const OfficeUsageCard: React.FC<{ data: OfficeUsageData }> = ({ data }) => {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-gray-800">{data.product}</h4>
-        <div className="text-right">
-          <div className="text-lg font-bold text-gray-900">{data.activeUsers}/{data.totalUsers}</div>
-          <div className="text-xs text-gray-500">{data.usagePercentage.toFixed(1)}% active</div>
+    <Card>
+      <Inline justify="space-between" align="flex-start" mb="sm" wrap="nowrap">
+        <Text fw={800}>{data.product}</Text>
+        <div style={{ textAlign: 'right' }}>
+          <Text fw={900} size="lg">
+            {data.activeUsers}/{data.totalUsers}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {data.usagePercentage.toFixed(1)}% active
+          </Text>
         </div>
-      </div>
+      </Inline>
 
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-        <div 
-          className={`h-3 rounded-full transition-all duration-300 ${
-            data.usagePercentage >= 80 ? 'bg-green-600' : 
-            data.usagePercentage >= 60 ? 'bg-yellow-600' : 'bg-red-600'
-          }`}
-          style={{ width: `${data.usagePercentage}%` }}
-        ></div>
-      </div>
+      <Progress value={data.usagePercentage} mb="sm" />
 
-      <div className="space-y-2">
+      <Stack gap="xs">
         {data.services.map((service) => (
-          <div key={service.name} className="flex items-center justify-between text-sm">
-            <span className="text-gray-700">{service.name}</span>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">{service.activeUsers} users</span>
-              <span className={`text-xs font-medium px-2 py-1 rounded ${
-                service.percentage >= 80 ? 'bg-green-100 text-green-700' : 
-                service.percentage >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-              }`}>
+          <Inline key={service.name} justify="space-between" align="center" wrap="nowrap">
+            <Text size="sm">{service.name}</Text>
+            <Inline gap="xs" align="center" wrap="nowrap">
+              <Text size="sm" c="dimmed">{service.activeUsers} users</Text>
+              <Badge
+                size="xs"
+                variant="outline"
+                color={service.percentage >= 80 ? 'success' : service.percentage >= 60 ? 'pending' : 'danger'}
+              >
                 {service.percentage.toFixed(0)}%
-              </span>
-            </div>
-          </div>
+              </Badge>
+            </Inline>
+          </Inline>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Card>
   );
 };
 
@@ -743,65 +809,72 @@ export const PartnerCenterInsights: React.FC = () => {
       title="Partner Center Insights" 
       open={overviewOpen}
       onToggle={setOverviewOpen}
-      className="mb-1"
       helpContent="Partner Center Insights provides comprehensive analytics and metrics from Microsoft Partner Center about your customer's Microsoft 365 usage, deployment, and revenue. These insights help you understand customer engagement, optimize license allocation, and identify upsell opportunities. Data is refreshed daily and includes historical trends for performance tracking."
     >
       {/* Overview Metrics - Compact horizontal layout */}
-      <div className="mb-4">
-        <h4 className="font-semibold text-gray-800 mb-2 text-sm">Overview</h4>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      <Stack gap="sm" style={{ marginBottom: 12 }}>
+        <Text fw={800} size="sm">Overview</Text>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 8,
+          }}
+        >
           <MetricCard
             title="Total Seats"
             value={overview.totalSeats}
             trend={overview.trends.seats}
-            icon={<Users className="w-4 h-4 text-blue-600" />}
+            icon={<Users size={16} color="var(--mantine-color-blue-6)" />}
             status="good"
           />
           <MetricCard
             title="Assigned Seats"
             value={overview.assignedSeats}
             subtitle={`${((overview.assignedSeats / overview.totalSeats) * 100).toFixed(0)}% deployed`}
-            icon={<Package className="w-4 h-4 text-blue-600" />}
+            icon={<Package size={16} color="var(--mantine-color-blue-6)" />}
             status="good"
           />
           <MetricCard
             title="Active Users (28d)"
             value={overview.activeUsers}
             trend={overview.trends.activeUsers}
-            icon={<Activity className="w-4 h-4 text-blue-600" />}
+            icon={<Activity size={16} color="var(--mantine-color-blue-6)" />}
             status="warning"
           />
           <MetricCard
             title="Monthly Revenue"
             value={`$${overview.monthlyRevenue.toLocaleString()}`}
             trend={overview.trends.revenue}
-            icon={<DollarSign className="w-4 h-4 text-blue-600" />}
+            icon={<DollarSign size={16} color="var(--mantine-color-blue-6)" />}
             status="good"
           />
         </div>
-      </div>
+      </Stack>
 
       {/* Subscriptions Detail */}
       <ExpandableSection 
         title={
-          <div className="flex items-center justify-between w-full">
-            <span>Subscriptions ({subscriptions.length})</span>
-            <button
+          <Inline justify="space-between" align="center" wrap="nowrap" style={{ width: '100%' }}>
+            <Text fw={800} size="sm">
+              Subscriptions ({subscriptions.length})
+            </Text>
+            <Button
+              size="xs"
+              variant="secondary"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowAllSubscriptionsModal(true);
               }}
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
             >
               Summarise all my Microsoft subscriptions
-            </button>
-          </div>
+            </Button>
+          </Inline>
         }
         open={subscriptionsOpen}
         onToggle={setSubscriptionsOpen}
-        className="mb-3"
       >
-        <div className="space-y-2">
+        <Stack gap="xs">
           {subscriptions.map((sub) => (
             <SubscriptionRow 
               key={sub.id} 
@@ -809,21 +882,23 @@ export const PartnerCenterInsights: React.FC = () => {
               onRename={handleRenameSubscription}
             />
           ))}
-        </div>
+        </Stack>
 
-        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-xs font-medium text-blue-800 mb-1">💡 Utilization Insights</div>
-          <ul className="text-xs text-blue-700 space-y-0.5">
-            <li className="flex items-start">
-              <span className="mr-1">•</span>
-              <span>You have <strong>{overview.totalSeats - overview.assignedSeats} unassigned seats</strong> across all subscriptions.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-1">•</span>
-              <span>Only <strong>{((overview.activeUsers / overview.assignedSeats) * 100).toFixed(1)}% of assigned users</strong> are actively using their licenses.</span>
-            </li>
-          </ul>
-        </div>
+        <Card style={{ background: 'var(--mantine-color-blue-0)', border: '1px solid var(--mantine-color-blue-2)' }}>
+          <Stack gap={6}>
+            <Text size="xs" fw={800} style={{ color: 'var(--mantine-color-blue-8)' }}>
+              💡 Utilization Insights
+            </Text>
+            <Stack gap={4}>
+              <Text size="xs" style={{ color: 'var(--mantine-color-blue-8)' }}>
+                - You have <Text span fw={800}>{overview.totalSeats - overview.assignedSeats} unassigned seats</Text> across all subscriptions.
+              </Text>
+              <Text size="xs" style={{ color: 'var(--mantine-color-blue-8)' }}>
+                - Only <Text span fw={800}>{((overview.activeUsers / overview.assignedSeats) * 100).toFixed(1)}% of assigned users</Text> are actively using their licenses.
+              </Text>
+            </Stack>
+          </Stack>
+        </Card>
       </ExpandableSection>
 
       {/* Office Usage */}
@@ -831,27 +906,28 @@ export const PartnerCenterInsights: React.FC = () => {
         title="Office 365 Usage Analytics"
         open={officeUsageOpen}
         onToggle={setOfficeUsageOpen}
-        className="mb-3"
       >
-        <div className="space-y-4">
+        <Stack gap="md">
           {officeUsage.map((usage, index) => (
             <OfficeUsageCard key={index} data={usage} />
           ))}
-        </div>
+        </Stack>
 
-        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div className="text-sm font-medium text-yellow-800 mb-2">💡 Service Usage Recommendations</div>
-          <ul className="text-xs text-yellow-700 space-y-1">
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span><strong>SharePoint usage is at 59.9%</strong> - Consider training sessions on document collaboration.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span><strong>Teams has strong adoption (85.6%)</strong> - Leverage this success to promote other tools.</span>
-            </li>
-          </ul>
-        </div>
+        <Card style={{ background: 'var(--mantine-color-yellow-0)', border: '1px solid var(--mantine-color-yellow-2)' }}>
+          <Stack gap={6}>
+            <Text fw={800} size="sm" style={{ color: 'var(--mantine-color-yellow-9)' }}>
+              💡 Service Usage Recommendations
+            </Text>
+            <Stack gap={4}>
+              <Text size="xs" style={{ color: 'var(--mantine-color-yellow-9)' }}>
+                - <Text span fw={800}>SharePoint usage is at 59.9%</Text> - Consider training sessions on document collaboration.
+              </Text>
+              <Text size="xs" style={{ color: 'var(--mantine-color-yellow-9)' }}>
+                - <Text span fw={800}>Teams has strong adoption (85.6%)</Text> - Leverage this success to promote other tools.
+              </Text>
+            </Stack>
+          </Stack>
+        </Card>
       </ExpandableSection>
 
       {/* Revenue Breakdown */}
@@ -859,59 +935,57 @@ export const PartnerCenterInsights: React.FC = () => {
         title="Revenue Analytics"
         open={revenueOpen}
         onToggle={setRevenueOpen}
-        className="mb-3"
       >
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h5 className="font-semibold text-gray-700 text-sm">Monthly Recurring Revenue</h5>
-            <div className="text-right">
-              <div className="text-xl font-bold text-gray-900">${revenueBreakdown.total.toLocaleString()}</div>
-              <div className="flex items-center justify-end space-x-1 text-green-600">
-                <TrendingUp className="w-3 h-3" />
-                <span className="text-xs font-medium">+{revenueBreakdown.growth}% MoM</span>
-              </div>
+        <Card style={{ marginBottom: 12 }}>
+          <Inline justify="space-between" align="flex-start" wrap="nowrap">
+            <Text fw={800} size="sm">Monthly Recurring Revenue</Text>
+            <div style={{ textAlign: 'right' }}>
+              <Text fw={900} size="lg">${revenueBreakdown.total.toLocaleString()}</Text>
+              <Inline gap={4} justify="flex-end" align="center" wrap="nowrap">
+                <TrendingUp size={12} color="var(--mantine-color-green-6)" />
+                <Text size="xs" fw={800} style={{ color: 'var(--mantine-color-green-7)' }}>
+                  +{revenueBreakdown.growth}% MoM
+                </Text>
+              </Inline>
             </div>
-          </div>
-        </div>
+          </Inline>
+        </Card>
 
-        <div className="space-y-2">
+        <Stack gap="xs">
           {revenueBreakdown.byProduct.map((product) => (
-            <div key={product.name} className="border border-gray-200 rounded-lg p-2 bg-white">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-gray-700">{product.name}</span>
-                <div className="text-right">
-                  <span className="text-xs font-bold text-gray-900">${product.revenue.toLocaleString()}</span>
-                  <span className="text-xs text-gray-500 ml-1">({product.percentage.toFixed(0)}%)</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div 
-                  className="bg-blue-600 h-1.5 rounded-full"
-                  style={{ width: `${product.percentage}%` }}
-                ></div>
-              </div>
-            </div>
+            <Card key={product.name} style={{ padding: 12 }}>
+              <Inline justify="space-between" align="center" wrap="nowrap" mb={6}>
+                <Text size="xs" fw={700} style={{ color: 'var(--mantine-color-gray-7)' }}>
+                  {product.name}
+                </Text>
+                <Inline gap={6} align="baseline" wrap="nowrap">
+                  <Text size="xs" fw={900}>${product.revenue.toLocaleString()}</Text>
+                  <Text size="xs" c="dimmed">({product.percentage.toFixed(0)}%)</Text>
+                </Inline>
+              </Inline>
+              <Progress value={product.percentage} />
+            </Card>
           ))}
-        </div>
+        </Stack>
       </ExpandableSection>
 
       {/* Data Source Information */}
-      <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
-        <div className="flex items-start space-x-2">
-          <svg className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
+        <Inline gap="xs" align="flex-start" wrap="nowrap">
+          <svg width="12" height="12" style={{ color: 'var(--mantine-color-blue-6)', marginTop: 3, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <div className="text-xs text-gray-600">
+          <Text size="xs" c="dimmed">
             Data from Microsoft Partner Center Insights API. Updated daily.
             <a href="https://learn.microsoft.com/en-us/partner-center/insights/insights-programmatic-prerequisites" 
                target="_blank" 
                rel="noopener noreferrer"
-               className="text-blue-600 hover:text-blue-800 ml-1">
+               style={{ marginLeft: 6, color: 'var(--mantine-color-blue-7)', textDecoration: 'underline' }}>
               Learn more →
             </a>
-          </div>
-        </div>
-      </div>
+          </Text>
+        </Inline>
+      </Card>
 
       {/* All Subscriptions Modal */}
       <AllSubscriptionsModal

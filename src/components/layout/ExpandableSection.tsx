@@ -7,7 +7,6 @@ interface ExpandableSectionProps {
   defaultOpen?: boolean;
   open?: boolean;
   onToggle?: (open: boolean) => void;
-  className?: string;
   sectionId?: string; // Unique identifier for localStorage
   helpContent?: string; // Help content for the Learn more link
 }
@@ -18,7 +17,6 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   defaultOpen = false,
   open: controlledOpen,
   onToggle,
-  className = '',
   sectionId,
   helpContent,
 }) => {
@@ -64,38 +62,58 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   };
 
   return (
-    <div className={`border border-gray-300 rounded-lg bg-white mb-1 shadow-sm ${className}`}>
+    <div
+      style={{
+        border: '1px solid var(--mantine-color-gray-3)',
+        borderRadius: 12,
+        background: 'white',
+        marginBottom: 4,
+        boxShadow: 'var(--mantine-shadow-xs)',
+      }}
+    >
       <button
-        className="w-full flex items-center justify-between px-3 py-1.5 text-left focus:outline-none hover:bg-gray-50 rounded-t-lg transition-colors"
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '6px 12px',
+          textAlign: 'left',
+          border: 'none',
+          background: 'transparent',
+          cursor: 'pointer',
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+        }}
         onClick={handleToggle}
         aria-expanded={isOpen}
       >
-        <div className="flex-1 font-semibold text-gray-800 text-sm flex items-center">
+        <div style={{ flex: 1, fontWeight: 700, color: 'var(--mantine-color-gray-8)', fontSize: 14, display: 'flex', alignItems: 'center' }}>
           {typeof title === 'string' ? (
             <>
               {title}
               {helpContent && (
-                <LearnMoreLink content={helpContent} className="ml-1" />
+                <LearnMoreLink content={helpContent} style={{ marginLeft: 4 }} />
               )}
             </>
           ) : (
             <>
               {title}
               {helpContent && (
-                <LearnMoreLink content={helpContent} className="ml-1" />
+                <LearnMoreLink content={helpContent} style={{ marginLeft: 4 }} />
               )}
             </>
           )}
         </div>
-        <span className="ml-1">
+        <span style={{ marginLeft: 4, display: 'inline-flex' }}>
           {isOpen ? (
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
           ) : (
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           )}
         </span>
       </button>
-      {isOpen && <div className="px-3 pb-2 pt-1">{children}</div>}
+      {isOpen && <div style={{ padding: '4px 12px 8px' }}>{children}</div>}
     </div>
   );
 }; 

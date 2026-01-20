@@ -19,6 +19,7 @@ import {
   Breadcrumbs,
   Progress,
   Switch,
+  Loader,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -173,7 +174,7 @@ export const FirstbaseCredentials = () => {
         );
       case 'testing':
         return (
-          <Badge color="blue" variant="light" leftSection={<RefreshCw size={12} className="animate-spin" />}>
+          <Badge color="blue" variant="light" leftSection={<Loader size={12} />}>
             Testing...
           </Badge>
         );
@@ -195,7 +196,7 @@ export const FirstbaseCredentials = () => {
   const completionPercentage = getCompletionPercentage();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: 'var(--mantine-color-gray-0)' }}>
       <TopNavbar />
       
       <Container size="md" py="xl">
@@ -238,7 +239,11 @@ export const FirstbaseCredentials = () => {
                   border: '1px solid #bae6fd',
                 }}
               >
-                <svg viewBox="0 0 24 24" className="h-7 w-7 text-cyan-600" fill="currentColor">
+                <svg
+                  viewBox="0 0 24 24"
+                  style={{ width: 28, height: 28, color: 'var(--mantine-color-cyan-6)' }}
+                  fill="currentColor"
+                >
                   <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                 </svg>
               </Box>
@@ -305,7 +310,7 @@ export const FirstbaseCredentials = () => {
                 <Group gap={4}>
                   <span>Account ID</span>
                   <Tooltip label="Your unique Firstbase account identifier" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -324,7 +329,7 @@ export const FirstbaseCredentials = () => {
                 <Group gap={4}>
                   <span>API Key</span>
                   <Tooltip label="Your Firstbase API key" withArrow>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
+                    <HelpCircle size={14} style={{ color: 'var(--mantine-color-gray-5)', cursor: 'help' }} />
                   </Tooltip>
                 </Group>
               }
@@ -366,7 +371,7 @@ export const FirstbaseCredentials = () => {
             </div>
           </Group>
 
-          <div className="mb-4">
+          <Box mb="md">
             <Text size="sm" fw={500} mb={8}>Markup fee for physical products</Text>
             <Group gap="xs">
               <TextInput
@@ -382,7 +387,7 @@ export const FirstbaseCredentials = () => {
             <Text size="xs" c="dimmed" mt={8}>
               A markup fee applies to all products selected for publishing from this distributor.
             </Text>
-          </div>
+          </Box>
         </Paper>
 
         {/* Demo Toggle */}
@@ -414,7 +419,7 @@ export const FirstbaseCredentials = () => {
             <Button
               variant="outline"
               color="cyan"
-              leftSection={<RefreshCw size={16} className={isTesting ? 'animate-spin' : ''} />}
+              leftSection={isTesting ? <Loader size={16} /> : <RefreshCw size={16} />}
               onClick={handleTestConnection}
               loading={isTesting}
               disabled={isSaving}

@@ -30,7 +30,7 @@ export const TransferStatusBadge: React.FC<TransferStatusBadgeProps> = ({
       variant="light"
       radius="sm"
     >
-      {showIcon && <span className="mr-1">{statusIcons[status]}</span>}
+      {showIcon && <span style={{ marginRight: 6, display: 'inline-flex', alignItems: 'center' }}>{statusIcons[status]}</span>}
       {status}
     </Badge>
   );
