@@ -31,7 +31,9 @@ const http = require('http');
 const crypto = require('crypto');
 const { URL } = require('url');
 
-const PORT = Number(process.env.PORT || 4000);
+// IMPORTANT: don't use the generic PORT env var here because CRA uses PORT for the UI dev server.
+// If this server binds to 3000, CRA will fail to start (or prompt to use another port).
+const PORT = Number(process.env.PARTNER_CENTER_DEV_PORT || 4000);
 const TOKEN_STORE_PATH = process.env.PARTNER_CENTER_TOKEN_STORE || '.partner-center-token.json';
 
 function json(res, status, payload) {
@@ -179,8 +181,22 @@ async function getToken({ tenantId, clientId, clientSecret }) {
   return json.access_token;
 }
 
-async function exchangeAuthCode({ tenantId, clientId, clientSecret, code, redirectUri, codeVerifier }) {
-  const scope = process.env.PARTNER_CENTER_SCOPE_DELEGATED || 'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile';
+function partnerCenterDelegatedScope() {
+  return (
+    process.env.PARTNER_CENTER_SCOPE_DELEGATED ||
+    'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile'
+  );
+}
+
+function gdapGraphDelegatedScope() {
+  return (
+    process.env.GDAP_GRAPH_SCOPES ||
+    'https://graph.microsoft.com/DelegatedAdminRelationship.Read.All offline_access openid profile'
+  );
+}
+
+async function exchangeAuthCode({ tenantId, clientId, clientSecret, code, redirectUri, codeVerifier, scope }) {
+  const s = scope || partnerCenterDelegatedScope();
   const tokenUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`;
 
   const body = new URLSearchParams();
@@ -189,7 +205,7 @@ async function exchangeAuthCode({ tenantId, clientId, clientSecret, code, redire
   body.set('grant_type', 'authorization_code');
   body.set('code', code);
   body.set('redirect_uri', redirectUri);
-  body.set('scope', scope);
+  body.set('scope', s);
   if (codeVerifier) body.set('code_verifier', codeVerifier);
 
   const res = await fetch(tokenUrl, {
@@ -206,8 +222,8 @@ async function exchangeAuthCode({ tenantId, clientId, clientSecret, code, redire
   return await res.json();
 }
 
-async function refreshUserToken({ tenantId, clientId, clientSecret, refreshToken }) {
-  const scope = process.env.PARTNER_CENTER_SCOPE_DELEGATED || 'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile';
+async function refreshUserToken({ tenantId, clientId, clientSecret, refreshToken, scope }) {
+  const s = scope || partnerCenterDelegatedScope();
   const tokenUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`;
 
   const body = new URLSearchParams();
@@ -215,7 +231,7 @@ async function refreshUserToken({ tenantId, clientId, clientSecret, refreshToken
   if (clientSecret) body.set('client_secret', clientSecret);
   body.set('grant_type', 'refresh_token');
   body.set('refresh_token', refreshToken);
-  body.set('scope', scope);
+  body.set('scope', s);
 
   const res = await fetch(tokenUrl, {
     method: 'POST',
@@ -296,7 +312,7 @@ const server = http.createServer(async (req, res) => {
       const redirectUri = `http://localhost:${PORT}/api/partner-center/callback`;
       const state = Math.random().toString(16).slice(2);
       const pkce = createPkcePair();
-      const scope = encodeURIComponent(process.env.PARTNER_CENTER_SCOPE_DELEGATED || 'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile');
+      const scope = encodeURIComponent(partnerCenterDelegatedScope());
       const authorizeUrl =
         `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/authorize` +
         `?client_id=${encodeURIComponent(clientId)}` +
@@ -309,7 +325,12 @@ const server = http.createServer(async (req, res) => {
         `&code_challenge_method=${encodeURIComponent(pkce.method)}`;
 
       // simple state storage in token store file for dev
-      writeTokenStore({ ...(readTokenStore() || {}), pendingState: state, pendingCodeVerifier: pkce.verifier });
+      writeTokenStore({
+        ...(readTokenStore() || {}),
+        pendingKind: 'partnerCenter',
+        pendingState: state,
+        pendingCodeVerifier: pkce.verifier,
+      });
 
       res.writeHead(302, { Location: authorizeUrl });
       res.end();
@@ -319,19 +340,14 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Start interactive connect flow for GDAP (Microsoft Graph). This is required to read delegated admin relationships.
-  // This uses the same callback endpoint but stores a separate Graph access token.
+  // Start GDAP (Graph) connect flow (App+User) to fetch delegated admin relationships.
   if (req.method === 'GET' && u.pathname === '/api/partner-center/connect-gdap') {
     try {
       const { tenantId, clientId } = envClientInfoOrThrow();
       const redirectUri = `http://localhost:${PORT}/api/partner-center/callback`;
       const state = Math.random().toString(16).slice(2);
       const pkce = createPkcePair();
-      const scope = encodeURIComponent(
-        process.env.GDAP_GRAPH_SCOPES ||
-          'https://graph.microsoft.com/DelegatedAdminRelationship.Read.All offline_access openid profile'
-      );
-
+      const scope = encodeURIComponent(gdapGraphDelegatedScope());
       const authorizeUrl =
         `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/authorize` +
         `?client_id=${encodeURIComponent(clientId)}` +
@@ -345,9 +361,9 @@ const server = http.createServer(async (req, res) => {
 
       writeTokenStore({
         ...(readTokenStore() || {}),
+        pendingKind: 'gdap',
         pendingState: state,
         pendingCodeVerifier: pkce.verifier,
-        pendingTokenKind: 'gdap',
       });
 
       res.writeHead(302, { Location: authorizeUrl });
@@ -370,93 +386,13 @@ const server = http.createServer(async (req, res) => {
       if (err) throw new Error(`${err}: ${errDesc || ''}`);
       if (!code) throw new Error('Missing code');
       if (!state || state !== store.pendingState) throw new Error('State mismatch');
+      const kind = store.pendingKind || 'partnerCenter';
 
       const redirectUri = `http://localhost:${PORT}/api/partner-center/callback`;
 
-      // If we're completing the GDAP (Graph) connect flow, always redeem in-browser (SPA-safe) and store as `gdap`.
-      if (store.pendingTokenKind === 'gdap') {
-        const scope =
-          process.env.GDAP_GRAPH_SCOPES ||
-          'https://graph.microsoft.com/DelegatedAdminRelationship.Read.All offline_access openid profile';
-        const tokenUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`;
-        const codeVerifier = store.pendingCodeVerifier || '';
-        const expectedState = store.pendingState || '';
-        const uiRedirect = 'http://localhost:3000/operations/microsoft/onboarding/gdap';
-
-        const page = `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Completing GDAP sign-in…</title>
-    <style>
-      body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; padding: 24px; }
-      .card { max-width: 720px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; background: #fff; }
-      .muted { color: #6b7280; font-size: 14px; }
-      pre { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; overflow: auto; font-size: 12px; }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h2>Completing GDAP sign-in…</h2>
-      <p class="muted">This will request Microsoft Graph permissions needed to read GDAP relationships, then redirect back to the dashboard.</p>
-      <pre id="log">Starting…</pre>
-    </div>
-    <script>
-      (async function () {
-        const logEl = document.getElementById('log');
-        const log = (msg) => { logEl.textContent = String(msg); };
-        try {
-          const params = new URLSearchParams(window.location.search);
-          const code = params.get('code');
-          const state = params.get('state');
-          if (!code) throw new Error('Missing code');
-          if (!state) throw new Error('Missing state');
-          if (state !== ${JSON.stringify(expectedState)}) throw new Error('State mismatch');
-
-          const body = new URLSearchParams();
-          body.set('client_id', ${JSON.stringify(clientId)});
-          body.set('grant_type', 'authorization_code');
-          body.set('code', code);
-          body.set('redirect_uri', ${JSON.stringify(redirectUri)});
-          body.set('scope', ${JSON.stringify(scope)});
-          body.set('code_verifier', ${JSON.stringify(codeVerifier)});
-
-          log('Exchanging code with Azure AD…');
-          const tokenRes = await fetch(${JSON.stringify(tokenUrl)}, {
-            method: 'POST',
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            body
-          });
-          const tokenText = await tokenRes.text();
-          if (!tokenRes.ok) throw new Error('Token exchange failed (' + tokenRes.status + '): ' + tokenText);
-          const tokenJson = JSON.parse(tokenText);
-
-          log('Storing GDAP token locally (dev)…');
-          const storeRes = await fetch('/api/partner-center/store', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ state, tokenJson, tokenKind: 'gdap' })
-          });
-          const storeText = await storeRes.text();
-          if (!storeRes.ok) throw new Error('Store failed (' + storeRes.status + '): ' + storeText);
-
-          log('Done. Redirecting…');
-          window.location.href = ${JSON.stringify(uiRedirect)};
-        } catch (err) {
-          log(String(err && err.message ? err.message : err));
-        }
-      })();
-    </script>
-  </body>
-</html>`;
-
-        html(res, 200, page);
-        return;
-      }
-
-      // If configured as SPA, ALWAYS redeem in browser (AADSTS9002327 otherwise).
-      if (clientType === 'spa') {
+      // SPA mode: redeem in browser via CORS (PKCE). This ONLY works for Entra apps configured as SPA/public clients.
+      // If a client secret is present, we treat the app as confidential and do server-side redemption instead.
+      if (clientType === 'spa' && !clientSecret) {
         const scope = process.env.PARTNER_CENTER_SCOPE_DELEGATED || 'https://api.partnercenter.microsoft.com/user_impersonation offline_access openid profile';
         const tokenUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`;
         const codeVerifier = store.pendingCodeVerifier || '';
@@ -544,6 +480,7 @@ const server = http.createServer(async (req, res) => {
           code,
           redirectUri,
           codeVerifier: store.pendingCodeVerifier,
+          scope: kind === 'gdap' ? gdapGraphDelegatedScope() : partnerCenterDelegatedScope(),
         });
       } catch (e) {
         const msg = e?.message || '';
@@ -647,19 +584,39 @@ const server = http.createServer(async (req, res) => {
       const refreshToken = tokenRes.refresh_token;
       const claims = accessToken ? decodeJwt(accessToken) : null;
 
-      writeTokenStore({
+      const nextStore = {
+        ...store,
         connected: true,
-        connectedAt: new Date().toISOString(),
+        connectedAt: store.connectedAt || new Date().toISOString(),
+        pendingKind: undefined,
         pendingState: undefined,
         pendingCodeVerifier: undefined,
         isPublicClient: Boolean(store.isPublicClient),
-        refreshToken,
-        accessToken,
-        accessTokenClaims: claims,
-      });
+      };
 
-      // Redirect back to UI
-      res.writeHead(302, { Location: 'http://localhost:3000/settings/vendor-integrations/microsoft' });
+      if (kind === 'gdap') {
+        writeTokenStore({
+          ...nextStore,
+          gdapConnectedAt: new Date().toISOString(),
+          gdapRefreshToken: refreshToken,
+          gdapAccessToken: accessToken,
+          gdapAccessTokenClaims: claims,
+        });
+      } else {
+        writeTokenStore({
+          ...nextStore,
+          refreshToken,
+          accessToken,
+          accessTokenClaims: claims,
+        });
+      }
+
+      // Redirect back to UI (default to GDAP page if we just connected GDAP)
+      const uiRedirect =
+        kind === 'gdap'
+          ? 'http://localhost:3000/operations/microsoft/onboarding/gdap'
+          : 'http://localhost:3000/settings/vendor-integrations/microsoft';
+      res.writeHead(302, { Location: uiRedirect });
       res.end();
     } catch (e) {
       json(res, 500, { ok: false, error: e.message || 'Callback failed', timestamp: new Date().toISOString() });
@@ -675,7 +632,6 @@ const server = http.createServer(async (req, res) => {
       const parsed = raw ? JSON.parse(raw) : {};
       const state = parsed?.state;
       const tokenJson = parsed?.tokenJson;
-      const tokenKind = parsed?.tokenKind; // 'gdap' | undefined
       if (!state || state !== store.pendingState) {
         json(res, 400, { ok: false, error: 'State mismatch', timestamp: new Date().toISOString() });
         return;
@@ -687,32 +643,17 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const claims = decodeJwt(accessToken);
-      if (tokenKind === 'gdap') {
-        // Store Graph token separately; do not overwrite Partner Center token.
-        writeTokenStore({
-          ...store,
-          pendingState: undefined,
-          pendingCodeVerifier: undefined,
-          pendingTokenKind: undefined,
-          graphConnectedAt: new Date().toISOString(),
-          graphAccessToken: accessToken,
-          graphAccessTokenClaims: claims,
-        });
-      } else {
-        writeTokenStore({
-          ...store,
-          connected: true,
-          connectedAt: new Date().toISOString(),
-          pendingState: undefined,
-          pendingCodeVerifier: undefined,
-          pendingTokenKind: undefined,
-          // This flow is SPA PKCE (public client)
-          isPublicClient: true,
-          refreshToken,
-          accessToken,
-          accessTokenClaims: claims,
-        });
-      }
+      writeTokenStore({
+        connected: true,
+        connectedAt: new Date().toISOString(),
+        pendingState: undefined,
+        pendingCodeVerifier: undefined,
+        // This flow is SPA PKCE (public client)
+        isPublicClient: true,
+        refreshToken,
+        accessToken,
+        accessTokenClaims: claims,
+      });
       json(res, 200, { ok: true, timestamp: new Date().toISOString() });
     } catch (e) {
       json(res, 500, { ok: false, error: e.message || 'Store failed', timestamp: new Date().toISOString() });
@@ -730,16 +671,161 @@ const server = http.createServer(async (req, res) => {
     const store = readTokenStore();
     json(res, 200, {
       ok: Boolean(store?.connected),
-      store: store
-        ? {
-            connectedAt: store.connectedAt,
-            accessTokenClaims: store.accessTokenClaims,
-            graphConnectedAt: store.graphConnectedAt,
-            graphAccessTokenClaims: store.graphAccessTokenClaims,
-          }
-        : null,
+      store: {
+        hasPartnerCenter: Boolean(store?.refreshToken),
+        hasGdap: Boolean(store?.gdapRefreshToken),
+        connectedAt: store?.connectedAt,
+        gdapConnectedAt: store?.gdapConnectedAt,
+      },
       timestamp: new Date().toISOString(),
     });
+    return;
+  }
+
+  // Live customers list for the UI (used by GDAP management and onboarding). Mirrors the Vercel API response shape.
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/customers') {
+    try {
+      const store = readTokenStore();
+      const size = Math.min(Number(u.searchParams.get('size') || '50'), 500);
+      if (!store?.refreshToken) {
+        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', customers: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      let accessToken = store.accessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      if (!store.isPublicClient) {
+        const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+        const refreshed = await refreshUserToken({
+          tenantId,
+          clientId,
+          clientSecret: store.isPublicClient ? undefined : clientSecret,
+          refreshToken: store.refreshToken,
+          scope: partnerCenterDelegatedScope(),
+        });
+        accessToken = refreshed.access_token;
+        claims = accessToken ? decodeJwt(accessToken) : null;
+        writeTokenStore({
+          ...store,
+          refreshToken: refreshed.refresh_token || store.refreshToken,
+          accessToken,
+          accessTokenClaims: claims,
+          lastRefreshedAt: new Date().toISOString(),
+        });
+      } else if (!accessToken || isJwtExpired(claims)) {
+        json(res, 401, { ok: false, error: 'SPA token expired. Click Connect again.', customers: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      const pc = await partnerCenterFetch(accessToken, `/v1/customers?size=${size}`);
+      const ok = pc.status >= 200 && pc.status < 300;
+      const items = Array.isArray(pc.data?.items) ? pc.data.items : [];
+      const customers = items.map((c) => ({
+        id: c?.id,
+        companyName: c?.companyProfile?.companyName,
+        defaultDomain: c?.companyProfile?.domain,
+        tenantId: c?.companyProfile?.tenantId || c?.id,
+        contactEmail:
+          c?.billingProfile?.email ||
+          c?.billingProfile?.defaultAddress?.email ||
+          c?.companyProfile?.email ||
+          undefined,
+        contactName: [c?.billingProfile?.firstName, c?.billingProfile?.lastName].filter(Boolean).join(' ').trim() || undefined,
+      }));
+
+      json(res, ok ? 200 : pc.status, {
+        ok,
+        customers: ok ? customers : [],
+        error: ok ? undefined : `Partner Center request failed (HTTP ${pc.status}).`,
+        debug: ok ? undefined : { partnerCenter: safeTruncate(pc.data) },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Customers failed', customers: [], timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
+  // GDAP relationships (Graph) for a given customer tenantId.
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/gdap-relationships') {
+    try {
+      const store = readTokenStore();
+      const customerTenantId = String(u.searchParams.get('customerTenantId') || '');
+      if (!customerTenantId) {
+        json(res, 400, { ok: false, error: 'Missing customerTenantId', relationships: [], timestamp: new Date().toISOString() });
+        return;
+      }
+      const refreshToken = store?.gdapRefreshToken || store?.refreshToken;
+      if (!refreshToken) {
+        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', relationships: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      let accessToken = store?.gdapAccessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      if (!store?.isPublicClient) {
+        const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+        const refreshed = await refreshUserToken({
+          tenantId,
+          clientId,
+          clientSecret: store.isPublicClient ? undefined : clientSecret,
+          refreshToken,
+          scope: gdapGraphDelegatedScope(),
+        });
+        accessToken = refreshed.access_token;
+        claims = accessToken ? decodeJwt(accessToken) : null;
+        writeTokenStore({
+          ...store,
+          gdapRefreshToken: refreshed.refresh_token || store.gdapRefreshToken || refreshToken,
+          gdapAccessToken: accessToken,
+          gdapAccessTokenClaims: claims,
+          gdapLastRefreshedAt: new Date().toISOString(),
+        });
+      } else if (!accessToken || isJwtExpired(claims)) {
+        json(res, 401, { ok: false, error: 'SPA token expired. Click Connect again.', relationships: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      const safeTenantId = customerTenantId.replace(/'/g, "''");
+      const url =
+        'https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships' +
+        `?$filter=customer/tenantId eq '${safeTenantId}'`;
+
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
+      const text = await resp.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { raw: text };
+      }
+
+      const ok = resp.status >= 200 && resp.status < 300;
+      const value = Array.isArray(data?.value) ? data.value : [];
+      const relationships = value.map((r) => ({
+        id: r?.id,
+        displayName: r?.displayName || r?.id,
+        status: r?.status,
+        createdDateTime: r?.createdDateTime,
+        endDateTime: r?.endDateTime,
+        autoExtendDuration: r?.autoExtendDuration,
+        roles: Array.isArray(r?.accessDetails?.unifiedRoles)
+          ? r.accessDetails.unifiedRoles.map((ur) => ur?.roleDefinitionId || ur?.displayName || ur?.id).filter(Boolean)
+          : [],
+      }));
+
+      json(res, ok ? 200 : resp.status, {
+        ok,
+        relationships: ok ? relationships : [],
+        error: ok ? undefined : `Graph request failed (HTTP ${resp.status}).`,
+        debug: ok ? undefined : { graph: safeTruncate(data) },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'GDAP relationships failed', relationships: [], timestamp: new Date().toISOString() });
+    }
     return;
   }
 
@@ -803,168 +889,6 @@ const server = http.createServer(async (req, res) => {
       });
     } catch (e) {
       json(res, 500, { ok: false, error: e.message || 'Unknown error', timestamp: new Date().toISOString() });
-    }
-    return;
-  }
-
-  // List customers (basic fields) for UI search/pickers.
-  if (req.method === 'GET' && u.pathname === '/api/partner-center/customers') {
-    try {
-      const store = readTokenStore();
-      if (!store?.accessToken) {
-        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', customers: [], timestamp: new Date().toISOString() });
-        return;
-      }
-
-      const size = Math.min(Number(u.searchParams.get('size') || '50'), 500);
-      const accessToken = store.accessToken;
-      const claims = store.accessTokenClaims || decodeJwt(accessToken);
-      if (!accessToken || isJwtExpired(claims)) {
-        json(res, 401, { ok: false, error: 'Token expired. Click Connect again.', customers: [], timestamp: new Date().toISOString() });
-        return;
-      }
-
-      const pc = await partnerCenterFetch(accessToken, `/v1/customers?size=${size}`);
-      const ok = pc.status >= 200 && pc.status < 300;
-      const items = Array.isArray(pc.data?.items) ? pc.data.items : [];
-      const customers = items.map((c) => ({
-        id: c?.id,
-        companyName: c?.companyProfile?.companyName,
-        defaultDomain: c?.companyProfile?.domain,
-        tenantId: c?.companyProfile?.tenantId || c?.id,
-      }));
-
-      json(res, ok ? 200 : pc.status, {
-        ok,
-        partnerCenter: { status: pc.status, sampleEndpoint: `/v1/customers?size=${size}` },
-        customers: ok ? customers : [],
-        error: ok ? undefined : `Partner Center request failed (HTTP ${pc.status}).`,
-        debug: ok ? undefined : { partnerCenter: safeTruncate(pc.data) },
-        timestamp: new Date().toISOString(),
-      });
-    } catch (e) {
-      json(res, 500, { ok: false, error: e.message || 'Unknown error', customers: [], timestamp: new Date().toISOString() });
-    }
-    return;
-  }
-
-  // List indirect resellers for the signed-in partner.
-  // Docs: GET /v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf
-  if (req.method === 'GET' && u.pathname === '/api/partner-center/indirect-resellers') {
-    try {
-      const store = readTokenStore();
-      if (!store?.accessToken) {
-        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', resellers: [], timestamp: new Date().toISOString() });
-        return;
-      }
-
-      const claims = store.accessTokenClaims || decodeJwt(store.accessToken);
-      if (!store.isPublicClient) {
-        // For confidential clients we can refresh, but for SPA (public client) Azure AD blocks server-side refresh.
-        // For now, re-use the stored access token.
-      }
-
-      const pc = await partnerCenterFetch(store.accessToken, '/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf');
-      const ok = pc.status >= 200 && pc.status < 300;
-      const items = Array.isArray(pc.data?.items) ? pc.data.items : Array.isArray(pc.data) ? pc.data : [];
-
-      const resellers = items.map((r) => {
-        const companyName = r?.companyProfile?.companyName || r?.reseller?.companyName || r?.name || r?.companyName;
-        const mpnId = r?.mpnId || r?.mpnID || r?.reseller?.mpnId || r?.reseller?.mpnID || r?.reseller?.mpn || r?.mpn;
-        // Partner Center "relationships" responses often use `id` as the reseller tenant identifier (GUID).
-        const tenantId =
-          r?.tenantId ||
-          r?.tenantID ||
-          r?.reseller?.tenantId ||
-          r?.reseller?.tenantID ||
-          r?.id;
-        const state = r?.state || r?.relationshipState || r?.reseller?.state;
-        const id = r?.id || r?.resellerId || r?.reseller?.id || tenantId || mpnId || companyName || 'unknown';
-        return {
-          id: String(id),
-          name: companyName ? String(companyName) : undefined,
-          mpnId: mpnId != null ? String(mpnId) : undefined,
-          tenantId: tenantId != null ? String(tenantId) : undefined,
-          state: state ? String(state) : undefined,
-        };
-      });
-
-      json(res, ok ? 200 : pc.status, {
-        ok,
-        partnerCenter: { status: pc.status, sampleEndpoint: '/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf' },
-        mfa: { hasMfa: Array.isArray(claims?.amr) ? claims.amr.includes('mfa') : false, amr: Array.isArray(claims?.amr) ? claims.amr : [] },
-        resellers: ok ? resellers : [],
-        error: ok ? undefined : `Partner Center request failed (HTTP ${pc.status}).`,
-        debug: ok ? undefined : { partnerCenter: safeTruncate(pc.data) },
-        timestamp: new Date().toISOString(),
-      });
-    } catch (e) {
-      json(res, 500, { ok: false, error: e.message || 'Unknown error', resellers: [], timestamp: new Date().toISOString() });
-    }
-    return;
-  }
-
-  // GDAP relationships are exposed via Microsoft Graph (tenantRelationships/delegatedAdminRelationships).
-  if (req.method === 'GET' && u.pathname === '/api/partner-center/gdap-relationships') {
-    try {
-      const store = readTokenStore();
-      const customerTenantId = u.searchParams.get('customerTenantId');
-      if (!customerTenantId) {
-        json(res, 400, { ok: false, error: 'Missing customerTenantId', relationships: [], timestamp: new Date().toISOString() });
-        return;
-      }
-      if (!store?.graphAccessToken) {
-        json(res, 401, {
-          ok: false,
-          error: 'GDAP not connected. Click “Connect GDAP” to grant Microsoft Graph permissions and try again.',
-          relationships: [],
-          timestamp: new Date().toISOString(),
-        });
-        return;
-      }
-
-      const graphToken = store.graphAccessToken;
-      const safeTenantId = String(customerTenantId).replace(/'/g, "''");
-      const url =
-        'https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships' +
-        `?$filter=customer/tenantId eq '${safeTenantId}'`;
-
-      const resp = await fetch(url, { headers: { Authorization: `Bearer ${graphToken}`, Accept: 'application/json' } });
-      const text = await resp.text();
-      let data;
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch {
-        data = { raw: text };
-      }
-
-      const ok = resp.status >= 200 && resp.status < 300;
-      const value = Array.isArray(data?.value) ? data.value : [];
-
-      // Minimal mapping for UI.
-      const relationships = value.map((r) => ({
-        id: r?.id,
-        displayName: r?.displayName || r?.id,
-        status: r?.status,
-        createdDateTime: r?.createdDateTime,
-        endDateTime: r?.endDateTime,
-        autoExtendDuration: r?.autoExtendDuration,
-        roles: Array.isArray(r?.accessDetails?.unifiedRoles)
-          ? r.accessDetails.unifiedRoles.map((ur) => ur?.roleDefinitionId || ur?.displayName || ur?.id).filter(Boolean)
-          : [],
-        raw: r,
-      }));
-
-      json(res, ok ? 200 : resp.status, {
-        ok,
-        graph: { status: resp.status, sampleEndpoint: 'tenantRelationships/delegatedAdminRelationships' },
-        relationships: ok ? relationships : [],
-        error: ok ? undefined : `Graph request failed (HTTP ${resp.status}).`,
-        debug: ok ? undefined : { graph: safeTruncate(data) },
-        timestamp: new Date().toISOString(),
-      });
-    } catch (e) {
-      json(res, 500, { ok: false, error: e.message || 'Unknown error', relationships: [], timestamp: new Date().toISOString() });
     }
     return;
   }
