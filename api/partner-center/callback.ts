@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleOAuthCallback } from '../../lib/server/delegatedAuth';
+import { handleOAuthCallback } from '../_lib/delegatedAuth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

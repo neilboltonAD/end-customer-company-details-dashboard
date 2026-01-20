@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from '../../lib/server/cookies';
-import { getAccessTokenForSession } from '../../lib/server/delegatedAuth';
-import { partnerCenterFetchWithToken } from '../../lib/server/partnerCenter';
+import { ensureSessionId } from '../_lib/cookies';
+import { getAccessTokenForSession } from '../_lib/delegatedAuth';
+import { partnerCenterFetchWithToken } from '../_lib/partnerCenter';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

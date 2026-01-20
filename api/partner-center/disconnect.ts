@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSessionId } from '../../lib/server/cookies';
-import { clearStoredTokens } from '../../lib/server/delegatedAuth';
+import { ensureSessionId } from '../_lib/cookies';
+import { clearStoredTokens } from '../_lib/delegatedAuth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
