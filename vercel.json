@@ -14,8 +14,8 @@
     }
   ],
   "routes": [
-    { "src": "/api/partner-center$", "dest": "/api/partner-center/status.ts" },
-    { "src": "/api/partner-center/(.*)$", "dest": "/api/partner-center/$1.ts" },
+    { "src": "/api/partner-center$", "dest": "/api/partner-center/status" },
+    { "src": "/api/partner-center/(.*)$", "dest": "/api/partner-center/$1" },
     { "handle": "filesystem" },
     { "src": "/((?!api).*)", "dest": "/index.html" }
   ]
