@@ -231,7 +231,6 @@ const daysUntil = (dateStr: string) => {
 
 export const OperationsGDAPManagement = () => {
   const navigate = useNavigate();
-  const [companyQuery, setCompanyQuery] = useState('');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
 
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -309,12 +308,6 @@ export const OperationsGDAPManagement = () => {
     () => companies.find((c) => c.id === selectedCompanyId) || null,
     [companies, selectedCompanyId]
   );
-
-  const matchingCompanies = useMemo(() => {
-    const q = companyQuery.trim().toLowerCase();
-    if (!q) return companies;
-    return companies.filter((c) => c.name.toLowerCase().includes(q) || c.defaultDomain.toLowerCase().includes(q));
-  }, [companyQuery, companies]);
 
   const companyRelationships = useMemo(() => {
     if (!selectedCompanyId) return [];
@@ -656,74 +649,27 @@ export const OperationsGDAPManagement = () => {
             </div>
           </div>
 
-          {/* Company search */}
+          {/* Overview (keep expiring/expired at top under header) */}
           <div className="bg-white rounded shadow p-4 mb-4">
-            <Text fw={600} size="sm" mb="sm">
-              Company search
-            </Text>
-            <Group align="flex-end">
-              <Select
-                className="flex-1"
-                searchable
-                clearable
-                label="Company"
-                placeholder={companiesLoading ? 'Loading companies…' : 'Select a company'}
-                data={companies.map((c) => ({ value: c.id, label: `${c.name} (${c.defaultDomain})` }))}
-                value={selectedCompanyId}
-                onChange={setSelectedCompanyId}
-                nothingFoundMessage={companiesError || 'No companies found'}
+            <Group justify="space-between" align="flex-end">
+              <div className="flex-1">
+                <Text fw={600} size="sm" mb={6}>
+                  Overview
+                </Text>
+                <Text size="xs" c="dimmed">
+                  Expiring/expired counts are based on the currently loaded relationships.
+                </Text>
+              </div>
+              <NumberInput
+                label="Expiring within (days)"
+                value={expiringWithinDays}
+                onChange={(value) => setExpiringWithinDays(typeof value === 'number' ? value : 30)}
+                min={1}
+                max={365}
+                clampBehavior="strict"
+                w={200}
               />
-              <TextInput
-                className="flex-1"
-                leftSection={<Search size={16} />}
-                placeholder="Filter list by company name or default domain…"
-                value={companyQuery}
-                onChange={(e) => setCompanyQuery(e.currentTarget.value)}
-              />
-              <Button
-                variant="light"
-                loading={companiesLoading}
-                onClick={() => {
-                  if (matchingCompanies.length > 0) setSelectedCompanyId(matchingCompanies[0].id);
-                }}
-                disabled={companiesLoading || matchingCompanies.length === 0}
-              >
-                Select first
-              </Button>
             </Group>
-
-            {!!companyQuery.trim() && (
-              <div className="mt-3 border border-gray-200 rounded">
-                {matchingCompanies.length === 0 ? (
-                  <div className="p-3 text-sm text-gray-600">No matches.</div>
-                ) : (
-                  matchingCompanies.slice(0, 6).map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedCompanyId(c.id)}
-                      className={`w-full text-left px-3 py-2 text-sm border-b last:border-b-0 hover:bg-gray-50 ${
-                        selectedCompanyId === c.id ? 'bg-teal-50' : 'bg-white'
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-500">{c.defaultDomain}</div>
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-
-            {selectedCompany && (
-              <div className="mt-3 text-sm text-gray-700">
-                <span className="font-semibold">Selected Company:</span> {selectedCompany.name}{' '}
-                <span className="text-gray-400">({selectedCompany.defaultDomain})</span>
-              </div>
-            )}
-            {companiesError && (
-              <div className="mt-3 text-sm text-red-600">
-                {companiesError}
-              </div>
-            )}
           </div>
 
           {/* Expiring / expired */}
@@ -758,50 +704,33 @@ export const OperationsGDAPManagement = () => {
             </button>
           </div>
 
-          {/* Filters */}
+          {/* Company search */}
           <div className="bg-white rounded shadow p-4 mb-4">
-            <Group justify="space-between" align="flex-end">
-              <div className="flex-1">
-                <Text fw={600} size="sm" mb={6}>
-                  Filters
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Used for expiring cards and relationship list views.
-                </Text>
-              </div>
+            <Text fw={600} size="sm" mb="sm">
+              Company search
+            </Text>
+            <Select
+              searchable
+              clearable
+              label="Company"
+              placeholder={companiesLoading ? 'Loading companies…' : 'Select a company'}
+              data={companies.map((c) => ({ value: c.id, label: `${c.name} (${c.defaultDomain})` }))}
+              value={selectedCompanyId}
+              onChange={setSelectedCompanyId}
+              nothingFoundMessage={companiesError || 'No companies found'}
+            />
 
-              <Group gap="sm" align="flex-end">
-                <NumberInput
-                  label="Expiring within (days)"
-                  value={expiringWithinDays}
-                  onChange={(value) => setExpiringWithinDays(typeof value === 'number' ? value : 30)}
-                  min={1}
-                  max={365}
-                  clampBehavior="strict"
-                  w={200}
-                />
-                <div>
-                  <Text size="xs" fw={600} mb={6}>
-                    Status
-                  </Text>
-                  <Group gap="xs">
-                    {(['All', 'Active', 'Pending', 'Expired'] as const).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
-                          statusFilter === s
-                            ? 'bg-teal-600 text-white border-teal-600'
-                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </Group>
-                </div>
-              </Group>
-            </Group>
+            {selectedCompany && (
+              <div className="mt-3 text-sm text-gray-700">
+                <span className="font-semibold">Selected Company:</span> {selectedCompany.name}{' '}
+                <span className="text-gray-400">({selectedCompany.defaultDomain})</span>
+              </div>
+            )}
+            {companiesError && (
+              <div className="mt-3 text-sm text-red-600">
+                {companiesError}
+              </div>
+            )}
           </div>
 
           {/* Templates */}
@@ -885,11 +814,28 @@ export const OperationsGDAPManagement = () => {
                   {selectedCompany ? `Managing relationships for ${selectedCompany.name}` : 'Select a company to manage relationships'}
                 </Text>
               </div>
-                <Group gap="xs">
-                  <Badge variant="light" color={selectedCompany ? 'teal' : 'gray'}>
-                    {selectedCompany ? 'Company selected' : 'No company selected'}
-                  </Badge>
-                </Group>
+              <Group gap="xs" align="center">
+                <Badge variant="light" color={selectedCompany ? 'teal' : 'gray'}>
+                  {selectedCompany ? 'Company selected' : 'No company selected'}
+                </Badge>
+                {selectedCompany && (
+                  <Group gap="xs">
+                    {(['All', 'Active', 'Pending', 'Expired'] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setStatusFilter(s)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                          statusFilter === s
+                            ? 'bg-teal-600 text-white border-teal-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </Group>
+                )}
+              </Group>
             </Group>
 
             {selectedCompany && relationshipsLoading && (
