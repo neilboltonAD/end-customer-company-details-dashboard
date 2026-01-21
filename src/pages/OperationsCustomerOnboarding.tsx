@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HelpCircle, Mail } from 'lucide-react';
-import { ActionIcon, Badge, Button, Group, Modal, Select, Stack, Table, Text, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Badge, Button, Group, Modal, Select, SimpleGrid, Stack, Table, Text, TextInput, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { RichTextEditor } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
@@ -175,7 +175,7 @@ export const OperationsCustomerOnboarding = () => {
 
   return (
     <OperationsLayout>
-      <main>
+      <Stack component="main" gap="xl">
         <Group gap="xs" mb="sm">
           <Button variant="subtle" color="blue" onClick={() => navigate('/operations/companies')} px={0}>
             Companies
@@ -199,13 +199,7 @@ export const OperationsCustomerOnboarding = () => {
 
           <Card>
             <Text fw={600} size="sm" mb="md">Microsoft Tenant Details</Text>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 16,
-              }}
-            >
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" verticalSpacing="md">
               <TextInput
                 label="Default Domain"
                 placeholder="myclient123.com"
@@ -251,7 +245,7 @@ export const OperationsCustomerOnboarding = () => {
                 value={reseller || 'None'}
                 onChange={(value) => setReseller(value === 'None' ? null : value || null)}
               />
-            </div>
+            </SimpleGrid>
 
             <Group justify="flex-end" mt="lg">
               <Button onClick={handleCreate}>Create</Button>
@@ -262,40 +256,42 @@ export const OperationsCustomerOnboarding = () => {
             <Group justify="space-between" mb="md">
               <Text fw={600} size="sm">Current approvals</Text>
             </Group>
-            <Table striped highlightOnHover withTableBorder>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Client</Table.Th>
-                  <Table.Th>Default Domain</Table.Th>
-                  <Table.Th>Step</Table.Th>
-                  <Table.Th>Status</Table.Th>
-                  <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {approvalRows.map((row) => (
-                  <Table.Tr key={row.id}>
-                    <Table.Td>{row.customer}</Table.Td>
-                    <Table.Td>{row.defaultDomain}</Table.Td>
-                    <Table.Td>{row.step}</Table.Td>
-                    <Table.Td>
-                      <Badge color={row.statusColor} variant="light">
-                        {row.status}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Tooltip label="Resend email">
-                        <ActionIcon variant="light" color="blue" onClick={() => setResendTarget(row)}>
-                          <Mail size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Table.Td>
+            <div style={{ overflowX: 'auto' }}>
+              <Table striped highlightOnHover withTableBorder>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Client</Table.Th>
+                    <Table.Th>Default Domain</Table.Th>
+                    <Table.Th>Step</Table.Th>
+                    <Table.Th>Status</Table.Th>
+                    <Table.Th>Actions</Table.Th>
                   </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
+                </Table.Thead>
+                <Table.Tbody>
+                  {approvalRows.map((row) => (
+                    <Table.Tr key={row.id}>
+                      <Table.Td>{row.customer}</Table.Td>
+                      <Table.Td>{row.defaultDomain}</Table.Td>
+                      <Table.Td>{row.step}</Table.Td>
+                      <Table.Td>
+                        <Badge color={row.statusColor} variant="light">
+                          {row.status}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Tooltip label="Resend email">
+                          <ActionIcon variant="light" color="blue" onClick={() => setResendTarget(row)}>
+                            <Mail size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </div>
           </Card>
-      </main>
+      </Stack>
 
       <Modal
         opened={modalOpen}

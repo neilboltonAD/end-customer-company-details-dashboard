@@ -7,6 +7,7 @@ import {
   Group, 
   Loader,
   Stack,
+  SimpleGrid,
   Accordion,
   Table,
   ActionIcon,
@@ -86,11 +87,12 @@ const SummaryCard: React.FC<{
     <Text size="xs" c="dimmed">
       {subtitle}
     </Text>
-    {actionLabel && (
-      <Button 
-        variant="subtle" 
-        size="xs" 
-        mt="sm" 
+    {/* Keep a consistent card height: reserve space for the optional action */}
+    {actionLabel ? (
+      <Button
+        variant="subtle"
+        size="xs"
+        mt="sm"
         fullWidth
         onClick={(e) => {
           e.stopPropagation();
@@ -99,6 +101,8 @@ const SummaryCard: React.FC<{
       >
         {actionLabel}
       </Button>
+    ) : (
+      <div style={{ height: 30, marginTop: 12 }} />
     )}
   </Card>
 );
@@ -381,9 +385,9 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
   };
 
   return (
-    <Card withBorder shadow="xs" style={{ marginBottom: 8 }}>
+    <Card withBorder shadow="xs">
       <Card style={{ background: 'var(--mantine-color-gray-0)', border: '1px solid var(--mantine-color-gray-2)' }}>
-        <Group justify="space-between" align="center">
+        <Group justify="space-between" align="center" wrap="wrap">
           <Group gap="xs">
             <Text fw={600} size="sm">📦 P2P Subscription Transfers</Text>
             {summary.incomingPending > 0 && (
@@ -392,7 +396,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
               </Badge>
             )}
           </Group>
-          <Group gap="xs">
+          <Group gap="xs" wrap="wrap">
           <Tooltip
             label="Outbound transfers are disabled in Indirect mode"
             disabled={allowOutbound}
@@ -428,7 +432,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
 
       <div style={{ padding: 16 }}>
         {/* Summary Cards */}
-        <Group gap="md" mb="md" wrap="wrap">
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md" verticalSpacing="md">
           <SummaryCard
             icon={<ArrowDownLeft size={18} />}
             iconColor="blue"
@@ -459,7 +463,7 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
             subtitle="Last 90 days"
             onClick={() => {}}
           />
-        </Group>
+        </SimpleGrid>
 
         <Accordion variant="separated" radius="md" multiple defaultValue={["subscriptions", "active"]}>
           {/* Available Subscriptions */}
@@ -471,13 +475,13 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <Group align="flex-end" mb="sm">
+              <Group align="flex-end" mb="sm" wrap="wrap">
                 <TextInput
                   label="Search customer or subscription ID"
                   placeholder="Customer name or subscription ID"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, minWidth: 260 }}
                 />
                 <Button
                   size="sm"
@@ -501,7 +505,8 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
                   </Text>
                 </Card>
               ) : (
-                <Table striped highlightOnHover withTableBorder>
+                <div style={{ overflowX: 'auto' }}>
+                  <Table striped highlightOnHover withTableBorder>
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th>Product</Table.Th>
@@ -535,7 +540,8 @@ export const P2PTransfersPanel: React.FC<{ allowOutbound?: boolean }> = ({ allow
                       </Table.Tr>
                     ))}
                   </Table.Tbody>
-                </Table>
+                  </Table>
+                </div>
               )}
             </Accordion.Panel>
           </Accordion.Item>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Group } from '@mantine/core';
+import { Group, SimpleGrid } from '@mantine/core';
 import {
   Search,
   ChevronLeft,
@@ -233,28 +233,29 @@ export const OperationsMicrosoft = () => {
   return (
     <OperationsLayout>
       <main>
-        <Inline gap="xs" align="center" wrap="nowrap">
-          <Button variant="link" onClick={() => navigate('/operations/companies')}>
-            Companies
-          </Button>
-          <Text size="sm" c="dimmed">/</Text>
-          <Text size="sm">Microsoft</Text>
-          <Text size="sm" c="dimmed">/</Text>
-          <Text size="sm">Reseller: PC Insights</Text>
-        </Inline>
+        <Stack gap="xl">
+          <Inline gap="xs" align="center" wrap="wrap">
+            <Button variant="link" onClick={() => navigate('/operations/companies')}>
+              Companies
+            </Button>
+            <Text size="sm" c="dimmed">/</Text>
+            <Text size="sm">Microsoft</Text>
+            <Text size="sm" c="dimmed">/</Text>
+            <Text size="sm">Reseller: PC Insights</Text>
+          </Inline>
 
-        <Card>
-          <Group justify="space-between" align="flex-start">
-            <div>
-              <Title order={2} fw={600}>
-                Reseller: PC Insights
-              </Title>
-              <Text c="dimmed" size="sm">
-                Marketplace-wide Microsoft tools and subscription insights
-              </Text>
-            </div>
-          </Group>
-        </Card>
+          <Card>
+            <Group justify="space-between" align="flex-start">
+              <div>
+                <Title order={2} fw={600}>
+                  Reseller: PC Insights
+                </Title>
+                <Text c="dimmed" size="sm">
+                  Marketplace-wide Microsoft tools and subscription insights
+                </Text>
+              </div>
+            </Group>
+          </Card>
 
         <Card>
           <Group justify="space-between" align="flex-start" mb="sm">
@@ -268,42 +269,36 @@ export const OperationsMicrosoft = () => {
               {attentionCount > 0 ? `${attentionCount} attention needed` : 'Healthy'}
             </Badge>
           </Group>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 12,
-            }}
-          >
-              <MetricCard
-                title="Total Seats"
-                value={totalSeats}
-                trend={5.2}
-                icon={<Users size={16} color="var(--mantine-color-blue-6)" />}
-                status="good"
-              />
-              <MetricCard
-                title="Assigned Seats"
-                value={totalAssigned}
-                subtitle={`${assignmentRate}% deployed`}
-                icon={<Package size={16} color="var(--mantine-color-blue-6)" />}
-                status={assignmentRate >= 85 ? 'good' : 'warning'}
-              />
-              <MetricCard
-                title="Active Users (28d)"
-                value={activeUsers}
-                trend={-2.3}
-                icon={<Activity size={16} color="var(--mantine-color-blue-6)" />}
-                status="warning"
-              />
-              <MetricCard
-                title="Monthly Revenue"
-                value={`$${totalRevenue.toLocaleString()}`}
-                trend={8.7}
-                icon={<DollarSign size={16} color="var(--mantine-color-blue-6)" />}
-                status="good"
-              />
-            </div>
+          <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md" verticalSpacing="md">
+            <MetricCard
+              title="Total Seats"
+              value={totalSeats}
+              trend={5.2}
+              icon={<Users size={16} color="var(--mantine-color-blue-6)" />}
+              status="good"
+            />
+            <MetricCard
+              title="Assigned Seats"
+              value={totalAssigned}
+              subtitle={`${assignmentRate}% deployed`}
+              icon={<Package size={16} color="var(--mantine-color-blue-6)" />}
+              status={assignmentRate >= 85 ? 'good' : 'warning'}
+            />
+            <MetricCard
+              title="Active Users (28d)"
+              value={activeUsers}
+              trend={-2.3}
+              icon={<Activity size={16} color="var(--mantine-color-blue-6)" />}
+              status="warning"
+            />
+            <MetricCard
+              title="Monthly Revenue"
+              value={`$${totalRevenue.toLocaleString()}`}
+              trend={8.7}
+              icon={<DollarSign size={16} color="var(--mantine-color-blue-6)" />}
+              status="good"
+            />
+          </SimpleGrid>
           <Text size="xs" c="dimmed" mt="sm">
             {customers.length} customers • {totalSubscriptions} subscriptions • {totalProducts} product types
           </Text>
@@ -571,6 +566,7 @@ export const OperationsMicrosoft = () => {
             </Stack>
           </ExpandableSection>
 
+        </Stack>
       </main>
 
       <div style={{ position: 'fixed', bottom: 24, right: 24 }}>

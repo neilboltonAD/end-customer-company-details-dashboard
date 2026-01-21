@@ -15,33 +15,35 @@ export const OperationsP2PTransfers = () => {
   return (
     <OperationsLayout>
       <main>
-        <Inline gap="xs" align="center">
-          <Button variant="link" onClick={() => navigate('/operations/companies')}>
-            Companies
-          </Button>
-          <Text size="sm" c="dimmed">/</Text>
-          <Text size="sm">Microsoft</Text>
-          <Text size="sm" c="dimmed">/</Text>
-          <Text size="sm">Reseller: P2P Transfers</Text>
-        </Inline>
-
-        <Card>
-          <Group justify="space-between" align="flex-start">
-            <div>
-              <Title order={2} fw={600}>
-                Reseller: P2P Transfers
-              </Title>
-              <Text c="dimmed" size="sm">
-                Marketplace-wide subscription transfers
-              </Text>
-            </div>
-            <Button variant="secondary" leftSection={<Settings size={16} />} onClick={() => setSettingsOpen(true)}>
-              Settings
+        <Stack gap="xl">
+          <Inline gap="xs" align="center">
+            <Button variant="link" onClick={() => navigate('/operations/companies')}>
+              Companies
             </Button>
-          </Group>
-        </Card>
+            <Text size="sm" c="dimmed">/</Text>
+            <Text size="sm">Microsoft</Text>
+            <Text size="sm" c="dimmed">/</Text>
+            <Text size="sm">Reseller: P2P Transfers</Text>
+          </Inline>
+
+          <Card>
+            <Group justify="space-between" align="flex-start">
+              <div>
+                <Title order={2} fw={600}>
+                  Reseller: P2P Transfers
+                </Title>
+                <Text c="dimmed" size="sm">
+                  Marketplace-wide subscription transfers
+                </Text>
+              </div>
+              <Button variant="secondary" leftSection={<Settings size={16} />} onClick={() => setSettingsOpen(true)}>
+                Settings
+              </Button>
+            </Group>
+          </Card>
 
           <P2PTransfersPanel allowOutbound={transferMode === 'Direct'} />
+        </Stack>
       </main>
 
       <Modal
