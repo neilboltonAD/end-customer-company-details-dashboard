@@ -77,7 +77,7 @@ export const OperationsCustomerOnboarding = () => {
   const [email, setEmail] = useState('');
   const [ccEmail, setCcEmail] = useState('');
   const [reseller, setReseller] = useState<string | null>('itcloud');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>('t-default');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>('t-appdirect-marketplace');
 
   // Get selected GDAP template
   const selectedTemplate = useMemo(() => {

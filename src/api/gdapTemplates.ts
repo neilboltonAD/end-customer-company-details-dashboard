@@ -84,31 +84,15 @@ export type GdapTemplate = {
 /**
  * Default GDAP role templates.
  * These are used in both GDAP Management and Customer Onboarding.
+ * 
+ * Note: "Default GDAP" (DAP) is only available for customers WITHOUT an existing tenant,
+ * so it's not included here. Use AppDirect Marketplace as the standard default.
  */
 export const GDAP_TEMPLATES: GdapTemplate[] = [
   {
-    id: 't-default',
-    name: 'Default GDAP',
-    description: 'Common baseline GDAP role set used for broad operational coverage (time-bound, least-privileged).',
-    recommendedFor: ['Baseline Read', 'Support', 'User Management'],
-    roles: [
-      'Privileged authentication administrator',
-      'Privileged role administrator',
-      'User administrator',
-      'Helpdesk administrator',
-      'License administrator',
-      'Application administrator',
-      'Cloud application administrator',
-      'Service support administrator',
-      'Directory writers',
-      'Directory readers',
-      'Global reader',
-    ],
-  },
-  {
     id: 't-appdirect-marketplace',
     name: 'AppDirect Marketplace',
-    description: 'AppDirect marketplace operations template: cloud apps, licensing, users, and directory read.',
+    description: 'Standard template for marketplace operations: cloud apps, licensing, users, and directory read.',
     recommendedFor: ['User Management', 'Support'],
     roles: ['Cloud application administrator', 'License administrator', 'User administrator', 'Directory readers'],
   },
