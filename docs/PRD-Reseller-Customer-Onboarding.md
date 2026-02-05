@@ -7,31 +7,43 @@
 | **Feature** | Reseller Customer Onboarding |
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
-| **Last Updated** | January 20, 2026 |
-| **Status** | ✅ Implemented (Main App Demo) |
-| **Version** | 1.0 |
+| **Last Updated** | February 5, 2026 |
+| **Status** | ✅ Implemented (Flow B - Two-Column Layout) |
+| **Version** | 2.0 |
 
 ---
 
 ## Executive Summary
 
-Reseller Customer Onboarding provides an Operations workflow for Microsoft Indirect Resellers to **collect onboarding details**, **generate a branded onboarding email (WYSIWYG)** with required Microsoft links, and **track customer approval status**. The demo implementation focuses on a complete end-to-end UI flow without external email APIs.
+Reseller Customer Onboarding provides an Operations workflow for Microsoft Indirect Resellers to **collect onboarding details**, **generate a branded onboarding email (WYSIWYG)** with required Microsoft links, and **track customer approval status**. 
+
+### v2.0 Updates (February 2026)
+
+The feature has been redesigned with a **two-column layout** featuring a **live email preview** that updates in real-time as the sales agent fills in customer details. Key improvements include:
+
+- **Fixed data source**: Existing company selection now pulls from **Marketplace Companies** (Operations → Companies) instead of Partner Center tenants
+- **Live preview**: Email content updates immediately as form fields are filled
+- **Streamlined workflow**: No modal required—everything visible on one page
+- **Clear actions**: Explicit "Copy to Clipboard" and "Send Email" buttons
 
 ### Mini-features (bulleted)
 
-- **Onboarding form**: capture default domain, name, email, CC, company type, indirect reseller selection.
-- **Email generation**: Create opens an editable branded template (WYSIWYG).
-- **Required links**: template always includes RRR + GDAP URLs.
-- **Company context**: supports New vs Existing company selection (with company selection in modal).
-- **Approvals dashboard**: current approvals table with statuses.
-- **Resend reminder**: resend action with confirmation and toast.
-- **Internal-only email preview**: opens a browser window/tab with expected email content (no send).
+- **Two-column layout**: Form on left, live email preview on right
+- **Client type toggle**: New Customer vs Existing Customer (segmented control)
+- **Company search**: When "Existing Customer" selected, searchable dropdown of Marketplace Companies
+- **Auto-fill**: Selecting an existing company auto-populates domain and email fields
+- **Live email preview**: Updates in real-time as form fields change
+- **Editable template**: Click "Edit" to modify the email content with WYSIWYG editor
+- **Required links**: Template always includes RRR + GDAP approval URLs
+- **Action buttons**: "Copy to Clipboard" and "Send Email" (opens mailto)
+- **Approvals dashboard**: Current approvals table with status badges
+- **Resend reminder**: Resend action with confirmation modal and toast notification
 
 ---
 
 ## Table of Contents
 
-1. [Executive Summary](#1-executive-summary)
+1. [Executive Summary](#executive-summary)
 2. [Problem Statement](#2-problem-statement)
 3. [Goals & Success Metrics](#3-goals--success-metrics)
 4. [User Personas](#4-user-personas)
@@ -39,130 +51,253 @@ Reseller Customer Onboarding provides an Operations workflow for Microsoft Indir
 6. [User Experience Design](#6-user-experience-design)
 7. [Data Requirements](#7-data-requirements)
 8. [Implementation Status](#8-implementation-status)
-9. [Future Enhancements](#9-future-enhancements)
-
----
-
-## 1. Executive Summary
-
-### 1.1 Overview
-
-The **Reseller: Customer Onboarding** feature enables Microsoft **Indirect Resellers** to onboard a new customer directly from the AppDirect Operations interface. The workflow collects tenant details, sends a reseller relationship request (RRR) email with GDAP authorization steps, and tracks approval status.
-
-### 1.2 Value Proposition
-
-| Stakeholder | Value |
-|-------------|-------|
-| **Marketplace Managers** | Streamlined onboarding from a single dashboard |
-| **Resellers** | Clear, guided steps to establish customer relationships |
-| **End Customers** | Consistent onboarding email with required links |
-| **Operations Teams** | Visibility into pending approvals and status tracking |
+9. [Changelog](#9-changelog)
+10. [Future Enhancements](#10-future-enhancements)
 
 ---
 
 ## 2. Problem Statement
 
-### 2.1 Current State
+### 2.1 Current State (v1.0 Issues)
 
-Indirect Resellers often manage customer onboarding across multiple tools, emails, and manual trackers. This creates delays, missed steps, and inconsistent email content.
+The original implementation had several friction points:
 
-### 2.2 Desired State
+| Issue | Impact |
+|-------|--------|
+| Company selector pulled from Partner Center tenants | Agents couldn't find existing Marketplace customers |
+| Company selection was inside a modal | Disjointed flow, required extra clicks |
+| No live preview | Agent couldn't see email until clicking "Create" |
+| "Submit" button opened preview window | Confusing—unclear if email was actually sent |
 
-A single onboarding page inside Operations that:
+### 2.2 Desired State (v2.0)
 
-- Collects tenant details for new or existing customers
-- Generates an editable email template with required links
-- Tracks onboarding status in a visible approvals table
+A streamlined, single-page onboarding experience where:
+
+- Sales agents can quickly onboard new or existing customers
+- The email preview updates live as they fill in details
+- Actions are clear and explicit (Copy, Send)
+- Existing companies are sourced from the Marketplace, not Partner Center
 
 ---
 
 ## 3. Goals & Success Metrics
 
-| Goal | Description |
-|------|-------------|
-| **G1** | Reduce time to send onboarding requests |
-| **G2** | Ensure all required links are included every time |
-| **G3** | Provide status visibility for all customer approvals |
+| Goal | Description | v2.0 Status |
+|------|-------------|-------------|
+| **G1** | Reduce time to send onboarding requests | ✅ Live preview eliminates modal step |
+| **G2** | Ensure all required links are included every time | ✅ Template enforces RRR + GDAP links |
+| **G3** | Provide status visibility for all customer approvals | ✅ Approvals table with status badges |
+| **G4** | Use correct data source for existing customers | ✅ Fixed: Now uses Marketplace Companies |
 
 ---
 
 ## 4. User Personas
 
-### 4.1 Marketplace Operations Manager
+### 4.1 Sales Agent (Primary)
+
+| Attribute | Description |
+|-----------|-------------|
+| **Role** | Onboards new customers for Microsoft Indirect Reseller |
+| **Pain Points** | Slow process, unclear email content, wrong customer list |
+| **Goals** | Quickly send professional onboarding email with all required info |
+| **Key Tasks** | Fill customer details → Review email → Send to customer |
+
+### 4.2 Marketplace Operations Manager
 
 | Attribute | Description |
 |-----------|-------------|
 | **Role** | Manages reseller onboarding operations |
 | **Pain Points** | Inconsistent process, lack of visibility |
-| **Goals** | Faster onboarding, fewer missed steps |
+| **Goals** | Track onboarding status, ensure compliance |
 
 ---
 
 ## 5. Functional Requirements
 
-### 5.1 Onboarding Form
+### 5.1 Two-Column Layout
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| RCO-1.1 | Capture Default Domain | Must Have |
-| RCO-1.2 | Capture Name | Must Have |
-| RCO-1.3 | Capture Email Address | Must Have |
-| RCO-1.4 | Capture CC | Should Have |
-| RCO-1.5 | Select New Company or Existing Company | Must Have |
-| RCO-1.6 | Choose an Indirect Reseller (default None) | Must Have |
-| RCO-1.7 | "Create" button opens the email modal | Must Have |
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| RCO-1.1 | Display form on left, email preview on right | Must Have | ✅ |
+| RCO-1.2 | Responsive: Stack columns on mobile | Should Have | ✅ |
 
-### 5.2 Email Template Modal
+### 5.2 Customer Details Form (Left Column)
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| RCO-2.1 | Show editable email body in a WYSIWYG HTML editor | Must Have |
-| RCO-2.2 | Include ITCloud.ca branding | Must Have |
-| RCO-2.3 | Always include the Reseller Relationship Request URL | Must Have |
-| RCO-2.4 | Always include the GDAP Request URL | Must Have |
-| RCO-2.5 | If Existing Company is selected, allow selection in the modal | Must Have |
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| RCO-2.1 | Client type toggle: New Customer / Existing Customer | Must Have | ✅ |
+| RCO-2.2 | If Existing: Show searchable company dropdown | Must Have | ✅ |
+| RCO-2.3 | Company dropdown sources from **Marketplace Companies** | Must Have | ✅ |
+| RCO-2.4 | Auto-fill domain and email when company selected | Should Have | ✅ |
+| RCO-2.5 | Capture Default Domain (required) | Must Have | ✅ |
+| RCO-2.6 | Capture Contact Name | Should Have | ✅ |
+| RCO-2.7 | Capture Email Address (required) | Must Have | ✅ |
+| RCO-2.8 | Capture CC email | Should Have | ✅ |
+| RCO-2.9 | Select Indirect Reseller (required) | Must Have | ✅ |
 
-### 5.3 Current Approvals
+### 5.3 Live Email Preview (Right Column)
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| RCO-3.1 | Show a list of customer approvals | Must Have |
-| RCO-3.2 | Show status labels (e.g., Pending: Awaiting confirmation of RRR, Ready to Order) | Must Have |
-| RCO-3.3 | Use demo data for initial implementation | Must Have |
-| RCO-3.4 | Provide a Resend Email action per row with confirmation modal | Must Have |
-| RCO-3.5 | Show a success toast after resend confirmation | Should Have |
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| RCO-3.1 | Show email header (To, CC, Subject) | Must Have | ✅ |
+| RCO-3.2 | Show email body with template content | Must Have | ✅ |
+| RCO-3.3 | Update preview in real-time as form changes | Must Have | ✅ |
+| RCO-3.4 | Include Reseller Relationship Request (RRR) URL | Must Have | ✅ |
+| RCO-3.5 | Include GDAP Request URL | Must Have | ✅ |
+| RCO-3.6 | "Edit" button enables WYSIWYG editing | Must Have | ✅ |
+| RCO-3.7 | "Copy to Clipboard" button copies email HTML | Must Have | ✅ |
+| RCO-3.8 | "Send Email" button opens mailto with content | Must Have | ✅ |
+
+### 5.4 Current Approvals Table
+
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| RCO-4.1 | Show list of customer approvals | Must Have | ✅ |
+| RCO-4.2 | Display: Client, Domain, Step, Status | Must Have | ✅ |
+| RCO-4.3 | Status badges with color coding | Must Have | ✅ |
+| RCO-4.4 | Resend Email action per row | Must Have | ✅ |
+| RCO-4.5 | Confirmation modal before resend | Must Have | ✅ |
+| RCO-4.6 | Success toast after resend | Should Have | ✅ |
 
 ---
 
 ## 6. User Experience Design
 
-- Page lives under **Operations → Microsoft → Reseller: Customer Onboarding**.
-- Form appears at the top of the page with a concise, two-column layout.
-- The email modal opens on Create and includes an editable template.
-- Approvals table appears below as a status dashboard.
+### 6.1 Page Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  Breadcrumb: Companies / Microsoft / Reseller: Customer Onboarding             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Header Card: Title + Description                                               │
+├───────────────────────────────────┬─────────────────────────────────────────────┤
+│                                   │                                             │
+│  📝 CUSTOMER DETAILS              │  📧 EMAIL PREVIEW                           │
+│                                   │                                             │
+│  Client                           │  To: [email]                                │
+│  [● New] [○ Existing]             │  Subject: Action required...                │
+│                                   │  ─────────────────────────                  │
+│  [If Existing: Company Search]    │                                             │
+│                                   │  Hello [Name],                              │
+│  ─────────────────                │                                             │
+│  Microsoft Tenant Details         │  [Reseller] is requesting to become         │
+│  • Default Domain *               │  your Microsoft 365 provider...             │
+│  • Contact Name                   │                                             │
+│  • Email Address *                │  Step 1: Approve RRR → [Link]               │
+│  • CC                             │  Step 2: Approve GDAP → [Link]              │
+│                                   │                                             │
+│  ─────────────────                │  Best regards,                              │
+│  Indirect Reseller *              │  [Reseller] Team                            │
+│  [Dropdown]                       │  ─────────────────────────                  │
+│                                   │  [Edit] [Copy] [Send Email]                 │
+│                                   │                                             │
+├───────────────────────────────────┴─────────────────────────────────────────────┤
+│  📋 CURRENT APPROVALS                                                           │
+│  ┌──────────────┬─────────────────────────┬────────────────┬──────────┬───────┐ │
+│  │ Client       │ Domain                  │ Step           │ Status   │ Actions│ │
+│  ├──────────────┼─────────────────────────┼────────────────┼──────────┼───────┤ │
+│  │ IT CLOUD...  │ itcloudacademie.ca      │ RRR Sent       │ Pending  │ 📧    │ │
+│  │ Contoso Ltd  │ contoso.onmicrosoft.com │ GDAP Requested │ Pending  │ 📧    │ │
+│  │ Fabrikam Inc │ fabrikam.onmicrosoft.com│ Approved       │ Ready ✓  │ 📧    │ │
+│  └──────────────┴─────────────────────────┴────────────────┴──────────┴───────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 User Flow
+
+1. **Navigate** to Operations → Microsoft → Reseller: Customer Onboarding
+2. **Select client type**: New Customer or Existing Customer
+3. **If Existing**: Search and select from Marketplace Companies (auto-fills domain/email)
+4. **Fill remaining fields**: Contact name, email (if not auto-filled), CC, reseller
+5. **Review live preview**: See exactly what the customer will receive
+6. **Optional**: Click "Edit" to customize email content
+7. **Send**: Click "Send Email" (opens mail client) or "Copy to Clipboard"
+8. **Track**: Monitor status in Current Approvals table
 
 ---
 
 ## 7. Data Requirements
 
-- Tenant metadata: default domain, email, CC, company type.
-- Email template body and required URLs.
-- Approval status list with timestamps and step labels.
+### 7.1 Form Data
+
+| Field | Type | Required | Source |
+|-------|------|----------|--------|
+| Client Type | Enum | Yes | User selection |
+| Company | Reference | If Existing | Marketplace Companies |
+| Default Domain | String | Yes | User input / Auto-fill |
+| Contact Name | String | No | User input |
+| Email Address | Email | Yes | User input / Auto-fill |
+| CC | Email | No | User input |
+| Indirect Reseller | Reference | Yes | Reseller list |
+
+### 7.2 Email Template
+
+| Component | Content |
+|-----------|---------|
+| Greeting | "Hello [Contact Name]," |
+| Body | Reseller relationship request message |
+| Step 1 | RRR approval link |
+| Step 2 | GDAP approval link |
+| Closing | "Best regards, [Reseller] Team" |
+
+### 7.3 Approvals Data (Demo)
+
+| Field | Type |
+|-------|------|
+| Customer Name | String |
+| Default Domain | String |
+| Step | Enum (RRR Sent, GDAP Requested, Approved) |
+| Status | Enum (Pending, Ready to Order) |
 
 ---
 
 ## 8. Implementation Status
 
 | Feature | Status | Notes |
-|---------|--------|------|
-| Onboarding form | 🚧 In Progress | Basic layout in main app |
-| Email template modal | 🚧 In Progress | Editable template |
-| Current approvals | 🚧 In Progress | Demo data table |
+|---------|--------|-------|
+| Two-column layout | ✅ Complete | Form left, preview right |
+| Client type toggle | ✅ Complete | Segmented control |
+| Company search (Marketplace) | ✅ Complete | Fixed data source |
+| Auto-fill on selection | ✅ Complete | Domain + email |
+| Live email preview | ✅ Complete | Real-time updates |
+| WYSIWYG editor | ✅ Complete | TipTap integration |
+| Copy to Clipboard | ✅ Complete | With success toast |
+| Send Email (mailto) | ✅ Complete | Opens mail client |
+| Current Approvals table | ✅ Complete | Demo data |
+| Resend action | ✅ Complete | With confirmation |
 
 ---
 
-## 9. Future Enhancements
+## 9. Changelog
 
-- Integrate with real Microsoft Partner Center APIs
-- Automated sending and tracking of onboarding emails
-- Role-based access controls
+### v2.0 (February 5, 2026)
+
+**Major UX Overhaul - Flow B Implementation**
+
+- 🔧 **Fixed**: Company selector now pulls from Marketplace Companies instead of Partner Center tenants
+- ✨ **New**: Two-column layout with live email preview
+- ✨ **New**: Real-time preview updates as form fields change
+- ✨ **New**: Auto-fill domain and email when existing company selected
+- ✨ **New**: "Copy to Clipboard" button with success feedback
+- ✨ **New**: "Send Email" button opens mailto link
+- 🗑️ **Removed**: Modal-based email generation (replaced with inline preview)
+- 🗑️ **Removed**: Confusing "Submit" button (replaced with explicit actions)
+
+### v1.0 (January 20, 2026)
+
+- Initial implementation with modal-based email generation
+- Form fields: domain, name, email, CC, company type, reseller
+- Current approvals table with demo data
+
+---
+
+## 10. Future Enhancements
+
+| Enhancement | Priority | Description |
+|-------------|----------|-------------|
+| Real Microsoft Partner Center integration | High | Generate actual RRR/GDAP links |
+| Email send via API | High | Send directly without mailto |
+| Approval status sync | Medium | Pull real status from Partner Center |
+| Email templates library | Medium | Multiple branded templates |
+| Role-based access controls | Low | Restrict to authorized users |
+| Bulk onboarding | Low | Onboard multiple customers at once |
