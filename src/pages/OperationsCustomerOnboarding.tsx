@@ -10,6 +10,7 @@ import Link from '@tiptap/extension-link';
 import { OperationsLayout } from '../components/layout/OperationsLayout';
 import { Card } from 'components/DesignSystem';
 import { getPartnerCenterProfile, type PartnerProfile } from '../api/partnerCenter';
+import { GDAP_TEMPLATES, getTemplateById, type GdapTemplate } from '../api/gdapTemplates';
 
 // Marketplace Companies (from Operations > Companies)
 const marketplaceCompanies = [
@@ -76,6 +77,13 @@ export const OperationsCustomerOnboarding = () => {
   const [email, setEmail] = useState('');
   const [ccEmail, setCcEmail] = useState('');
   const [reseller, setReseller] = useState<string | null>('itcloud');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>('t-default');
+
+  // Get selected GDAP template
+  const selectedTemplate = useMemo(() => {
+    if (!selectedTemplateId) return null;
+    return getTemplateById(selectedTemplateId) || null;
+  }, [selectedTemplateId]);
   
   // UI state
   const [isEditing, setIsEditing] = useState(false);
@@ -164,6 +172,14 @@ export const OperationsCustomerOnboarding = () => {
       ? `<p style="font-size: 12px; color: #666;">(Partner MPN ID: ${partnerProfile.mpnId})</p>`
       : '';
 
+    // Show GDAP template info if selected
+    const gdapTemplateInfo = selectedTemplate
+      ? `<p style="font-size: 12px; color: #666; margin-top: 8px;">
+          <strong>GDAP Template:</strong> ${selectedTemplate.name}<br/>
+          <strong>Roles requested:</strong> ${selectedTemplate.roles.join(', ')}
+        </p>`
+      : '';
+
     return `
       <p>Hello ${displayName},</p>
       <p><strong>${resellerName}</strong> is requesting to become the Microsoft 365 cloud solutions provider for <strong>${displayDomain}</strong>.</p>
@@ -171,14 +187,15 @@ export const OperationsCustomerOnboarding = () => {
       <p><strong>Step 1: Approve the Reseller Relationship Request (RRR)</strong><br/>
       This establishes ${resellerName} as your Microsoft partner.<br/>
       <a href="${rrrUrl}" style="color: #228be6;">Click here to approve the Reseller Relationship →</a></p>
-      <p><strong>Step 2: Approve the GDAP Request</strong><br/>
+      <p><strong>Step 2: Approve the GDAP Request${selectedTemplate ? ` (${selectedTemplate.name})` : ''}</strong><br/>
       This grants ${resellerName} the necessary admin access to manage your Microsoft 365 services.<br/>
       <a href="${gdapUrl}" style="color: #228be6;">Click here to approve GDAP access →</a></p>
       <p>If you have any questions, simply reply to this email and our team will be happy to help.</p>
       <p>Best regards,<br/><strong>${resellerName} Team</strong></p>
       ${mpnNote}
+      ${gdapTemplateInfo}
     `.trim();
-  }, [domain, contactName, resellerName, partnerProfile]);
+  }, [domain, contactName, resellerName, partnerProfile, selectedTemplate]);
 
   // Email editor
   const editor = useEditor({
@@ -431,6 +448,46 @@ export const OperationsCustomerOnboarding = () => {
                 onChange={setReseller}
                 required
               />
+
+              <Divider />
+
+              {/* GDAP Template Selection */}
+              <Select
+                label="GDAP Role Template"
+                description="Admin roles that will be requested for this customer"
+                placeholder="Select a role template"
+                data={GDAP_TEMPLATES.map((t) => ({
+                  value: t.id,
+                  label: t.name,
+                }))}
+                value={selectedTemplateId}
+                onChange={setSelectedTemplateId}
+                clearable
+              />
+
+              {/* Show selected template details */}
+              {selectedTemplate && (
+                <Paper p="sm" radius="sm" withBorder bg="blue.0">
+                  <Stack gap={4}>
+                    <Text size="xs" fw={600} c="blue.7">{selectedTemplate.name}</Text>
+                    {selectedTemplate.description && (
+                      <Text size="xs" c="dimmed">{selectedTemplate.description}</Text>
+                    )}
+                    <Group gap={4} mt={4}>
+                      {selectedTemplate.roles.slice(0, 4).map((role) => (
+                        <Badge key={role} size="xs" variant="light" color="blue">
+                          {role}
+                        </Badge>
+                      ))}
+                      {selectedTemplate.roles.length > 4 && (
+                        <Badge size="xs" variant="light" color="gray">
+                          +{selectedTemplate.roles.length - 4} more
+                        </Badge>
+                      )}
+                    </Group>
+                  </Stack>
+                </Paper>
+              )}
             </Stack>
           </Card>
 

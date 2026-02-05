@@ -24,6 +24,7 @@ import { Toggle } from '../components/form/Toggle';
 import { getPartnerCenterConnectGdapUrl, getPartnerCenterCustomers, getPartnerCenterGdapRelationships } from '../api/partnerCenter';
 import { OperationsLayout } from '../components/layout/OperationsLayout';
 import { Card } from 'components/DesignSystem';
+import { GDAP_TEMPLATES, ROLE_OPTIONS, TEMPLATE_CATEGORIES, type GdapTemplate } from '../api/gdapTemplates';
 
 type Company = {
   id: string;
@@ -48,33 +49,11 @@ type GdapRelationship = {
   roles: string[];
 };
 
-type GdapTemplate = {
-  id: string;
-  name: string;
-  description?: string;
-  recommendedFor?: string[];
-  roles: string[];
-};
-
 const EXPIRING_SOON_DAYS = 30;
 
-const roleOptions = [
-  'Directory readers',
-  'Directory writers',
-  'Global reader',
-  'User administrator',
-  'Helpdesk administrator',
-  'License administrator',
-  'Service support administrator',
-  'Application administrator',
-  'Cloud application administrator',
-  'Privileged role administrator',
-  'Privileged authentication administrator',
-  'Teams administrator',
-  'Teams communications administrator',
-];
-
-const templateCategories = ['Teams', 'Support', 'User Management', 'Baseline Read', 'Security'];
+// Use shared role options and template categories from gdapTemplates module
+const roleOptions = ROLE_OPTIONS;
+const templateCategories = [...TEMPLATE_CATEGORIES];
 
 function ymdFromIso(iso?: string) {
   if (!iso) return '';
@@ -94,50 +73,8 @@ function mapGraphStatusToRelationshipStatus(s?: string): RelationshipStatus {
   return 'Pending';
 }
 
-const initialTemplates: GdapTemplate[] = [
-  {
-    id: 't-default',
-    name: 'Default GDAP',
-    description:
-      'Common baseline GDAP role set used for broad operational coverage (time-bound, least-privileged).',
-    recommendedFor: ['Baseline Read', 'Support', 'User Management'],
-    roles: [
-      'Privileged authentication administrator',
-      'Privileged role administrator',
-      'User administrator',
-      'Helpdesk administrator',
-      'License administrator',
-      'Application administrator',
-      'Cloud application administrator',
-      'Service support administrator',
-      'Directory writers',
-      'Directory readers',
-      'Global reader',
-    ],
-  },
-  {
-    id: 't-appdirect-marketplace',
-    name: 'AppDirect Marketplace',
-    description:
-      'AppDirect marketplace operations template: cloud apps, licensing, users, and directory read.',
-    recommendedFor: ['User Management', 'Support'],
-    roles: ['Cloud application administrator', 'License administrator', 'User administrator', 'Directory readers'],
-  },
-  {
-    id: 't-1',
-    name: 'Teams',
-    description: 'Common Teams admin tasks + baseline support.',
-    recommendedFor: ['Teams'],
-    roles: ['Teams administrator', 'Helpdesk administrator', 'Directory readers'],
-  },
-  {
-    id: 't-2',
-    name: 'User Management',
-    description: 'Create/manage users and assign licenses.',
-    recommendedFor: ['User Management'],
-    roles: ['User administrator', 'License administrator'],
-  },
-];
+// Use shared templates from gdapTemplates module
+const initialTemplates: GdapTemplate[] = [...GDAP_TEMPLATES];
 
 const daysUntil = (dateStr: string) => {
   const ms = new Date(dateStr).getTime() - new Date().setHours(0, 0, 0, 0);
