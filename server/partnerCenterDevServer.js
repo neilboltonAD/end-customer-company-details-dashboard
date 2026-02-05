@@ -305,6 +305,22 @@ function envClientInfoOrThrow() {
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
+  // CORS headers for cross-origin requests from localhost:3000 (CRA dev server)
+  const origin = req.headers.origin || '';
+  if (origin.startsWith('http://localhost:')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   // Start interactive connect flow (App+User). This is the recommended way to satisfy MFA for Partner Center APIs.
   if (req.method === 'GET' && u.pathname === '/api/partner-center/connect') {
     try {
