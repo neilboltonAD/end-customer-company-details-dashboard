@@ -350,7 +350,7 @@ export const OperationsCustomerOnboarding = () => {
         )}
 
         {/* Two-Column Layout */}
-        <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
+        <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg" style={{ alignItems: 'stretch' }}>
           {/* LEFT: Form */}
           <Card>
             <Stack gap="lg">
@@ -492,8 +492,8 @@ export const OperationsCustomerOnboarding = () => {
           </Card>
 
           {/* RIGHT: Live Email Preview */}
-          <Card>
-            <Stack gap="md" h="100%">
+          <Card style={{ display: 'flex', flexDirection: 'column' }}>
+            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
               <Group justify="space-between" align="center">
                 <Text fw={600} size="sm">📧 Email Preview</Text>
                 <Group gap="xs">
@@ -557,9 +557,9 @@ export const OperationsCustomerOnboarding = () => {
               </Paper>
 
               {/* Email Body */}
-              <Box style={{ flex: 1, minHeight: 300 }}>
+              <Box style={{ flex: 1, minHeight: 200, display: 'flex', flexDirection: 'column' }}>
                 {isEditing ? (
-                  <RichTextEditor editor={editor}>
+                  <RichTextEditor editor={editor} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <RichTextEditor.Toolbar sticky stickyOffset={0}>
                       <RichTextEditor.ControlsGroup>
                         <RichTextEditor.Bold />
@@ -576,15 +576,16 @@ export const OperationsCustomerOnboarding = () => {
                     </RichTextEditor.Toolbar>
                     <RichTextEditor.Content
                       style={{
-                        minHeight: 280,
+                        flex: 1,
+                        minHeight: 200,
                         border: '1px solid var(--mantine-color-blue-2)',
                         borderRadius: 8,
                       }}
                     />
                   </RichTextEditor>
                 ) : (
-                  <ScrollArea h={320}>
-                    <Paper p="md" radius="sm" withBorder>
+                  <ScrollArea style={{ flex: 1 }}>
+                    <Paper p="md" radius="sm" withBorder style={{ minHeight: '100%' }}>
                       <div
                         dangerouslySetInnerHTML={{ __html: editor?.getHTML() || emailTemplate }}
                         style={{ fontSize: 14, lineHeight: 1.6 }}
