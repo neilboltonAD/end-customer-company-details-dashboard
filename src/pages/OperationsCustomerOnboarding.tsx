@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HelpCircle, Mail, Copy, Send, Pencil, Check, X, Building2, UserPlus, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
-import { ActionIcon, Badge, Button, Group, Modal, Paper, SegmentedControl, Select, SimpleGrid, Stack, Table, Text, TextInput, Tooltip, Box, Divider, ScrollArea, Alert } from '@mantine/core';
+import { ActionIcon, Badge, Button, Group, Loader, Modal, Paper, SegmentedControl, Select, SimpleGrid, Stack, Table, Text, TextInput, Tooltip, Box, Divider, ScrollArea, Alert } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { RichTextEditor } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
@@ -9,26 +9,42 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { OperationsLayout } from '../components/layout/OperationsLayout';
 import { Card } from 'components/DesignSystem';
-import { getPartnerCenterProfile, type PartnerProfile } from '../api/partnerCenter';
+import { getPartnerCenterProfile, getIndirectResellers, generateRrrUrl, createGdapRequest, type PartnerProfile, type IndirectReseller, type CreateGdapRequestPayload } from '../api/partnerCenter';
+import { getTemplateRoleIds } from '../api/gdapTemplates';
 import { GDAP_TEMPLATES, getTemplateById, type GdapTemplate } from '../api/gdapTemplates';
 
 // Marketplace Companies (from Operations > Companies)
+// Companies may or may not have a linked Microsoft tenant yet
+// - hasTenantLinked: true = already onboarded, don't need RRR/GDAP
+// - hasTenantLinked: false = needs onboarding via RRR/GDAP
 const marketplaceCompanies = [
-  { id: 'mc-1', name: 'demoresellercustomer3', domain: 'demoresellercustomer3.onmicrosoft.com', email: 'admin@demoresellercustomer3.com', createdOn: '11/11/25' },
-  { id: 'mc-2', name: 'demoresellercustomeropportunity', domain: 'demoresellercustomeropportunity.onmicrosoft.com', email: 'admin@demoresellercustomeropportunity.com', createdOn: '11/11/25' },
-  { id: 'mc-3', name: 'demoresellercustomer2', domain: 'demoresellercustomer2.onmicrosoft.com', email: 'admin@demoresellercustomer2.com', createdOn: '11/10/25' },
-  { id: 'mc-4', name: 'demoresellercustomer1', domain: 'demoresellercustomer1.onmicrosoft.com', email: 'admin@demoresellercustomer1.com', createdOn: '11/10/25' },
-  { id: 'mc-5', name: 'Demo Reseller', domain: 'demoreseller.onmicrosoft.com', email: 'admin@demoreseller.com', createdOn: '11/10/25' },
-  { id: 'mc-6', name: 'Demo Reseller Manager', domain: 'demoresellermanager.onmicrosoft.com', email: 'admin@demoresellermanager.com', createdOn: '11/10/25' },
-  { id: 'mc-7', name: 'VodafoneDemo2', domain: 'vodafonedemo2.onmicrosoft.com', email: 'admin@vodafonedemo2.com', createdOn: '10/23/25' },
-  { id: 'mc-8', name: 'VodafoneDemo1', domain: 'vodafonedemo1.onmicrosoft.com', email: 'admin@vodafonedemo1.com', createdOn: '10/23/25' },
-  { id: 'mc-9', name: 'Fabrikam Inc', domain: 'fabrikam.onmicrosoft.com', email: 'admin@fabrikam.com', createdOn: '10/20/25' },
-  { id: 'mc-10', name: 'Contoso Ltd', domain: 'contoso.onmicrosoft.com', email: 'john@contoso.com', createdOn: '10/15/25' },
-  { id: 'mc-11', name: 'Adventure Works', domain: 'adventureworks.onmicrosoft.com', email: 'admin@adventureworks.com', createdOn: '10/10/25' },
-  { id: 'mc-12', name: 'Appdirect', domain: 'appdirect.onmicrosoft.com', email: 'admin@appdirect.com', createdOn: '10/13/25' },
+  // Companies WITHOUT linked tenants (need onboarding)
+  { id: 'mc-1', name: 'demoresellercustomer3', contactName: 'John Smith', email: 'john@demoresellercustomer3.com', createdOn: '11/11/25', hasTenantLinked: false },
+  { id: 'mc-2', name: 'demoresellercustomeropportunity', contactName: 'Sarah Johnson', email: 'sarah@opportunity.com', createdOn: '11/11/25', hasTenantLinked: false },
+  { id: 'mc-3', name: 'demoresellercustomer2', contactName: 'Mike Wilson', email: 'mike@demoresellercustomer2.com', createdOn: '11/10/25', hasTenantLinked: false },
+  { id: 'mc-4', name: 'demoresellercustomer1', contactName: 'Emma Davis', email: 'emma@demoresellercustomer1.com', createdOn: '11/10/25', hasTenantLinked: false },
+  { id: 'mc-5', name: 'Demo Reseller', contactName: 'Alex Brown', email: 'alex@demoreseller.com', createdOn: '11/10/25', hasTenantLinked: false },
+  { id: 'mc-6', name: 'Demo Reseller Manager', contactName: 'Chris Lee', email: 'chris@demoresellermanager.com', createdOn: '11/10/25', hasTenantLinked: false },
+  // Companies WITH linked tenants (already onboarded - show warning)
+  { id: 'mc-7', name: 'VodafoneDemo2', contactName: 'Tom Harris', email: 'tom@vodafonedemo2.com', createdOn: '10/23/25', hasTenantLinked: true, linkedDomain: 'vodafonedemo2.onmicrosoft.com' },
+  { id: 'mc-8', name: 'VodafoneDemo1', contactName: 'Lisa Chen', email: 'lisa@vodafonedemo1.com', createdOn: '10/23/25', hasTenantLinked: true, linkedDomain: 'vodafonedemo1.onmicrosoft.com' },
+  { id: 'mc-9', name: 'Fabrikam Inc', contactName: 'James Miller', email: 'james@fabrikam.com', createdOn: '10/20/25', hasTenantLinked: true, linkedDomain: 'fabrikam.onmicrosoft.com' },
+  { id: 'mc-10', name: 'Contoso Ltd', contactName: 'John Doe', email: 'john@contoso.com', createdOn: '10/15/25', hasTenantLinked: true, linkedDomain: 'contoso.onmicrosoft.com' },
+  { id: 'mc-11', name: 'Adventure Works', contactName: 'Amy Wilson', email: 'amy@adventureworks.com', createdOn: '10/10/25', hasTenantLinked: true, linkedDomain: 'adventureworks.onmicrosoft.com' },
+  { id: 'mc-12', name: 'Appdirect', contactName: 'Bob Martinez', email: 'bob@appdirect.com', createdOn: '10/13/25', hasTenantLinked: true, linkedDomain: 'appdirect.onmicrosoft.com' },
 ];
 
-const indirectResellers = [
+// GDAP duration options (ISO 8601 duration format)
+const GDAP_DURATION_OPTIONS = [
+  { value: 'P30D', label: '30 days' },
+  { value: 'P90D', label: '90 days' },
+  { value: 'P180D', label: '180 days (6 months)' },
+  { value: 'P365D', label: '365 days (1 year)' },
+  { value: 'P730D', label: '730 days (2 years) - Maximum' },
+];
+
+// Fallback resellers for demo mode (when Partner Center is not connected)
+const fallbackResellers = [
   { value: 'itcloud', label: 'ITCloud.ca' },
   { value: 'northwind', label: 'Northwind Reseller' },
   { value: 'contoso-cloud', label: 'Contoso Cloud Services' },
@@ -68,6 +84,10 @@ export const OperationsCustomerOnboarding = () => {
   const [partnerProfile, setPartnerProfile] = useState<PartnerProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Indirect resellers from Partner Center
+  const [indirectResellers, setIndirectResellers] = useState<IndirectReseller[]>([]);
+  const [resellersLoading, setResellersLoading] = useState(true);
   
   // Form state
   const [clientType, setClientType] = useState<'new' | 'existing'>('new');
@@ -78,6 +98,14 @@ export const OperationsCustomerOnboarding = () => {
   const [ccEmail, setCcEmail] = useState('');
   const [reseller, setReseller] = useState<string | null>('itcloud');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>('t-appdirect-marketplace');
+  const [gdapDuration, setGdapDuration] = useState<string>('P730D'); // Default to max 730 days (2 years)
+
+  // GDAP request state
+  const [gdapApprovalUrl, setGdapApprovalUrl] = useState<string | null>(null);
+  const [isCreatingGdap, setIsCreatingGdap] = useState(false);
+
+  // Warning state for already-linked tenants
+  const [showLinkedWarning, setShowLinkedWarning] = useState(false);
 
   // Get selected GDAP template
   const selectedTemplate = useMemo(() => {
@@ -119,6 +147,31 @@ export const OperationsCustomerOnboarding = () => {
     return () => { cancelled = true; };
   }, []);
 
+  // Fetch indirect resellers from Partner Center
+  useEffect(() => {
+    let cancelled = false;
+    const fetchResellers = async () => {
+      try {
+        setResellersLoading(true);
+        const response = await getIndirectResellers();
+        if (!cancelled && response.ok && response.resellers.length > 0) {
+          // Filter to only show active resellers
+          const activeResellers = response.resellers.filter(r => r.state === 'Active');
+          setIndirectResellers(activeResellers);
+        }
+      } catch (err) {
+        // Silently fail - fallback resellers will be shown
+        console.warn('Failed to fetch indirect resellers:', err);
+      } finally {
+        if (!cancelled) {
+          setResellersLoading(false);
+        }
+      }
+    };
+    fetchResellers();
+    return () => { cancelled = true; };
+  }, []);
+
   // Get selected company data
   const selectedCompany = useMemo(() => {
     if (clientType !== 'existing' || !selectedCompanyId) return null;
@@ -128,12 +181,22 @@ export const OperationsCustomerOnboarding = () => {
   // Auto-fill when company is selected
   const handleCompanySelect = (companyId: string | null) => {
     setSelectedCompanyId(companyId);
+    setShowLinkedWarning(false);
+    setGdapApprovalUrl(null); // Reset GDAP when company changes
+    
     if (companyId) {
       const company = marketplaceCompanies.find(c => c.id === companyId);
       if (company) {
-        setDomain(company.domain);
+        // Auto-fill from Company data
+        setContactName(company.contactName || '');
         setEmail(company.email);
-        setContactName(''); // User should fill this
+        setDomain(''); // Customer will provide their Microsoft domain
+        
+        // Show warning if tenant is already linked
+        if (company.hasTenantLinked) {
+          setShowLinkedWarning(true);
+          setDomain(company.linkedDomain || '');
+        }
       }
     }
   };
@@ -141,6 +204,9 @@ export const OperationsCustomerOnboarding = () => {
   // Clear form when switching client type
   const handleClientTypeChange = (value: string) => {
     setClientType(value as 'new' | 'existing');
+    setShowLinkedWarning(false);
+    setGdapApprovalUrl(null); // Reset GDAP when switching client type
+    
     if (value === 'new') {
       setSelectedCompanyId(null);
       setDomain('');
@@ -149,53 +215,128 @@ export const OperationsCustomerOnboarding = () => {
     }
   };
 
+  // Prepare reseller dropdown data (use real resellers if available, otherwise fallback)
+  const resellerDropdownData = useMemo(() => {
+    if (indirectResellers.length > 0) {
+      return indirectResellers.map(r => ({
+        value: r.id,
+        label: r.name || r.id,
+      }));
+    }
+    return fallbackResellers;
+  }, [indirectResellers]);
+
+  // Get selected reseller object (for tenantId and display name)
+  const selectedReseller = useMemo(() => {
+    if (!reseller) return null;
+    return indirectResellers.find(r => r.id === reseller) || null;
+  }, [reseller, indirectResellers]);
+
   // Get reseller name for display
   const resellerName = useMemo(() => {
-    const r = indirectResellers.find(ir => ir.value === reseller);
-    return r?.label || 'Your Reseller';
-  }, [reseller]);
+    if (selectedReseller?.name) return selectedReseller.name;
+    const fallback = fallbackResellers.find(r => r.value === reseller);
+    return fallback?.label || 'Your Reseller';
+  }, [reseller, selectedReseller]);
 
   // Generate email template with real Partner Center URLs
   const emailTemplate = useMemo(() => {
     const displayDomain = domain || 'customer-domain.com';
     const displayName = contactName || 'Valued Customer';
     
-    // Use real RRR URL from Partner Center profile if available
-    const rrrUrl = partnerProfile?.rrrUrl 
-      || `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=${partnerProfile?.mpnId || 'PARTNER_ID'}&msppId=0&DAP=true`;
+    // Generate RRR URL using the correct format based on reseller type
+    // For Indirect Resellers: includes reseller's tenant ID
+    // For Direct Partners: standard format with partner's MPN ID
+    const rrrUrl = partnerProfile?.mpnId
+      ? generateRrrUrl({
+          partnerMpnId: partnerProfile.mpnId,
+          resellerTenantId: selectedReseller?.tenantId,
+          isIndirectReseller: !!selectedReseller?.tenantId,
+        })
+      : 'https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=PARTNER_ID&msppId=0&DAP=true';
     
-    // GDAP approval URL - customer will see pending GDAP requests here
-    const gdapUrl = `https://admin.microsoft.com/AdminPortal/Home#/partners/granularadminrelationships`;
+    // GDAP approval URL - use specific URL if created, otherwise show placeholder
+    // The actual URL is created when "Send Email" is clicked
+    const gdapUrl = gdapApprovalUrl 
+      || '[GDAP link will be generated when you click Send Email]';
 
-    // Show MPN ID in the email if available (for transparency)
-    const mpnNote = partnerProfile?.mpnId 
-      ? `<p style="font-size: 12px; color: #666;">(Partner MPN ID: ${partnerProfile.mpnId})</p>`
-      : '';
-
-    // Show GDAP template info if selected
-    const gdapTemplateInfo = selectedTemplate
-      ? `<p style="font-size: 12px; color: #666; margin-top: 8px;">
-          <strong>GDAP Template:</strong> ${selectedTemplate.name}<br/>
-          <strong>Roles requested:</strong> ${selectedTemplate.roles.join(', ')}
-        </p>`
+    // Get human-friendly duration
+    const durationOption = GDAP_DURATION_OPTIONS.find(d => d.value === gdapDuration);
+    const durationText = durationOption?.label?.replace(' - Maximum', '') || '730 days';
+    
+    // Get roles list for display (limit to 4 for brevity)
+    const rolesList = selectedTemplate?.roles.slice(0, 4).map(role => 
+      `<li style="margin: 4px 0; color: #495057;">${role}</li>`
+    ).join('') || '';
+    const moreRoles = selectedTemplate && selectedTemplate.roles.length > 4 
+      ? `<li style="margin: 4px 0; color: #868e96; font-style: italic;">+ ${selectedTemplate.roles.length - 4} more permissions</li>` 
       : '';
 
     return `
-      <p>Hello ${displayName},</p>
-      <p><strong>${resellerName}</strong> is requesting to become the Microsoft 365 cloud solutions provider for <strong>${displayDomain}</strong>.</p>
-      <p>To complete the onboarding process, please approve the following two requests:</p>
-      <p><strong>Step 1: Approve the Reseller Relationship Request (RRR)</strong><br/>
-      This establishes ${resellerName} as your Microsoft partner.<br/>
-      <a href="${rrrUrl}" style="color: #228be6;">Click here to approve the Reseller Relationship →</a></p>
-      <p><strong>Step 2: Approve the GDAP Request${selectedTemplate ? ` (${selectedTemplate.name})` : ''}</strong><br/>
-      This grants ${resellerName} the necessary admin access to manage your Microsoft 365 services.<br/>
-      <a href="${gdapUrl}" style="color: #228be6;">Click here to approve GDAP access →</a></p>
-      <p>If you have any questions, simply reply to this email and our team will be happy to help.</p>
-      <p>Best regards,<br/><strong>${resellerName} Team</strong></p>
-      ${mpnNote}
-      ${gdapTemplateInfo}
+      <p style="font-size: 16px; color: #212529; margin-bottom: 16px;">Hello ${displayName},</p>
+      
+      <p style="font-size: 15px; color: #495057; margin-bottom: 24px;">
+        You have <strong>2 quick actions</strong> to complete your Microsoft 365 setup with <strong>${resellerName}</strong>:
+      </p>
+
+      <div style="border-left: 4px solid #228be6; padding-left: 16px; margin-bottom: 24px;">
+        <p style="font-size: 12px; color: #868e96; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+          ☐ Action 1 of 2
+        </p>
+        <p style="font-size: 16px; font-weight: 600; color: #212529; margin: 0 0 8px 0;">
+          Approve Reseller Relationship
+        </p>
+        <p style="font-size: 14px; color: #495057; margin: 0 0 12px 0;">
+          This makes <strong>${resellerName}</strong> your official Microsoft partner for <strong>${displayDomain}</strong>.<br/>
+          <span style="color: #868e96;">Takes about 30 seconds.</span>
+        </p>
+        <a href="${rrrUrl}" style="display: inline-block; background: #228be6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
+          ▶ &nbsp;Approve Relationship
+        </a>
+      </div>
+
+      <div style="border-left: 4px solid #40c057; padding-left: 16px; margin-bottom: 24px;">
+        <p style="font-size: 12px; color: #868e96; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+          ☐ Action 2 of 2
+        </p>
+        <p style="font-size: 16px; font-weight: 600; color: #212529; margin: 0 0 8px 0;">
+          Approve Admin Access (GDAP)
+        </p>
+        <p style="font-size: 14px; color: #495057; margin: 0 0 8px 0;">
+          This lets <strong>${resellerName}</strong> help manage your Microsoft 365 services.<br/>
+          <span style="color: #868e96;">Valid for ${durationText}. You can revoke anytime.</span>
+        </p>
+        ${selectedTemplate ? `
+        <p style="font-size: 13px; color: #495057; margin: 0 0 12px 0;">
+          <strong>Permissions requested:</strong>
+          <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+            ${rolesList}
+            ${moreRoles}
+          </ul>
+        </p>
+        ` : ''}
+        <a href="${gdapUrl}" style="display: inline-block; background: #40c057; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
+          ▶ &nbsp;Approve Admin Access
+        </a>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #dee2e6; margin: 24px 0;" />
+
+      <p style="font-size: 14px; color: #495057; margin-bottom: 16px;">
+        Questions? Just hit reply — we're here to help!
+      </p>
+
+      <p style="font-size: 14px; color: #212529; margin: 0;">
+        — <strong>The ${resellerName} Team</strong>
+      </p>
+      
+      ${partnerProfile?.mpnId ? `
+      <p style="font-size: 11px; color: #adb5bd; margin-top: 16px;">
+        Partner MPN ID: ${partnerProfile.mpnId}
+      </p>
+      ` : ''}
     `.trim();
-  }, [domain, contactName, resellerName, partnerProfile, selectedTemplate]);
+  }, [domain, contactName, resellerName, partnerProfile, selectedTemplate, selectedReseller, gdapDuration, gdapApprovalUrl]);
 
   // Email editor
   const editor = useEditor({
@@ -246,8 +387,66 @@ export const OperationsCustomerOnboarding = () => {
     }
   };
 
-  // Send email (opens mailto or simulates send)
-  const handleSendEmail = () => {
+  // Create GDAP relationship request via Graph API
+  // This creates a request with specific roles - no customer tenant ID needed
+  // Microsoft returns an invitation URL that any customer can use to approve
+  const createGdapRelationship = async (): Promise<string | null> => {
+    if (!selectedTemplateId || !selectedTemplate) {
+      notifications.show({
+        title: 'No GDAP template selected',
+        message: 'Please select a GDAP role template',
+        color: 'orange',
+      });
+      return null;
+    }
+
+    setIsCreatingGdap(true);
+    try {
+      const roleIds = getTemplateRoleIds(selectedTemplateId);
+      if (roleIds.length === 0) {
+        notifications.show({
+          title: 'No roles in template',
+          message: 'The selected GDAP template has no valid roles',
+          color: 'red',
+        });
+        return null;
+      }
+
+      // Create GDAP WITHOUT customer tenant ID
+      // Microsoft will generate an invitation URL that includes these specific roles
+      const payload: CreateGdapRequestPayload = {
+        customerTenantId: '', // Empty = invitation link for any customer
+        displayName: `${resellerName} - ${selectedTemplate.name} - ${domain || 'Customer'}`,
+        duration: gdapDuration,
+        roles: roleIds,
+        autoExtendDuration: 'P180D',
+      };
+
+      const response = await createGdapRequest(payload);
+      
+      if (response.ok && response.relationship) {
+        setGdapApprovalUrl(response.relationship.customerApprovalUrl);
+        return response.relationship.customerApprovalUrl;
+      } else {
+        throw new Error(response.error || 'Failed to create GDAP relationship');
+      }
+    } catch (err: any) {
+      console.error('GDAP creation error:', err);
+      notifications.show({
+        title: 'GDAP request failed',
+        message: err?.message || 'Failed to create GDAP relationship. Check Partner Center connection.',
+        color: 'red',
+      });
+      return null;
+    } finally {
+      setIsCreatingGdap(false);
+    }
+  };
+
+  // Send email with RRR + GDAP links
+  // 1. Create GDAP relationship first (to get URL with specific roles)
+  // 2. Then open mailto with both links
+  const handleSendEmail = async () => {
     if (!email) {
       notifications.show({
         title: 'Missing email',
@@ -256,8 +455,27 @@ export const OperationsCustomerOnboarding = () => {
       });
       return;
     }
+
+    if (!domain) {
+      notifications.show({
+        title: 'Missing domain',
+        message: 'Please enter the customer\'s Microsoft domain',
+        color: 'orange',
+      });
+      return;
+    }
+
+    // Create GDAP relationship first (if not already created)
+    let approvalUrl = gdapApprovalUrl;
+    if (!approvalUrl) {
+      approvalUrl = await createGdapRelationship();
+      if (!approvalUrl) {
+        // GDAP creation failed - don't send email without valid GDAP link
+        return;
+      }
+    }
     
-    const subject = `Action required: Approve RRR + GDAP for ${domain || 'your organization'}`;
+    const subject = `Action required: Approve RRR + GDAP for ${domain}`;
     const body = editor?.getText() || '';
     
     // Open mailto link
@@ -267,17 +485,18 @@ export const OperationsCustomerOnboarding = () => {
     notifications.show({
       title: 'Email client opened',
       message: `Opening email to ${email}`,
-      color: 'blue',
+      color: 'green',
       icon: <Send size={16} />,
     });
   };
 
-  // Check if form is valid
+  // Check if form is valid (and not trying to send to already-linked tenant)
   const isFormValid = useMemo(() => {
     if (clientType === 'existing' && !selectedCompanyId) return false;
     if (!domain || !email || !reseller) return false;
+    if (showLinkedWarning) return false; // Can't send to already-linked tenant
     return true;
-  }, [clientType, selectedCompanyId, domain, email, reseller]);
+  }, [clientType, selectedCompanyId, domain, email, reseller, showLinkedWarning]);
 
   return (
     <OperationsLayout>
@@ -294,7 +513,7 @@ export const OperationsCustomerOnboarding = () => {
         </Group>
 
         {/* Header */}
-        <Card>
+          <Card>
           <Group justify="space-between" align="flex-start">
             <Stack gap={4}>
               <Text fw={700} size="lg">Reseller: Customer Onboarding</Text>
@@ -323,7 +542,7 @@ export const OperationsCustomerOnboarding = () => {
               )}
             </Group>
           </Group>
-        </Card>
+          </Card>
 
         {/* Partner Center Warning */}
         {!profileLoading && !partnerProfile?.mpnId && (
@@ -356,25 +575,15 @@ export const OperationsCustomerOnboarding = () => {
             <Stack gap="lg">
               <Text fw={600} size="sm">Customer Details</Text>
               
-              {/* Client Type Selection */}
+              {/* Existing Company Selection */}
               <Box>
-                <Text size="sm" fw={500} mb={8}>Client</Text>
+                <Text size="sm" fw={500} mb={8}>Does this customer have an existing Marketplace Company?</Text>
                 <SegmentedControl
-                  value={clientType}
-                  onChange={handleClientTypeChange}
+                  value={clientType === 'existing' ? 'yes' : 'no'}
+                  onChange={(value) => handleClientTypeChange(value === 'yes' ? 'existing' : 'new')}
                   data={[
-                    { value: 'new', label: (
-                      <Group gap={6} wrap="nowrap">
-                        <UserPlus size={14} />
-                        <span>New Customer</span>
-                      </Group>
-                    )},
-                    { value: 'existing', label: (
-                      <Group gap={6} wrap="nowrap">
-                        <Building2 size={14} />
-                        <span>Existing Customer</span>
-                      </Group>
-                    )},
+                    { value: 'no', label: 'No' },
+                    { value: 'yes', label: 'Yes' },
                   ]}
                   fullWidth
                 />
@@ -404,12 +613,30 @@ export const OperationsCustomerOnboarding = () => {
               {/* Contact Details */}
               <Text fw={600} size="sm">Microsoft Tenant Details</Text>
               
+              {/* Warning for already-linked tenants */}
+              {showLinkedWarning && (
+                <Alert 
+                  icon={<AlertCircle size={16} />} 
+                  color="orange" 
+                  variant="light"
+                  title="Tenant already linked"
+                >
+                  <Text size="sm">
+                    This company already has a Microsoft tenant linked ({selectedCompany?.linkedDomain}). 
+                    They don't need a new RRR or GDAP approval. If you need to modify their GDAP permissions, 
+                    use the <Text component="span" fw={600}>GDAP: Management</Text> feature instead.
+                  </Text>
+                </Alert>
+              )}
+
               <TextInput
-                label="Default Domain"
+                label="Microsoft Domain"
+                description="The customer's Microsoft 365 domain (e.g., contoso.onmicrosoft.com)"
                 placeholder="contoso.onmicrosoft.com"
                 value={domain}
                 onChange={(e) => setDomain(e.currentTarget.value)}
                 required
+                disabled={showLinkedWarning}
               />
               
               <TextInput
@@ -442,11 +669,13 @@ export const OperationsCustomerOnboarding = () => {
               <Select
                 label="Indirect Reseller"
                 description="The reseller onboarding this customer"
-                placeholder="Select reseller"
-                data={indirectResellers}
+                placeholder={resellersLoading ? 'Loading resellers...' : 'Select reseller'}
+                data={resellerDropdownData}
                 value={reseller}
                 onChange={setReseller}
                 required
+                disabled={resellersLoading}
+                rightSection={resellersLoading ? <Loader size="xs" /> : undefined}
               />
 
               <Divider />
@@ -461,7 +690,10 @@ export const OperationsCustomerOnboarding = () => {
                   label: t.name,
                 }))}
                 value={selectedTemplateId}
-                onChange={setSelectedTemplateId}
+                onChange={(value) => {
+                  setSelectedTemplateId(value);
+                  setGdapApprovalUrl(null); // Reset GDAP when template changes
+                }}
                 clearable
               />
 
@@ -484,10 +716,22 @@ export const OperationsCustomerOnboarding = () => {
                           +{selectedTemplate.roles.length - 4} more
                         </Badge>
                       )}
-                    </Group>
+            </Group>
                   </Stack>
                 </Paper>
               )}
+
+              {/* GDAP Duration */}
+              <Select
+                label="GDAP Duration"
+                description="How long the GDAP relationship will last"
+                data={GDAP_DURATION_OPTIONS}
+                value={gdapDuration}
+                onChange={(value) => {
+                  setGdapDuration(value || 'P730D');
+                  setGdapApprovalUrl(null); // Reset GDAP when duration changes
+                }}
+              />
             </Stack>
           </Card>
 
@@ -606,11 +850,12 @@ export const OperationsCustomerOnboarding = () => {
                   {copiedToClipboard ? 'Copied!' : 'Copy to Clipboard'}
                 </Button>
                 <Button
-                  leftSection={<Send size={16} />}
-                  disabled={!isFormValid}
+                  leftSection={isCreatingGdap ? <Loader size={16} /> : <Send size={16} />}
+                  disabled={!isFormValid || isCreatingGdap}
                   onClick={handleSendEmail}
+                  color={gdapApprovalUrl ? 'green' : undefined}
                 >
-                  Send Email
+                  {isCreatingGdap ? 'Creating GDAP...' : gdapApprovalUrl ? 'Send Email ✓' : 'Send Email'}
                 </Button>
               </Group>
             </Stack>
@@ -618,52 +863,52 @@ export const OperationsCustomerOnboarding = () => {
         </SimpleGrid>
 
         {/* Current Approvals */}
-        <Card>
-          <Group justify="space-between" mb="md">
+          <Card>
+            <Group justify="space-between" mb="md">
             <Stack gap={2}>
               <Text fw={600} size="sm">Current Approvals</Text>
               <Text size="xs" c="dimmed">Track the status of pending customer onboarding requests</Text>
             </Stack>
-          </Group>
-          <div style={{ overflowX: 'auto' }}>
-            <Table striped highlightOnHover withTableBorder>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Client</Table.Th>
-                  <Table.Th>Default Domain</Table.Th>
-                  <Table.Th>Step</Table.Th>
-                  <Table.Th>Status</Table.Th>
-                  <Table.Th>Actions</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {approvalRows.map((row) => (
-                  <Table.Tr key={row.id}>
+            </Group>
+            <div style={{ overflowX: 'auto' }}>
+              <Table striped highlightOnHover withTableBorder>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Client</Table.Th>
+                    <Table.Th>Default Domain</Table.Th>
+                    <Table.Th>Step</Table.Th>
+                    <Table.Th>Status</Table.Th>
+                    <Table.Th>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {approvalRows.map((row) => (
+                    <Table.Tr key={row.id}>
                     <Table.Td>
                       <Text size="sm" fw={500}>{row.customer}</Text>
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" c="dimmed">{row.defaultDomain}</Text>
                     </Table.Td>
-                    <Table.Td>{row.step}</Table.Td>
-                    <Table.Td>
+                      <Table.Td>{row.step}</Table.Td>
+                      <Table.Td>
                       <Badge color={row.statusColor} variant="light" size="sm">
-                        {row.status}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Tooltip label="Resend email">
-                        <ActionIcon variant="light" color="blue" onClick={() => setResendTarget(row)}>
-                          <Mail size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </div>
-        </Card>
+                          {row.status}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Tooltip label="Resend email">
+                          <ActionIcon variant="light" color="blue" onClick={() => setResendTarget(row)}>
+                            <Mail size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </div>
+          </Card>
       </Stack>
 
       {/* Resend Confirmation Modal */}

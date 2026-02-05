@@ -146,8 +146,8 @@ export const GDAP_TEMPLATES: GdapTemplate[] = [
  */
 export function roleNamesToIds(roleNames: RoleName[]): string[] {
   return roleNames
-    .map((name) => GDAP_ROLE_IDS[name])
-    .filter((id): id is string => !!id);
+    .map((name) => GDAP_ROLE_IDS[name] as string)
+    .filter((id) => id != null);
 }
 
 /**

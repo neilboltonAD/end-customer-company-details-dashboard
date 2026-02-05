@@ -155,6 +155,60 @@ export async function getPartnerCenterGdapRelationships(
   return await parseJsonResponse<PartnerCenterGdapRelationshipsResponse>(res);
 }
 
+export type IndirectReseller = {
+  id: string;
+  name?: string;
+  mpnId?: string;
+  tenantId?: string;
+  state?: string;
+};
+
+export type IndirectResellersResponse = {
+  ok: boolean;
+  resellers: IndirectReseller[];
+  error?: string;
+  timestamp: string;
+};
+
+/**
+ * Get the list of indirect resellers from Partner Center.
+ * Each reseller includes their tenantId which is needed for generating RRR URLs.
+ */
+export async function getIndirectResellers(): Promise<IndirectResellersResponse> {
+  const baseUrl = window.location.hostname === 'localhost' && window.location.port === '3000'
+    ? 'http://localhost:4000'
+    : '';
+  const res = await fetch(`${baseUrl}/api/partner-center/indirect-resellers`, { method: 'GET' });
+  return await parseJsonResponse<IndirectResellersResponse>(res);
+}
+
+/**
+ * Generate the Reseller Relationship Request (RRR) URL.
+ * 
+ * For Indirect Resellers, the URL format is:
+ * https://admin.microsoft.com/Adminportal/Home#/partners/invitation/indirectReseller
+ *   ?partnerId={PARTNER_MPN_ID}&indirectCSPId={RESELLER_TENANT_ID}
+ * 
+ * For Direct Partners (no reseller), the URL format is:
+ * https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller
+ *   ?partnerId={PARTNER_MPN_ID}&msppId=0&DAP=true
+ */
+export function generateRrrUrl(options: {
+  partnerMpnId: string;
+  resellerTenantId?: string;
+  isIndirectReseller?: boolean;
+}): string {
+  const { partnerMpnId, resellerTenantId, isIndirectReseller } = options;
+  
+  if (isIndirectReseller && resellerTenantId) {
+    // Indirect Reseller RRR URL - includes the reseller's tenant ID
+    return `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/indirectReseller?partnerId=${encodeURIComponent(partnerMpnId)}&indirectCSPId=${encodeURIComponent(resellerTenantId)}`;
+  }
+  
+  // Direct Partner RRR URL
+  return `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=${encodeURIComponent(partnerMpnId)}&msppId=0&DAP=true`;
+}
+
 export type PartnerCenterTestRequest = {
   tenantId: string;
   clientId: string;

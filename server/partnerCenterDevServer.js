@@ -946,10 +946,8 @@ const server = http.createServer(async (req, res) => {
 
       const { customerTenantId, displayName, duration, roles, autoExtendDuration } = body;
 
-      if (!customerTenantId) {
-        json(res, 400, { ok: false, error: 'Missing required field: customerTenantId', relationship: null, timestamp: new Date().toISOString() });
-        return;
-      }
+      // Note: customerTenantId is OPTIONAL - if not provided, Microsoft generates an invitation link
+      // that any customer can use to approve the relationship
       if (!displayName) {
         json(res, 400, { ok: false, error: 'Missing required field: displayName', relationship: null, timestamp: new Date().toISOString() });
         return;
@@ -993,14 +991,21 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Build GDAP payload
+      // If customerTenantId is provided, create relationship for that specific tenant
+      // If not provided (empty), Microsoft generates an invitation link for any customer
       const gdapPayload = {
         displayName,
         duration: duration || 'P730D',
-        customer: { tenantId: customerTenantId },
         accessDetails: {
           unifiedRoles: roles.map((roleId) => ({ roleDefinitionId: roleId })),
         },
       };
+      
+      // Only include customer if tenant ID is provided
+      if (customerTenantId) {
+        gdapPayload.customer = { tenantId: customerTenantId };
+      }
+      
       if (autoExtendDuration) {
         gdapPayload.autoExtendDuration = autoExtendDuration;
       }
@@ -1057,6 +1062,76 @@ const server = http.createServer(async (req, res) => {
       });
     } catch (e) {
       json(res, 500, { ok: false, error: e.message || 'Failed to create GDAP relationship', relationship: null, timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
+  // Indirect resellers for RRR link generation with reseller tenant IDs.
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/indirect-resellers') {
+    try {
+      const store = readTokenStore();
+      const refreshToken = store?.refreshToken;
+      if (!refreshToken) {
+        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', resellers: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      let accessToken = store?.accessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      if (!store?.isPublicClient) {
+        const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+        const refreshed = await refreshUserToken({
+          tenantId,
+          clientId,
+          clientSecret: store.isPublicClient ? undefined : clientSecret,
+          refreshToken: store.refreshToken,
+          scope: partnerCenterDelegatedScope(),
+        });
+        accessToken = refreshed.access_token;
+        claims = accessToken ? decodeJwt(accessToken) : null;
+        writeTokenStore({
+          ...store,
+          refreshToken: refreshed.refresh_token || store.refreshToken,
+          accessToken,
+          accessTokenClaims: claims,
+          lastRefreshedAt: new Date().toISOString(),
+        });
+      } else if (!accessToken || isJwtExpired(claims)) {
+        json(res, 401, { ok: false, error: 'SPA token expired. Click Connect again.', resellers: [], timestamp: new Date().toISOString() });
+        return;
+      }
+
+      // Fetch reseller relationships from Partner Center
+      // The relationship_type=IsIndirectCloudSolutionProviderOf returns indirect resellers
+      const pc = await partnerCenterFetch(accessToken, '/v1/relationships?relationship_type=IsIndirectCloudSolutionProviderOf');
+      const ok = pc.status >= 200 && pc.status < 300;
+      const items = Array.isArray(pc.data?.items) ? pc.data.items : Array.isArray(pc.data) ? pc.data : [];
+
+      const resellers = items.map((r) => {
+        const name = r?.companyProfile?.companyName || r?.reseller?.companyName || r?.name || r?.companyName;
+        const mpnId = r?.mpnId || r?.mpnID || r?.reseller?.mpnId || r?.reseller?.mpnID || r?.reseller?.mpn || r?.mpn;
+        const tenantId = r?.tenantId || r?.tenantID || r?.reseller?.tenantId || r?.reseller?.tenantID || r?.id;
+        const state = r?.state || r?.relationshipState || r?.reseller?.state;
+        const id = r?.id || r?.resellerId || r?.reseller?.id || tenantId || mpnId || name || 'unknown';
+        return {
+          id: String(id),
+          name: name != null ? String(name) : undefined,
+          mpnId: mpnId != null ? String(mpnId) : undefined,
+          tenantId: tenantId != null ? String(tenantId) : undefined,
+          state: state != null ? String(state) : undefined,
+        };
+      });
+
+      json(res, ok ? 200 : pc.status, {
+        ok,
+        resellers: ok ? resellers : [],
+        error: ok ? undefined : `Partner Center request failed (HTTP ${pc.status}).`,
+        debug: ok ? undefined : { partnerCenter: safeTruncate(pc.data) },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Failed to fetch indirect resellers', resellers: [], timestamp: new Date().toISOString() });
     }
     return;
   }

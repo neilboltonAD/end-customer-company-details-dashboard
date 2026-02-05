@@ -8,36 +8,36 @@
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
 | **Last Updated** | February 5, 2026 |
-| **Status** | ✅ Implemented (Flow B + Partner Center Integration) |
-| **Version** | 2.1 |
+| **Status** | ✅ Implemented (Full Partner Center Integration) |
+| **Version** | 2.2 |
 
 ---
 
 ## Executive Summary
 
-Reseller Customer Onboarding provides an Operations workflow for Microsoft Indirect Resellers to **collect onboarding details**, **generate a branded onboarding email (WYSIWYG)** with required Microsoft links, and **track customer approval status**. 
+Reseller Customer Onboarding provides an Operations workflow for Microsoft Indirect Resellers to **collect onboarding details**, **generate a branded onboarding email** with required Microsoft links, and **track customer approval status**. 
 
-### v2.0 Updates (February 2026)
+### v2.2 Updates (February 2026)
 
-The feature has been redesigned with a **two-column layout** featuring a **live email preview** that updates in real-time as the sales agent fills in customer details. Key improvements include:
+Major improvements to the GDAP flow and email formatting:
 
-- **Fixed data source**: Existing company selection now pulls from **Marketplace Companies** (Operations → Companies) instead of Partner Center tenants
-- **Live preview**: Email content updates immediately as form fields are filled
-- **Streamlined workflow**: No modal required—everything visible on one page
-- **Clear actions**: Explicit "Copy to Clipboard" and "Send Email" buttons
+- **GDAP Role Templates**: Select from pre-defined role templates (e.g., AppDirect Marketplace, Helpdesk Only)
+- **GDAP Duration**: Configurable duration from 30 days to 730 days (default: max)
+- **Action Checklist Email Format**: New email design with clear "Action 1 of 2" / "Action 2 of 2" format
+- **Linked Tenant Detection**: Warning when company already has a linked tenant
+- **Smart RRR URLs**: Indirect Reseller URLs include reseller tenant ID
+- **GDAP Invitation Links**: Creates GDAP request with roles, returns unique approval URL
 
 ### Mini-features (bulleted)
 
-- **Two-column layout**: Form on left, live email preview on right
-- **Client type toggle**: New Customer vs Existing Customer (segmented control)
-- **Company search**: When "Existing Customer" selected, searchable dropdown of Marketplace Companies
-- **Auto-fill**: Selecting an existing company auto-populates domain and email fields
-- **Live email preview**: Updates in real-time as form fields change
-- **Editable template**: Click "Edit" to modify the email content with WYSIWYG editor
-- **Required links**: Template always includes RRR + GDAP approval URLs
-- **Action buttons**: "Copy to Clipboard" and "Send Email" (opens mailto)
-- **Approvals dashboard**: Current approvals table with status badges
-- **Resend reminder**: Resend action with confirmation modal and toast notification
+- **Yes/No question**: "Does this customer have an existing Marketplace Company?"
+- **Contact auto-fill**: Selecting existing company fills Contact Name and Email from Company data
+- **Linked tenant warning**: Orange alert if company already has Microsoft tenant linked
+- **GDAP Role Template selector**: Choose from pre-defined role combinations
+- **GDAP Duration selector**: 30, 90, 180, 365, or 730 days
+- **Action Checklist email**: Modern email format with prominent CTA buttons
+- **Real GDAP creation**: Creates GDAP request via Graph API, returns unique approval URL
+- **Indirect Reseller RRR**: Uses reseller's tenant ID in RRR URL format
 
 ---
 
@@ -52,42 +52,41 @@ The feature has been redesigned with a **two-column layout** featuring a **live 
 7. [Data Requirements](#7-data-requirements)
 8. [Implementation Status](#8-implementation-status)
 9. [Changelog](#9-changelog)
-10. [Future Enhancements](#10-future-enhancements)
+10. [Partner Center Integration](#10-partner-center-integration)
+11. [Future Enhancements](#11-future-enhancements)
 
 ---
 
 ## 2. Problem Statement
 
-### 2.1 Current State (v1.0 Issues)
-
-The original implementation had several friction points:
+### 2.1 Current State (v2.1 Issues)
 
 | Issue | Impact |
 |-------|--------|
-| Company selector pulled from Partner Center tenants | Agents couldn't find existing Marketplace customers |
-| Company selection was inside a modal | Disjointed flow, required extra clicks |
-| No live preview | Agent couldn't see email until clicking "Create" |
-| "Submit" button opened preview window | Confusing—unclear if email was actually sent |
+| No GDAP role selection | Agents couldn't specify which admin roles to request |
+| Fixed GDAP duration | No flexibility in relationship length |
+| Wall-of-text email | Low readability, customers missed action items |
+| No linked tenant detection | Agents might send unnecessary RRR/GDAP to already-linked companies |
 
-### 2.2 Desired State (v2.0)
+### 2.2 Desired State (v2.2)
 
-A streamlined, single-page onboarding experience where:
-
-- Sales agents can quickly onboard new or existing customers
-- The email preview updates live as they fill in details
-- Actions are clear and explicit (Copy, Send)
-- Existing companies are sourced from the Marketplace, not Partner Center
+- Select GDAP role template based on customer needs
+- Choose appropriate GDAP duration
+- Professional, action-oriented email format
+- Clear warning when tenant is already linked
 
 ---
 
 ## 3. Goals & Success Metrics
 
-| Goal | Description | v2.0 Status |
+| Goal | Description | v2.2 Status |
 |------|-------------|-------------|
-| **G1** | Reduce time to send onboarding requests | ✅ Live preview eliminates modal step |
+| **G1** | Reduce time to send onboarding requests | ✅ Live preview + auto-fill |
 | **G2** | Ensure all required links are included every time | ✅ Template enforces RRR + GDAP links |
 | **G3** | Provide status visibility for all customer approvals | ✅ Approvals table with status badges |
-| **G4** | Use correct data source for existing customers | ✅ Fixed: Now uses Marketplace Companies |
+| **G4** | Use correct data source for existing customers | ✅ Uses Marketplace Companies |
+| **G5** | Allow GDAP role customization | ✅ Role template selector |
+| **G6** | Improve email readability | ✅ Action Checklist format |
 
 ---
 
@@ -99,16 +98,16 @@ A streamlined, single-page onboarding experience where:
 |-----------|-------------|
 | **Role** | Onboards new customers for Microsoft Indirect Reseller |
 | **Pain Points** | Slow process, unclear email content, wrong customer list |
-| **Goals** | Quickly send professional onboarding email with all required info |
-| **Key Tasks** | Fill customer details → Review email → Send to customer |
+| **Goals** | Quickly send professional onboarding email with appropriate roles |
+| **Key Tasks** | Fill customer details → Select GDAP roles → Review email → Send |
 
 ### 4.2 Marketplace Operations Manager
 
 | Attribute | Description |
 |-----------|-------------|
 | **Role** | Manages reseller onboarding operations |
-| **Pain Points** | Inconsistent process, lack of visibility |
-| **Goals** | Track onboarding status, ensure compliance |
+| **Pain Points** | Inconsistent GDAP permissions, lack of visibility |
+| **Goals** | Standardize role templates, track onboarding status |
 
 ---
 
@@ -119,36 +118,50 @@ A streamlined, single-page onboarding experience where:
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
 | RCO-1.1 | Display form on left, email preview on right | Must Have | ✅ |
-| RCO-1.2 | Responsive: Stack columns on mobile | Should Have | ✅ |
+| RCO-1.2 | Email preview expands to match form height | Should Have | ✅ |
+| RCO-1.3 | Responsive: Stack columns on mobile | Should Have | ✅ |
 
 ### 5.2 Customer Details Form (Left Column)
 
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
-| RCO-2.1 | Client type toggle: New Customer / Existing Customer | Must Have | ✅ |
-| RCO-2.2 | If Existing: Show searchable company dropdown | Must Have | ✅ |
+| RCO-2.1 | Yes/No toggle: "Does this customer have an existing Marketplace Company?" | Must Have | ✅ |
+| RCO-2.2 | If Yes: Show searchable company dropdown | Must Have | ✅ |
 | RCO-2.3 | Company dropdown sources from **Marketplace Companies** | Must Have | ✅ |
-| RCO-2.4 | Auto-fill domain and email when company selected | Should Have | ✅ |
-| RCO-2.5 | Capture Default Domain (required) | Must Have | ✅ |
-| RCO-2.6 | Capture Contact Name | Should Have | ✅ |
-| RCO-2.7 | Capture Email Address (required) | Must Have | ✅ |
-| RCO-2.8 | Capture CC email | Should Have | ✅ |
-| RCO-2.9 | Select Indirect Reseller (required) | Must Have | ✅ |
+| RCO-2.4 | Auto-fill Contact Name and Email when company selected | Must Have | ✅ |
+| RCO-2.5 | Warning alert if company has linked tenant | Must Have | ✅ |
+| RCO-2.6 | Capture Microsoft Domain (required) | Must Have | ✅ |
+| RCO-2.7 | Capture Contact Name | Should Have | ✅ |
+| RCO-2.8 | Capture Email Address (required) | Must Have | ✅ |
+| RCO-2.9 | Capture CC email | Should Have | ✅ |
+| RCO-2.10 | Select Indirect Reseller (required) | Must Have | ✅ |
+| RCO-2.11 | Select GDAP Role Template | Must Have | ✅ |
+| RCO-2.12 | Select GDAP Duration (default: 730 days) | Must Have | ✅ |
 
 ### 5.3 Live Email Preview (Right Column)
 
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
-| RCO-3.1 | Show email header (To, CC, Subject) | Must Have | ✅ |
-| RCO-3.2 | Show email body with template content | Must Have | ✅ |
+| RCO-3.1 | Show email header (To, Subject) | Must Have | ✅ |
+| RCO-3.2 | Action Checklist email format | Must Have | ✅ |
 | RCO-3.3 | Update preview in real-time as form changes | Must Have | ✅ |
-| RCO-3.4 | Include Reseller Relationship Request (RRR) URL | Must Have | ✅ |
-| RCO-3.5 | Include GDAP Request URL | Must Have | ✅ |
-| RCO-3.6 | "Edit" button enables WYSIWYG editing | Must Have | ✅ |
-| RCO-3.7 | "Copy to Clipboard" button copies email HTML | Must Have | ✅ |
-| RCO-3.8 | "Send Email" button opens mailto with content | Must Have | ✅ |
+| RCO-3.4 | Include RRR approval link (with reseller tenant ID for indirect) | Must Have | ✅ |
+| RCO-3.5 | Include GDAP approval link (unique URL with roles) | Must Have | ✅ |
+| RCO-3.6 | Show requested roles and duration in email | Must Have | ✅ |
+| RCO-3.7 | "Edit" button enables WYSIWYG editing | Must Have | ✅ |
+| RCO-3.8 | "Copy to Clipboard" button copies email text | Must Have | ✅ |
+| RCO-3.9 | "Send Email" creates GDAP then opens mailto | Must Have | ✅ |
 
-### 5.4 Current Approvals Table
+### 5.4 GDAP Role Templates
+
+| ID | Requirement | Priority | Status |
+|----|-------------|----------|--------|
+| RCO-5.1 | Dropdown with pre-defined role templates | Must Have | ✅ |
+| RCO-5.2 | Show template description and roles when selected | Must Have | ✅ |
+| RCO-5.3 | Templates shared with GDAP: Management feature | Must Have | ✅ |
+| RCO-5.4 | "Default GDAP" template hidden (only for new tenant creation) | Must Have | ✅ |
+
+### 5.5 Current Approvals Table
 
 | ID | Requirement | Priority | Status |
 |----|-------------|----------|--------|
@@ -156,8 +169,6 @@ A streamlined, single-page onboarding experience where:
 | RCO-4.2 | Display: Client, Domain, Step, Status | Must Have | ✅ |
 | RCO-4.3 | Status badges with color coding | Must Have | ✅ |
 | RCO-4.4 | Resend Email action per row | Must Have | ✅ |
-| RCO-4.5 | Confirmation modal before resend | Must Have | ✅ |
-| RCO-4.6 | Success toast after resend | Should Have | ✅ |
 
 ---
 
@@ -169,85 +180,142 @@ A streamlined, single-page onboarding experience where:
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │  Breadcrumb: Companies / Microsoft / Reseller: Customer Onboarding             │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  Header Card: Title + Description                                               │
+│  ✓ PARTNER CENTER CONNECTED                                                     │
 ├───────────────────────────────────┬─────────────────────────────────────────────┤
 │                                   │                                             │
 │  📝 CUSTOMER DETAILS              │  📧 EMAIL PREVIEW                           │
 │                                   │                                             │
-│  Client                           │  To: [email]                                │
-│  [● New] [○ Existing]             │  Subject: Action required...                │
-│                                   │  ─────────────────────────                  │
-│  [If Existing: Company Search]    │                                             │
-│                                   │  Hello [Name],                              │
-│  ─────────────────                │                                             │
-│  Microsoft Tenant Details         │  [Reseller] is requesting to become         │
-│  • Default Domain *               │  your Microsoft 365 provider...             │
-│  • Contact Name                   │                                             │
-│  • Email Address *                │  Step 1: Approve RRR → [Link]               │
-│  • CC                             │  Step 2: Approve GDAP → [Link]              │
+│  Does this customer have an       │  To: john@contoso.com                       │
+│  existing Marketplace Company?    │  Subject: Action required: Approve RRR...  │
+│  [ No ] [ Yes ]                   │  ─────────────────────────                  │
 │                                   │                                             │
-│  ─────────────────                │  Best regards,                              │
-│  Indirect Reseller *              │  [Reseller] Team                            │
-│  [Dropdown]                       │  ─────────────────────────                  │
-│                                   │  [Edit] [Copy] [Send Email]                 │
+│  [If Yes: Company Search]         │  Hello John,                                │
+│  [⚠️ Warning if linked]          │                                             │
+│                                   │  You have 2 quick actions...               │
+│  ─────────────────                │                                             │
+│  Microsoft Tenant Details         │  ☐ Action 1 of 2                            │
+│  • Microsoft Domain *             │  Approve Reseller Relationship              │
+│  • Contact Name                   │  [▶ APPROVE RELATIONSHIP]                   │
+│  • Email Address *                │                                             │
+│  • CC                             │  ☐ Action 2 of 2                            │
+│                                   │  Approve Admin Access (GDAP)                │
+│  ─────────────────                │  Valid for 730 days. You can revoke anytime.│
+│  Indirect Reseller *              │  Permissions: Cloud App Admin, License...   │
+│  [ITCloud.ca             ▾]       │  [▶ APPROVE ADMIN ACCESS]                   │
+│                                   │                                             │
+│  ─────────────────                │  — The ITCloud.ca Team                      │
+│  GDAP Role Template               │  ─────────────────────────                  │
+│  [AppDirect Marketplace   ▾]      │  [Edit] [Copy] [Send Email]                 │
+│  └ Cloud App Admin, License...    │                                             │
+│                                   │                                             │
+│  GDAP Duration                    │                                             │
+│  [730 days (2 years) - Max ▾]     │                                             │
 │                                   │                                             │
 ├───────────────────────────────────┴─────────────────────────────────────────────┤
 │  📋 CURRENT APPROVALS                                                           │
 │  ┌──────────────┬─────────────────────────┬────────────────┬──────────┬───────┐ │
 │  │ Client       │ Domain                  │ Step           │ Status   │ Actions│ │
-│  ├──────────────┼─────────────────────────┼────────────────┼──────────┼───────┤ │
-│  │ IT CLOUD...  │ itcloudacademie.ca      │ RRR Sent       │ Pending  │ 📧    │ │
-│  │ Contoso Ltd  │ contoso.onmicrosoft.com │ GDAP Requested │ Pending  │ 📧    │ │
-│  │ Fabrikam Inc │ fabrikam.onmicrosoft.com│ Approved       │ Ready ✓  │ 📧    │ │
 │  └──────────────┴─────────────────────────┴────────────────┴──────────┴───────┘ │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 User Flow
+### 6.2 Email Format (Action Checklist)
+
+```
+Hello John,
+
+You have 2 quick actions to complete your Microsoft 365 
+setup with ITCloud.ca:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐  ACTION 1 of 2
+   
+   Approve Reseller Relationship
+   ─────────────────────────────
+   
+   This makes ITCloud.ca your official Microsoft partner.
+   Takes about 30 seconds.
+   
+   ┌──────────────────────────────────┐
+   │   ▶  APPROVE RELATIONSHIP        │
+   └──────────────────────────────────┘
+
+
+☐  ACTION 2 of 2
+   
+   Approve Admin Access (GDAP)
+   ───────────────────────────
+   
+   This lets ITCloud.ca help manage your Microsoft 365.
+   Valid for 2 years. You can revoke anytime.
+   
+   Permissions requested:
+   • Cloud Application Administrator
+   • License Administrator
+   • User Administrator
+   • Directory Readers
+   
+   ┌──────────────────────────────────┐
+   │   ▶  APPROVE ADMIN ACCESS        │
+   └──────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Questions? Just hit reply — we're here to help!
+
+— The ITCloud.ca Team
+```
+
+### 6.3 User Flow
 
 1. **Navigate** to Operations → Microsoft → Reseller: Customer Onboarding
-2. **Select client type**: New Customer or Existing Customer
-3. **If Existing**: Search and select from Marketplace Companies (auto-fills domain/email)
-4. **Fill remaining fields**: Contact name, email (if not auto-filled), CC, reseller
-5. **Review live preview**: See exactly what the customer will receive
-6. **Optional**: Click "Edit" to customize email content
-7. **Send**: Click "Send Email" (opens mail client) or "Copy to Clipboard"
-8. **Track**: Monitor status in Current Approvals table
+2. **Answer**: "Does this customer have an existing Marketplace Company?" (No/Yes)
+3. **If Yes**: Search and select company (auto-fills Contact Name + Email)
+4. **If Warning**: Company has linked tenant → cannot proceed (use GDAP Management instead)
+5. **Fill**: Microsoft Domain, optional CC email
+6. **Select**: Indirect Reseller
+7. **Select**: GDAP Role Template and Duration
+8. **Review**: Live email preview with roles and CTAs
+9. **Optional**: Click "Edit" to customize email content
+10. **Send**: Click "Send Email" → Creates GDAP → Opens mailto with unique URL
 
 ---
 
 ## 7. Data Requirements
 
-### 7.1 Form Data
+### 7.1 Marketplace Company Data
 
-| Field | Type | Required | Source |
-|-------|------|----------|--------|
-| Client Type | Enum | Yes | User selection |
-| Company | Reference | If Existing | Marketplace Companies |
-| Default Domain | String | Yes | User input / Auto-fill |
-| Contact Name | String | No | User input |
-| Email Address | Email | Yes | User input / Auto-fill |
-| CC | Email | No | User input |
-| Indirect Reseller | Reference | Yes | Reseller list |
+| Field | Type | Used For |
+|-------|------|----------|
+| id | String | Selection key |
+| name | String | Display in dropdown |
+| contactName | String | Auto-fill Contact Name |
+| email | String | Auto-fill Email Address |
+| hasTenantLinked | Boolean | Show warning if true |
+| linkedDomain | String | Display linked domain in warning |
 
-### 7.2 Email Template
+### 7.2 GDAP Role Templates
 
-| Component | Content |
-|-----------|---------|
-| Greeting | "Hello [Contact Name]," |
-| Body | Reseller relationship request message |
-| Step 1 | RRR approval link |
-| Step 2 | GDAP approval link |
-| Closing | "Best regards, [Reseller] Team" |
+| Template | Roles |
+|----------|-------|
+| AppDirect Marketplace | Cloud App Admin, License Admin, User Admin, Directory Readers |
+| Teams Administration | Teams Admin, User Admin |
+| User Management | User Admin, Helpdesk Admin |
+| Helpdesk Only | Helpdesk Admin |
+| Security Operations | Security Admin, Security Reader |
+| Exchange Administration | Exchange Admin |
+| Intune Device Management | Intune Admin |
 
-### 7.3 Approvals Data (Demo)
+### 7.3 GDAP Duration Options
 
-| Field | Type |
-|-------|------|
-| Customer Name | String |
-| Default Domain | String |
-| Step | Enum (RRR Sent, GDAP Requested, Approved) |
-| Status | Enum (Pending, Ready to Order) |
+| Value | Label |
+|-------|-------|
+| P30D | 30 days |
+| P90D | 90 days |
+| P180D | 180 days (6 months) |
+| P365D | 365 days (1 year) |
+| P730D | 730 days (2 years) - Maximum |
 
 ---
 
@@ -255,50 +323,58 @@ A streamlined, single-page onboarding experience where:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Two-column layout | ✅ Complete | Form left, preview right |
-| Client type toggle | ✅ Complete | Segmented control |
-| Company search (Marketplace) | ✅ Complete | Fixed data source |
-| Auto-fill on selection | ✅ Complete | Domain + email |
+| Two-column layout | ✅ Complete | Form left, preview right, flex height |
+| Yes/No company question | ✅ Complete | Replaces "New/Existing" toggle |
+| Company auto-fill | ✅ Complete | Contact Name + Email from Company |
+| Linked tenant warning | ✅ Complete | Orange alert with guidance |
+| GDAP Role Template selector | ✅ Complete | Shared with GDAP Management |
+| GDAP Duration selector | ✅ Complete | Default 730 days |
+| Action Checklist email | ✅ Complete | Modern format with CTAs |
+| Indirect Reseller RRR URL | ✅ Complete | Includes reseller tenant ID |
+| GDAP invitation creation | ✅ Complete | Creates via Graph API |
 | Live email preview | ✅ Complete | Real-time updates |
-| WYSIWYG editor | ✅ Complete | TipTap integration |
-| Copy to Clipboard | ✅ Complete | With success toast |
-| Send Email (mailto) | ✅ Complete | Opens mail client |
-| Current Approvals table | ✅ Complete | Demo data |
-| Resend action | ✅ Complete | With confirmation |
+| Send Email flow | ✅ Complete | Creates GDAP → Opens mailto |
 
 ---
 
 ## 9. Changelog
 
+### v2.2 (February 5, 2026)
+
+**GDAP Role Templates & Email Redesign**
+
+- ✨ **New**: GDAP Role Template selector (shared with GDAP: Management)
+- ✨ **New**: GDAP Duration selector (30d to 730d, default max)
+- ✨ **New**: Action Checklist email format with prominent CTAs
+- ✨ **New**: Yes/No question for existing Marketplace Company
+- ✨ **New**: Auto-fill Contact Name from Company data
+- ✨ **New**: Linked tenant detection with warning alert
+- ✨ **New**: Indirect Reseller RRR URLs include reseller tenant ID
+- ✨ **New**: GDAP invitation created via Graph API (no customer tenant ID needed)
+- ✨ **New**: Unique GDAP approval URL with specific roles
+- 🔧 **Fixed**: Form disabled when company has linked tenant
+- 🔧 **Fixed**: Email preview updates when GDAP template/duration changes
+
 ### v2.1 (February 5, 2026)
 
 **Real Partner Center Integration**
 
-- ✨ **New**: Real MPN ID fetched from Partner Center API (`/api/partner-center/profile`)
-- ✨ **New**: RRR links now use actual partner MPN ID instead of placeholder
-- ✨ **New**: GDAP relationship creation API (`/api/partner-center/create-gdap-request`)
-- ✨ **New**: Partner Center connection status indicator in header
-- ✨ **New**: Warning alert when Partner Center is not connected
-- ✨ **New**: Common GDAP role IDs exported for easy reference
+- ✨ Real MPN ID fetched from Partner Center API
+- ✨ RRR links use actual partner MPN ID
+- ✨ Partner Center connection status indicator
 
 ### v2.0 (February 5, 2026)
 
 **Major UX Overhaul - Flow B Implementation**
 
-- 🔧 **Fixed**: Company selector now pulls from Marketplace Companies instead of Partner Center tenants
-- ✨ **New**: Two-column layout with live email preview
-- ✨ **New**: Real-time preview updates as form fields change
-- ✨ **New**: Auto-fill domain and email when existing company selected
-- ✨ **New**: "Copy to Clipboard" button with success feedback
-- ✨ **New**: "Send Email" button opens mailto link
-- 🗑️ **Removed**: Modal-based email generation (replaced with inline preview)
-- 🗑️ **Removed**: Confusing "Submit" button (replaced with explicit actions)
+- 🔧 Fixed: Company selector now pulls from Marketplace Companies
+- ✨ Two-column layout with live email preview
+- ✨ Real-time preview updates
+- ✨ "Copy to Clipboard" and "Send Email" buttons
 
 ### v1.0 (January 20, 2026)
 
-- Initial implementation with modal-based email generation
-- Form fields: domain, name, email, CC, company type, reseller
-- Current approvals table with demo data
+- Initial implementation
 
 ---
 
@@ -306,69 +382,76 @@ A streamlined, single-page onboarding experience where:
 
 ### 10.1 RRR Link Generation
 
-The Reseller Relationship Request (RRR) URL is now generated using the real MPN ID from Partner Center:
-
+**For Direct Partners:**
 ```
 https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller
-  ?partnerId={MPN_ID}
+  ?partnerId={PARTNER_MPN_ID}
   &msppId=0
   &DAP=true
 ```
 
-**API Endpoint**: `GET /api/partner-center/profile`
-
-Returns:
-```json
-{
-  "ok": true,
-  "profile": {
-    "mpnId": "1234567",
-    "partnerName": "ITCloud.ca",
-    "companyName": "ITCloud Inc.",
-    "country": "CA",
-    "rrrUrl": "https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=1234567&msppId=0&DAP=true"
-  }
-}
+**For Indirect Resellers:**
+```
+https://admin.microsoft.com/Adminportal/Home#/partners/invitation/indirectReseller
+  ?partnerId={PARTNER_MPN_ID}
+  &indirectCSPId={RESELLER_TENANT_ID}
 ```
 
 ### 10.2 GDAP Relationship Creation
 
-GDAP relationships can be created via the Microsoft Graph API:
+GDAP relationships are created via Microsoft Graph API **without** requiring the customer's tenant ID. Microsoft generates an invitation URL that any customer can use to approve.
 
 **API Endpoint**: `POST /api/partner-center/create-gdap-request`
 
-Request:
+**Request (no customer tenant ID):**
 ```json
 {
-  "customerTenantId": "customer-tenant-guid",
-  "displayName": "ITCloud GDAP - Contoso",
+  "customerTenantId": "",
+  "displayName": "ITCloud - AppDirect Marketplace - contoso.com",
   "duration": "P730D",
-  "roles": ["729827e3-9c14-49f7-bb1b-9608f156bbb8"],
+  "roles": [
+    "158c047a-c907-4556-b7ef-446551a6b5f7",
+    "4d6ac14f-3453-41d0-bef9-a3e0c569773a",
+    "fe930be7-5e62-47db-91af-98c3a49a38b1",
+    "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
+  ],
   "autoExtendDuration": "P180D"
 }
 ```
 
-Returns:
+**Response:**
 ```json
 {
   "ok": true,
   "relationship": {
     "id": "relationship-guid",
-    "displayName": "ITCloud GDAP - Contoso",
+    "displayName": "ITCloud - AppDirect Marketplace - contoso.com",
     "status": "Created",
     "customerApprovalUrl": "https://admin.microsoft.com/AdminPortal/Home#/partners/granularadminrelationships/{id}"
   }
 }
 ```
 
-### 10.3 Common GDAP Roles
+### 10.3 Indirect Resellers API
 
-| Role | ID | Use Case |
-|------|-----|----------|
-| Helpdesk Administrator | `729827e3-9c14-49f7-bb1b-9608f156bbb8` | Password resets, user support |
-| License Administrator | `4d6ac14f-3453-41d0-bef9-a3e0c569773a` | Assign/remove licenses |
-| User Administrator | `fe930be7-5e62-47db-91af-98c3a49a38b1` | Create/manage users |
-| Global Reader | `f2ef992c-3afb-46b9-b7cf-a126ee74c451` | Read-only access |
+**API Endpoint**: `GET /api/partner-center/indirect-resellers`
+
+Returns list of indirect resellers with their tenant IDs for RRR URL generation:
+
+```json
+{
+  "ok": true,
+  "resellers": [
+    {
+      "id": "reseller-guid",
+      "name": "ITCloud.ca",
+      "mpnId": "4668400",
+      "tenantId": "tenant-guid",
+      "state": "Active"
+    }
+  ]
+}
+```
 
 ---
 
@@ -376,10 +459,8 @@ Returns:
 
 | Enhancement | Priority | Description |
 |-------------|----------|-------------|
-| ~~Real Microsoft Partner Center integration~~ | ~~High~~ | ✅ Implemented |
 | Email send via API | High | Send directly without mailto |
 | Approval status sync | Medium | Pull real status from Partner Center |
-| Email templates library | Medium | Multiple branded templates |
-| GDAP role template presets | Medium | One-click common role combinations |
-| Role-based access controls | Low | Restrict to authorized users |
+| Custom email templates | Medium | Multiple branded templates |
 | Bulk onboarding | Low | Onboard multiple customers at once |
+| Role-based access controls | Low | Restrict to authorized users |

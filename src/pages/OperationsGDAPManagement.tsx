@@ -24,7 +24,7 @@ import { Toggle } from '../components/form/Toggle';
 import { getPartnerCenterConnectGdapUrl, getPartnerCenterCustomers, getPartnerCenterGdapRelationships } from '../api/partnerCenter';
 import { OperationsLayout } from '../components/layout/OperationsLayout';
 import { Card } from 'components/DesignSystem';
-import { GDAP_TEMPLATES, ROLE_OPTIONS, TEMPLATE_CATEGORIES, type GdapTemplate } from '../api/gdapTemplates';
+import { GDAP_TEMPLATES, ROLE_OPTIONS, TEMPLATE_CATEGORIES, type GdapTemplate, type RoleName } from '../api/gdapTemplates';
 
 type Company = {
   id: string;
@@ -106,7 +106,7 @@ export const OperationsGDAPManagement = () => {
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [templateRecommendedFor, setTemplateRecommendedFor] = useState<string[]>([]);
-  const [templateRoles, setTemplateRoles] = useState<string[]>([]);
+  const [templateRoles, setTemplateRoles] = useState<RoleName[]>([]);
 
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [renameTargetId, setRenameTargetId] = useState<string | null>(null);
@@ -837,7 +837,7 @@ export const OperationsGDAPManagement = () => {
                 placeholder="Select roles"
                 data={roleOptions}
                 value={templateRoles}
-                onChange={setTemplateRoles}
+                onChange={(values) => setTemplateRoles(values as RoleName[])}
                 searchable
                 nothingFoundMessage="No roles found"
               />
