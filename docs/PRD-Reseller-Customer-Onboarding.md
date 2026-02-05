@@ -8,8 +8,8 @@
 | **Author** | Neil Bolton |
 | **Created** | January 16, 2026 |
 | **Last Updated** | February 5, 2026 |
-| **Status** | ✅ Implemented (Flow B - Two-Column Layout) |
-| **Version** | 2.0 |
+| **Status** | ✅ Implemented (Flow B + Partner Center Integration) |
+| **Version** | 2.1 |
 
 ---
 
@@ -270,6 +270,17 @@ A streamlined, single-page onboarding experience where:
 
 ## 9. Changelog
 
+### v2.1 (February 5, 2026)
+
+**Real Partner Center Integration**
+
+- ✨ **New**: Real MPN ID fetched from Partner Center API (`/api/partner-center/profile`)
+- ✨ **New**: RRR links now use actual partner MPN ID instead of placeholder
+- ✨ **New**: GDAP relationship creation API (`/api/partner-center/create-gdap-request`)
+- ✨ **New**: Partner Center connection status indicator in header
+- ✨ **New**: Warning alert when Partner Center is not connected
+- ✨ **New**: Common GDAP role IDs exported for easy reference
+
 ### v2.0 (February 5, 2026)
 
 **Major UX Overhaul - Flow B Implementation**
@@ -291,13 +302,84 @@ A streamlined, single-page onboarding experience where:
 
 ---
 
-## 10. Future Enhancements
+## 10. Partner Center Integration
+
+### 10.1 RRR Link Generation
+
+The Reseller Relationship Request (RRR) URL is now generated using the real MPN ID from Partner Center:
+
+```
+https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller
+  ?partnerId={MPN_ID}
+  &msppId=0
+  &DAP=true
+```
+
+**API Endpoint**: `GET /api/partner-center/profile`
+
+Returns:
+```json
+{
+  "ok": true,
+  "profile": {
+    "mpnId": "1234567",
+    "partnerName": "ITCloud.ca",
+    "companyName": "ITCloud Inc.",
+    "country": "CA",
+    "rrrUrl": "https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=1234567&msppId=0&DAP=true"
+  }
+}
+```
+
+### 10.2 GDAP Relationship Creation
+
+GDAP relationships can be created via the Microsoft Graph API:
+
+**API Endpoint**: `POST /api/partner-center/create-gdap-request`
+
+Request:
+```json
+{
+  "customerTenantId": "customer-tenant-guid",
+  "displayName": "ITCloud GDAP - Contoso",
+  "duration": "P730D",
+  "roles": ["729827e3-9c14-49f7-bb1b-9608f156bbb8"],
+  "autoExtendDuration": "P180D"
+}
+```
+
+Returns:
+```json
+{
+  "ok": true,
+  "relationship": {
+    "id": "relationship-guid",
+    "displayName": "ITCloud GDAP - Contoso",
+    "status": "Created",
+    "customerApprovalUrl": "https://admin.microsoft.com/AdminPortal/Home#/partners/granularadminrelationships/{id}"
+  }
+}
+```
+
+### 10.3 Common GDAP Roles
+
+| Role | ID | Use Case |
+|------|-----|----------|
+| Helpdesk Administrator | `729827e3-9c14-49f7-bb1b-9608f156bbb8` | Password resets, user support |
+| License Administrator | `4d6ac14f-3453-41d0-bef9-a3e0c569773a` | Assign/remove licenses |
+| User Administrator | `fe930be7-5e62-47db-91af-98c3a49a38b1` | Create/manage users |
+| Global Reader | `f2ef992c-3afb-46b9-b7cf-a126ee74c451` | Read-only access |
+
+---
+
+## 11. Future Enhancements
 
 | Enhancement | Priority | Description |
 |-------------|----------|-------------|
-| Real Microsoft Partner Center integration | High | Generate actual RRR/GDAP links |
+| ~~Real Microsoft Partner Center integration~~ | ~~High~~ | ✅ Implemented |
 | Email send via API | High | Send directly without mailto |
 | Approval status sync | Medium | Pull real status from Partner Center |
 | Email templates library | Medium | Multiple branded templates |
+| GDAP role template presets | Medium | One-click common role combinations |
 | Role-based access controls | Low | Restrict to authorized users |
 | Bulk onboarding | Low | Onboard multiple customers at once |

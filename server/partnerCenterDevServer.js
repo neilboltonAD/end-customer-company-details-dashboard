@@ -829,6 +829,222 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Partner profile (MPN ID) for RRR link generation.
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/profile') {
+    try {
+      const store = readTokenStore();
+      const refreshToken = store?.refreshToken;
+      if (!refreshToken) {
+        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', profile: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      let accessToken = store?.accessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      if (!store?.isPublicClient) {
+        const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+        const refreshed = await refreshUserToken({
+          tenantId,
+          clientId,
+          clientSecret: store.isPublicClient ? undefined : clientSecret,
+          refreshToken: store.refreshToken,
+          scope: partnerCenterDelegatedScope(),
+        });
+        accessToken = refreshed.access_token;
+        claims = accessToken ? decodeJwt(accessToken) : null;
+        writeTokenStore({
+          ...store,
+          refreshToken: refreshed.refresh_token || store.refreshToken,
+          accessToken,
+          accessTokenClaims: claims,
+          lastRefreshedAt: new Date().toISOString(),
+        });
+      } else if (!accessToken || isJwtExpired(claims)) {
+        json(res, 401, { ok: false, error: 'SPA token expired. Click Connect again.', profile: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      // Fetch MPN profile
+      const mpnProfile = await partnerCenterFetch(accessToken, '/v1/profiles/mpn');
+      const mpnOk = mpnProfile.status >= 200 && mpnProfile.status < 300;
+
+      if (!mpnOk) {
+        json(res, mpnProfile.status, {
+          ok: false,
+          error: `Failed to fetch MPN profile (HTTP ${mpnProfile.status})`,
+          profile: null,
+          debug: { mpnProfile: safeTruncate(mpnProfile.data) },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Fetch legal business profile
+      const legalProfile = await partnerCenterFetch(accessToken, '/v1/profiles/legalbusiness');
+      const legalOk = legalProfile.status >= 200 && legalProfile.status < 300;
+
+      const mpnData = mpnProfile.data || {};
+      const legalData = legalOk ? (legalProfile.data || {}) : {};
+
+      const mpnId = mpnData.mpnId || mpnData.partnerMpnId || mpnData.id;
+      const partnerName = legalData.companyName || mpnData.partnerName || mpnData.organizationName;
+
+      // Construct RRR URL with actual MPN ID
+      const rrrUrl = mpnId
+        ? `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=${encodeURIComponent(mpnId)}&msppId=0&DAP=true`
+        : null;
+
+      json(res, 200, {
+        ok: true,
+        profile: {
+          mpnId: mpnId || null,
+          partnerName: partnerName || null,
+          companyName: legalData.companyName || null,
+          country: legalData.address?.country || mpnData.country || null,
+          rrrUrl,
+        },
+        partnerCenter: {
+          mpnStatus: mpnProfile.status,
+          legalStatus: legalProfile.status,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Failed to fetch partner profile', profile: null, timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
+  // Create GDAP relationship request.
+  if (req.method === 'POST' && u.pathname === '/api/partner-center/create-gdap-request') {
+    try {
+      const bodyRaw = await readBody(req);
+      let body = {};
+      try {
+        body = bodyRaw ? JSON.parse(bodyRaw) : {};
+      } catch {
+        json(res, 400, { ok: false, error: 'Invalid JSON body', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      const { customerTenantId, displayName, duration, roles, autoExtendDuration } = body;
+
+      if (!customerTenantId) {
+        json(res, 400, { ok: false, error: 'Missing required field: customerTenantId', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+      if (!displayName) {
+        json(res, 400, { ok: false, error: 'Missing required field: displayName', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+      if (!roles || !Array.isArray(roles) || roles.length === 0) {
+        json(res, 400, { ok: false, error: 'Missing required field: roles (must be a non-empty array)', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      const store = readTokenStore();
+      const refreshToken = store?.gdapRefreshToken || store?.refreshToken;
+      if (!refreshToken) {
+        json(res, 401, { ok: false, error: 'Not connected. Click Connect first.', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      let accessToken = store?.gdapAccessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      if (!store?.isPublicClient) {
+        const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+        const refreshed = await refreshUserToken({
+          tenantId,
+          clientId,
+          clientSecret: store.isPublicClient ? undefined : clientSecret,
+          refreshToken,
+          scope: gdapGraphDelegatedScope(),
+        });
+        accessToken = refreshed.access_token;
+        claims = accessToken ? decodeJwt(accessToken) : null;
+        writeTokenStore({
+          ...store,
+          gdapRefreshToken: refreshed.refresh_token || store.gdapRefreshToken || refreshToken,
+          gdapAccessToken: accessToken,
+          gdapAccessTokenClaims: claims,
+          gdapLastRefreshedAt: new Date().toISOString(),
+        });
+      } else if (!accessToken || isJwtExpired(claims)) {
+        json(res, 401, { ok: false, error: 'SPA token expired. Click Connect again.', relationship: null, timestamp: new Date().toISOString() });
+        return;
+      }
+
+      // Build GDAP payload
+      const gdapPayload = {
+        displayName,
+        duration: duration || 'P730D',
+        customer: { tenantId: customerTenantId },
+        accessDetails: {
+          unifiedRoles: roles.map((roleId) => ({ roleDefinitionId: roleId })),
+        },
+      };
+      if (autoExtendDuration) {
+        gdapPayload.autoExtendDuration = autoExtendDuration;
+      }
+
+      const graphUrl = 'https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships';
+      const resp = await fetch(graphUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(gdapPayload),
+      });
+
+      const text = await resp.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { raw: text };
+      }
+
+      const ok = resp.status >= 200 && resp.status < 300;
+
+      if (!ok) {
+        json(res, resp.status, {
+          ok: false,
+          error: `Failed to create GDAP relationship (HTTP ${resp.status}): ${data?.error?.message || 'Unknown error'}`,
+          relationship: null,
+          debug: { response: safeTruncate(data) },
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const relationshipId = data?.id;
+      const customerApprovalUrl = relationshipId
+        ? `https://admin.microsoft.com/AdminPortal/Home#/partners/granularadminrelationships/${encodeURIComponent(relationshipId)}`
+        : null;
+
+      json(res, 201, {
+        ok: true,
+        relationship: {
+          id: relationshipId,
+          displayName: data?.displayName,
+          status: data?.status,
+          duration: data?.duration,
+          createdDateTime: data?.createdDateTime,
+          endDateTime: data?.endDateTime,
+          customerApprovalUrl,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Failed to create GDAP relationship', relationship: null, timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
   if (req.method === 'GET' && u.pathname === '/api/partner-center/customers-sample') {
     try {
       const store = readTokenStore();

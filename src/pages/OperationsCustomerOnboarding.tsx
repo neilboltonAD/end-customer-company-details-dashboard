@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HelpCircle, Mail, Copy, Send, Pencil, Check, X, Building2, UserPlus } from 'lucide-react';
-import { ActionIcon, Badge, Button, Group, Modal, Paper, SegmentedControl, Select, SimpleGrid, Stack, Table, Text, TextInput, Tooltip, Box, Divider, ScrollArea } from '@mantine/core';
+import { HelpCircle, Mail, Copy, Send, Pencil, Check, X, Building2, UserPlus, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
+import { ActionIcon, Badge, Button, Group, Modal, Paper, SegmentedControl, Select, SimpleGrid, Stack, Table, Text, TextInput, Tooltip, Box, Divider, ScrollArea, Alert } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { RichTextEditor } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
@@ -9,6 +9,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { OperationsLayout } from '../components/layout/OperationsLayout';
 import { Card } from 'components/DesignSystem';
+import { getPartnerCenterProfile, type PartnerProfile } from '../api/partnerCenter';
 
 // Marketplace Companies (from Operations > Companies)
 const marketplaceCompanies = [
@@ -62,6 +63,11 @@ const approvalRows = [
 export const OperationsCustomerOnboarding = () => {
   const navigate = useNavigate();
   
+  // Partner Center profile state (for real RRR/GDAP links)
+  const [partnerProfile, setPartnerProfile] = useState<PartnerProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  
   // Form state
   const [clientType, setClientType] = useState<'new' | 'existing'>('new');
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -75,6 +81,35 @@ export const OperationsCustomerOnboarding = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [resendTarget, setResendTarget] = useState<(typeof approvalRows)[number] | null>(null);
+
+  // Fetch partner profile on mount (for real MPN ID and RRR URL)
+  useEffect(() => {
+    let cancelled = false;
+    const fetchProfile = async () => {
+      try {
+        setProfileLoading(true);
+        setProfileError(null);
+        const response = await getPartnerCenterProfile();
+        if (!cancelled) {
+          if (response.ok && response.profile) {
+            setPartnerProfile(response.profile);
+          } else {
+            setProfileError(response.error || 'Failed to load partner profile');
+          }
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setProfileError(err?.message || 'Failed to connect to Partner Center');
+        }
+      } finally {
+        if (!cancelled) {
+          setProfileLoading(false);
+        }
+      }
+    };
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, []);
 
   // Get selected company data
   const selectedCompany = useMemo(() => {
@@ -112,15 +147,22 @@ export const OperationsCustomerOnboarding = () => {
     return r?.label || 'Your Reseller';
   }, [reseller]);
 
-  // Generate email template
+  // Generate email template with real Partner Center URLs
   const emailTemplate = useMemo(() => {
     const displayDomain = domain || 'customer-domain.com';
     const displayName = contactName || 'Valued Customer';
-    const displayEmail = email || 'customer@example.com';
     
-    // These would be real Partner Center URLs in production
-    const rrrUrl = `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=PARTNER_ID&msppId=0&DAP=true`;
+    // Use real RRR URL from Partner Center profile if available
+    const rrrUrl = partnerProfile?.rrrUrl 
+      || `https://admin.microsoft.com/Adminportal/Home#/partners/invitation/reseller?partnerId=${partnerProfile?.mpnId || 'PARTNER_ID'}&msppId=0&DAP=true`;
+    
+    // GDAP approval URL - customer will see pending GDAP requests here
     const gdapUrl = `https://admin.microsoft.com/AdminPortal/Home#/partners/granularadminrelationships`;
+
+    // Show MPN ID in the email if available (for transparency)
+    const mpnNote = partnerProfile?.mpnId 
+      ? `<p style="font-size: 12px; color: #666;">(Partner MPN ID: ${partnerProfile.mpnId})</p>`
+      : '';
 
     return `
       <p>Hello ${displayName},</p>
@@ -134,8 +176,9 @@ export const OperationsCustomerOnboarding = () => {
       <a href="${gdapUrl}" style="color: #228be6;">Click here to approve GDAP access →</a></p>
       <p>If you have any questions, simply reply to this email and our team will be happy to help.</p>
       <p>Best regards,<br/><strong>${resellerName} Team</strong></p>
+      ${mpnNote}
     `.trim();
-  }, [domain, contactName, resellerName]);
+  }, [domain, contactName, resellerName, partnerProfile]);
 
   // Email editor
   const editor = useEditor({
@@ -242,8 +285,52 @@ export const OperationsCustomerOnboarding = () => {
                 Send an onboarding email with RRR + GDAP approval links to your customer
               </Text>
             </Stack>
+            {/* Partner Center Status */}
+            <Group gap="xs">
+              {profileLoading ? (
+                <Badge color="gray" variant="light" leftSection={<Loader2 size={12} className="animate-spin" />}>
+                  Loading Partner Center...
+                </Badge>
+              ) : partnerProfile?.mpnId ? (
+                <Tooltip label={`MPN ID: ${partnerProfile.mpnId}`}>
+                  <Badge color="green" variant="light" leftSection={<Check size={12} />}>
+                    Partner Center Connected
+                  </Badge>
+                </Tooltip>
+              ) : (
+                <Tooltip label={profileError || 'Partner Center not connected. RRR links will use placeholder.'}>
+                  <Badge color="orange" variant="light" leftSection={<AlertCircle size={12} />}>
+                    Partner Center: Limited
+                  </Badge>
+                </Tooltip>
+              )}
+            </Group>
           </Group>
         </Card>
+
+        {/* Partner Center Warning */}
+        {!profileLoading && !partnerProfile?.mpnId && (
+          <Alert 
+            icon={<AlertCircle size={16} />} 
+            color="orange" 
+            variant="light"
+            title="Partner Center not connected"
+          >
+            <Text size="sm">
+              Connect to Partner Center to generate real RRR links with your MPN ID. 
+              Without this, customers will see a placeholder partner ID.{' '}
+              <Text 
+                component="a" 
+                href="/operations/microsoft" 
+                c="blue" 
+                td="underline"
+                style={{ cursor: 'pointer' }}
+              >
+                Go to Microsoft Settings →
+              </Text>
+            </Text>
+          </Alert>
+        )}
 
         {/* Two-Column Layout */}
         <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">

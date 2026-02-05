@@ -50,6 +50,46 @@ export type PartnerCenterGdapRelationshipsResponse = {
   timestamp: string;
 };
 
+export type PartnerProfile = {
+  mpnId: string | null;
+  partnerName: string | null;
+  companyName: string | null;
+  country: string | null;
+  rrrUrl: string | null;
+};
+
+export type PartnerCenterProfileResponse = {
+  ok: boolean;
+  profile: PartnerProfile | null;
+  error?: string;
+  timestamp: string;
+};
+
+export type CreateGdapRequestPayload = {
+  customerTenantId: string;
+  displayName: string;
+  duration?: string; // ISO 8601 duration, e.g., "P730D" (730 days)
+  roles: string[]; // Array of Azure AD role definition IDs
+  autoExtendDuration?: string; // e.g., "P180D"
+};
+
+export type GdapRelationshipCreated = {
+  id: string;
+  displayName: string;
+  status: string;
+  duration: string;
+  createdDateTime: string;
+  endDateTime: string;
+  customerApprovalUrl: string | null;
+};
+
+export type CreateGdapRequestResponse = {
+  ok: boolean;
+  relationship: GdapRelationshipCreated | null;
+  error?: string;
+  timestamp: string;
+};
+
 export function getPartnerCenterConnectUrl() {
   // CRA dev server won't proxy full-page navigations to /api/*, so use the API server directly.
   if (window.location.hostname === 'localhost' && window.location.port === '3000') {
@@ -140,3 +180,70 @@ export async function testPartnerCenterSession(bearerToken: string): Promise<Par
   return await parseJsonResponse<PartnerCenterHealth>(res);
 }
 
+/**
+ * Get the partner organization profile including MPN ID.
+ * This is used to construct the Reseller Relationship Request (RRR) URL.
+ */
+export async function getPartnerCenterProfile(): Promise<PartnerCenterProfileResponse> {
+  const baseUrl = window.location.hostname === 'localhost' && window.location.port === '3000'
+    ? 'http://localhost:4000'
+    : '';
+  const res = await fetch(`${baseUrl}/api/partner-center/profile`, { method: 'GET' });
+  return await parseJsonResponse<PartnerCenterProfileResponse>(res);
+}
+
+/**
+ * Create a new GDAP relationship request.
+ * Returns the relationship details including the customer approval URL.
+ */
+export async function createGdapRequest(
+  payload: CreateGdapRequestPayload
+): Promise<CreateGdapRequestResponse> {
+  const baseUrl = window.location.hostname === 'localhost' && window.location.port === '3000'
+    ? 'http://localhost:4000'
+    : '';
+  const res = await fetch(`${baseUrl}/api/partner-center/create-gdap-request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return await parseJsonResponse<CreateGdapRequestResponse>(res);
+}
+
+/**
+ * Common Azure AD role IDs for GDAP relationships.
+ * These are the role definition IDs used when creating GDAP requests.
+ */
+export const GDAP_COMMON_ROLES = {
+  // Helpdesk roles
+  HELPDESK_ADMINISTRATOR: '729827e3-9c14-49f7-bb1b-9608f156bbb8',
+  SERVICE_SUPPORT_ADMINISTRATOR: 'f023fd81-a637-4b56-95fd-791ac0226033',
+  
+  // License management
+  LICENSE_ADMINISTRATOR: '4d6ac14f-3453-41d0-bef9-a3e0c569773a',
+  
+  // Directory readers (minimal access)
+  DIRECTORY_READERS: '88d8e3e3-8f55-4a1e-953a-9b9898b8876b',
+  
+  // User management
+  USER_ADMINISTRATOR: 'fe930be7-5e62-47db-91af-98c3a49a38b1',
+  
+  // Security
+  SECURITY_READER: '5d6b6bb7-de71-4623-b4af-96380a352509',
+  SECURITY_ADMINISTRATOR: '194ae4cb-b126-40b2-bd5b-6091b380977d',
+  
+  // Exchange
+  EXCHANGE_ADMINISTRATOR: '29232cdf-9323-42fd-ade2-1d097af3e4de',
+  
+  // SharePoint
+  SHAREPOINT_ADMINISTRATOR: 'f28a1f50-f6e7-4571-818b-6a12f2af6b6c',
+  
+  // Teams
+  TEAMS_ADMINISTRATOR: '69091246-20e8-4a56-aa4d-066075b2a7a8',
+  
+  // Intune
+  INTUNE_ADMINISTRATOR: '3a2c62db-5318-420d-8d74-23affee5d9d5',
+  
+  // Global reader (read-only access to everything)
+  GLOBAL_READER: 'f2ef992c-3afb-46b9-b7cf-a126ee74c451',
+} as const;
