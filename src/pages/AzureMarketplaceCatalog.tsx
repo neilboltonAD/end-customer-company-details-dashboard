@@ -767,7 +767,31 @@ export function AzureMarketplaceCatalog() {
                     </Card>
                   ))
                 ) : selectedProduct?.startingPrice ? (
-                  <Card padding="sm" radius="md" withBorder>
+                  <Card
+                    padding="sm"
+                    radius="md"
+                    withBorder
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: selectedPlan?.planId === 'standard-pricing' ? 'var(--mantine-color-blue-5)' : undefined,
+                      backgroundColor: selectedPlan?.planId === 'standard-pricing' ? 'var(--mantine-color-blue-0)' : undefined,
+                    }}
+                    onClick={() => {
+                      // Create a synthetic plan from startingPrice
+                      setSelectedPlan({
+                        planId: 'standard-pricing',
+                        displayName: 'Standard Pricing',
+                        description: selectedProduct.productFamily || selectedProduct.serviceFamily || 'Microsoft Product',
+                        pricing: {
+                          currencyCode: selectedProduct.startingPrice?.currency || 'USD',
+                          retailPrice: selectedProduct.startingPrice?.minTermPrice || 0,
+                          unitPrice: selectedProduct.startingPrice?.minTermPrice || 0,
+                          unitOfMeasure: selectedProduct.startingPrice?.termUnits === 'P1Y' ? 'per year' : 'per month',
+                          billingPeriod: selectedProduct.startingPrice?.termUnits === 'P1Y' ? 'annual' : 'monthly',
+                        },
+                      });
+                    }}
+                  >
                     <Group justify="space-between" align="center">
                       <Box>
                         <Text fw={500}>Standard Pricing</Text>
