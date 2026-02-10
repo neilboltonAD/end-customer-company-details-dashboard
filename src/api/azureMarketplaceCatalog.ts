@@ -533,3 +533,53 @@ export async function getCustomerSubscriptions(
     };
   }
 }
+
+// ============================================================================
+// Partner Center Customer List (for getting real customer GUIDs)
+// ============================================================================
+
+export interface PartnerCenterCustomer {
+  id: string; // This is the GUID needed for API calls
+  companyName?: string;
+  domain?: string;
+  tenantId?: string;
+  email?: string;
+  relationshipToPartner?: string;
+}
+
+export interface CustomerListResponse {
+  ok: boolean;
+  isDemo?: boolean;
+  customers?: PartnerCenterCustomer[];
+  totalCount?: number;
+  message?: string;
+  error?: string;
+  timestamp: string;
+}
+
+/**
+ * Get list of customers from Partner Center with their GUIDs
+ * Use the returned 'id' field as the azureTenantId for purchases
+ */
+export async function getPartnerCenterCustomers(): Promise<CustomerListResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/partner-center/customers`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data as CustomerListResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to get customers from Partner Center',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}

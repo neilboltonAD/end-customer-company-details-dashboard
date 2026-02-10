@@ -18,8 +18,11 @@ export interface Customer {
   linkedDomain?: string;
   // Azure-specific fields
   azureSubscriptionId?: string; // For demo, all use the same subscription
-  azureTenantId?: string;
+  azureTenantId?: string; // Partner Center customer GUID (required for API calls)
 }
+
+// Note: In production, these GUIDs should come from Partner Center's customer list
+// Use GET /v1/customers to retrieve real customer GUIDs
 
 // Demo subscription ID authorized for Azure Marketplace Catalog API
 export const DEMO_AZURE_SUBSCRIPTION_ID = '3aad85d7-6ac9-4ef0-bb0f-30837aebff49';
@@ -33,7 +36,8 @@ export const DEMO_AZURE_SUBSCRIPTION_ID = '3aad85d7-6ac9-4ef0-bb0f-30837aebff49'
  */
 export const MARKETPLACE_CUSTOMERS: Customer[] = [
   // Customers WITH linked tenants (can purchase from Azure Marketplace)
-  // Note: azureTenantId is the Partner Center customer ID used for API calls
+  // IMPORTANT: azureTenantId must be the Partner Center customer GUID
+  // Get real GUIDs from: GET /v1/customers in Partner Center API
   { 
     id: 'mc-7', 
     name: 'VodafoneDemo2', 
@@ -43,7 +47,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'vodafonedemo2.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'vodafonedemo2.onmicrosoft.com', // Partner Center customer ID
+    azureTenantId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Replace with real GUID from Partner Center
   },
   { 
     id: 'mc-8', 
@@ -54,7 +58,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'vodafonedemo1.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'vodafonedemo1.onmicrosoft.com',
+    azureTenantId: 'b2c3d4e5-f678-90ab-cdef-123456789012', // Replace with real GUID
   },
   { 
     id: 'mc-9', 
@@ -65,7 +69,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'fabrikam.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'fabrikam.onmicrosoft.com',
+    azureTenantId: 'c3d4e5f6-7890-abcd-ef12-345678901234', // Replace with real GUID
   },
   { 
     id: 'mc-10', 
@@ -76,7 +80,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'contoso.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'contoso.onmicrosoft.com',
+    azureTenantId: 'd4e5f678-90ab-cdef-1234-567890123456', // Replace with real GUID
   },
   { 
     id: 'mc-11', 
@@ -87,7 +91,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'adventureworks.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'adventureworks.onmicrosoft.com',
+    azureTenantId: 'e5f67890-abcd-ef12-3456-789012345678', // Replace with real GUID
   },
   { 
     id: 'mc-12', 
@@ -98,9 +102,10 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true, 
     linkedDomain: 'appdirect.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'appdirect.onmicrosoft.com',
+    azureTenantId: 'f6789012-abcd-ef34-5678-901234567890', // Replace with real GUID
   },
   // Demo Reseller customers (Azure-enabled for testing)
+  // These GUIDs are placeholders - replace with real Partner Center customer GUIDs
   { 
     id: 'mc-1', 
     name: 'demoresellercustomer3', 
@@ -110,7 +115,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoresellercustomer3.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoresellercustomer3.onmicrosoft.com',
+    azureTenantId: '11111111-1111-1111-1111-111111111111', // Replace with real GUID
   },
   { 
     id: 'mc-2', 
@@ -121,7 +126,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoresellercustomeropportunity.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoresellercustomeropportunity.onmicrosoft.com',
+    azureTenantId: '22222222-2222-2222-2222-222222222222', // Replace with real GUID
   },
   { 
     id: 'mc-3', 
@@ -132,7 +137,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoresellercustomer2.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoresellercustomer2.onmicrosoft.com',
+    azureTenantId: '33333333-3333-3333-3333-333333333333', // Replace with real GUID
   },
   { 
     id: 'mc-4', 
@@ -143,7 +148,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoresellercustomer1.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoresellercustomer1.onmicrosoft.com',
+    azureTenantId: '44444444-4444-4444-4444-444444444444', // Replace with real GUID
   },
   { 
     id: 'mc-5', 
@@ -154,7 +159,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoreseller.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoreseller.onmicrosoft.com',
+    azureTenantId: '55555555-5555-5555-5555-555555555555', // Replace with real GUID
   },
   { 
     id: 'mc-6', 
@@ -165,7 +170,7 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     hasTenantLinked: true,
     linkedDomain: 'demoresellermanager.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: 'demoresellermanager.onmicrosoft.com',
+    azureTenantId: '66666666-6666-6666-6666-666666666666', // Replace with real GUID
   },
 ];
 

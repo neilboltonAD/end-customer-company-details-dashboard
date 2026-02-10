@@ -1787,6 +1787,80 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // List all customers from Partner Center (to get real customer GUIDs)
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/customers') {
+    const store = readTokenStore();
+    const accessToken = store?.accessToken;
+
+    if (!accessToken) {
+      // Demo mode
+      json(res, 200, {
+        ok: true,
+        isDemo: true,
+        customers: [],
+        message: 'Connect to Partner Center to view real customers with their GUIDs.',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    try {
+      const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
+      
+      console.log('[partner-center] Fetching customer list...');
+      const customersRes = await fetch(`${baseUrl}/v1/customers`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!customersRes.ok) {
+        const errorText = await customersRes.text();
+        console.error('[partner-center] Get customers failed:', customersRes.status, errorText);
+        
+        json(res, customersRes.status, {
+          ok: false,
+          error: `Failed to get customers: ${errorText}`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const result = await customersRes.json();
+      
+      // Map to simpler format with GUIDs prominently displayed
+      const customers = (result.items || []).map((c) => ({
+        id: c.id, // This is the GUID needed for API calls
+        companyName: c.companyProfile?.companyName || c.companyName,
+        domain: c.companyProfile?.domain,
+        tenantId: c.companyProfile?.tenantId || c.id,
+        email: c.billingProfile?.email,
+        relationshipToPartner: c.relationshipToPartner,
+      }));
+      
+      console.log(`[partner-center] Found ${customers.length} customers`);
+      
+      json(res, 200, {
+        ok: true,
+        isDemo: false,
+        customers,
+        totalCount: result.totalCount || customers.length,
+        message: 'Use the "id" field as the azureTenantId in customer records.',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('[partner-center] Get customers error:', e);
+      json(res, 500, {
+        ok: false,
+        error: e.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
   // Get customer subscriptions from Partner Center
   if (req.method === 'GET' && u.pathname.match(/^\/api\/partner-center\/customers\/[^/]+\/subscriptions$/)) {
     const customerId = u.pathname.split('/')[4];
