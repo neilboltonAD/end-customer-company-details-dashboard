@@ -59,6 +59,7 @@ import {
   reinstateSubscription,
   cancelSubscription,
   purchaseMarketplaceProduct,
+  purchaseAzureMarketplaceProduct,
   ProductSummary,
   PlanSummary,
   PRODUCT_TYPES,
@@ -279,7 +280,7 @@ export function AzureMarketplaceCatalog() {
     setQuantity(1);
   };
 
-  // Handle activating an order via Azure SaaS Fulfillment API
+  // Handle activating an order via Azure Marketplace ARM API
   const handleActivateOrder = async (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
@@ -292,14 +293,15 @@ export function AzureMarketplaceCatalog() {
     saveOrders(provisioningOrders);
 
     try {
-      // Use Partner Center API to create real subscription
-      const result = await purchaseMarketplaceProduct({
-        customerId: order.customerId || '',
-        customerTenantId: order.customerTenantId,
+      // Use Azure Marketplace API to create real subscription (third-party products)
+      const result = await purchaseAzureMarketplaceProduct({
+        subscriptionId: AUTHORIZED_SUBSCRIPTION_ID, // Use authorized subscription
         productId: order.productId,
         planId: order.planId,
+        publisherId: order.publisherName?.toLowerCase().replace(/\s+/g, '-'),
+        offerId: order.productId,
+        name: `${order.productName?.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`.substring(0, 60),
         quantity: order.quantity,
-        billingCycle: order.billingCycle === 'annual' ? 'annual' : 'monthly',
       });
       
       if (result.ok) {
@@ -309,7 +311,7 @@ export function AzureMarketplaceCatalog() {
                 ...o, 
                 status: 'active' as const, 
                 activatedAt: new Date().toISOString(),
-                azureSubscriptionId: result.subscriptionId, // Store real subscription ID
+                azureSubscriptionId: result.subscriptionId || result.resourceId, // Store subscription/resource ID
               } 
             : o
         );
@@ -318,8 +320,8 @@ export function AzureMarketplaceCatalog() {
         
         const demoNote = result.isDemo ? ' (Demo Mode)' : '';
         notifications.show({
-          title: `Subscription activated${demoNote}`,
-          message: result.message || 'The subscription is now active.',
+          title: `Marketplace subscription created${demoNote}`,
+          message: result.message || 'The subscription has been created in Azure Marketplace.',
           color: 'green',
           icon: <Check size={16} />,
         });
@@ -331,9 +333,13 @@ export function AzureMarketplaceCatalog() {
         setOrders(failedOrders);
         saveOrders(failedOrders);
         
+        const errorMessage = result.hint 
+          ? `${result.error}\n\nHint: ${result.hint}` 
+          : result.error || 'Failed to create the subscription.';
+        
         notifications.show({
           title: 'Activation failed',
-          message: result.error || 'Failed to activate the subscription.',
+          message: errorMessage,
           color: 'red',
         });
       }

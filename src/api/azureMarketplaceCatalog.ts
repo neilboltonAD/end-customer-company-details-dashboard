@@ -466,8 +466,8 @@ export interface MarketplacePurchaseResponse {
 }
 
 /**
- * Purchase a marketplace product for a customer via Partner Center
- * This creates a real Azure subscription when connected to Partner Center
+ * Purchase a CSP product for a customer via Partner Center Cart API
+ * Used for Azure Plan, Software licenses, etc.
  */
 export async function purchaseMarketplaceProduct(
   request: MarketplacePurchaseRequest
@@ -490,6 +490,67 @@ export async function purchaseMarketplaceProduct(
     return {
       ok: false,
       error: err?.message || 'Failed to purchase marketplace product',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+// ============================================================================
+// Azure Marketplace - Third-Party Product Purchases
+// ============================================================================
+
+export interface AzureMarketplacePurchaseRequest {
+  subscriptionId?: string;      // Azure subscription ID to bill against
+  resourceGroupName?: string;   // Resource group for the resource
+  productId: string;            // Product ID from marketplace catalog
+  planId?: string;              // Plan ID
+  publisherId?: string;         // Publisher ID
+  offerId?: string;             // Offer ID
+  name?: string;                // Name for the resource
+  quantity?: number;
+  termId?: string;              // Term ID
+}
+
+export interface AzureMarketplacePurchaseResponse {
+  ok: boolean;
+  isDemo?: boolean;
+  productId?: string;
+  planId?: string;
+  resourceId?: string;
+  resourceName?: string;
+  subscriptionId?: string;
+  status?: string;
+  message?: string;
+  error?: string;
+  hint?: string;
+  timestamp: string;
+}
+
+/**
+ * Purchase a third-party Azure Marketplace product via ARM API
+ * Used for SaaS, VMs, and other Azure Marketplace products
+ */
+export async function purchaseAzureMarketplaceProduct(
+  request: AzureMarketplacePurchaseRequest
+): Promise<AzureMarketplacePurchaseResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/marketplace/purchase`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      }
+    );
+
+    const data = await response.json();
+    return data as AzureMarketplacePurchaseResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to purchase Azure Marketplace product',
       timestamp: new Date().toISOString(),
     };
   }

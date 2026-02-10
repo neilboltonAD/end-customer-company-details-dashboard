@@ -1623,11 +1623,175 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ============================================================================
-  // PARTNER CENTER - Create Azure Marketplace Subscription via Cart API
+  // AZURE MARKETPLACE - Third-Party Product Purchases via ARM
+  // Uses Azure Resource Manager to create SaaS/VM subscriptions from Azure Marketplace
+  // Docs: https://learn.microsoft.com/en-us/azure/marketplace/azure-purchasing-invoicing
+  // ============================================================================
+
+  // Purchase a third-party Azure Marketplace product
+  if (req.method === 'POST' && u.pathname === '/api/azure/marketplace/purchase') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const data = body ? JSON.parse(body) : {};
+        const { 
+          subscriptionId,      // Azure subscription ID to bill against
+          resourceGroupName,   // Resource group for the SaaS resource
+          productId,           // Product ID from marketplace catalog
+          planId,              // Plan ID from the product
+          publisherId,         // Publisher ID (e.g., "microsoft")
+          offerId,             // Offer ID
+          name,                // Name for the SaaS resource
+          quantity,
+          termId,              // Term ID
+        } = data;
+
+        const store = readTokenStore();
+        const azureAccessToken = store?.azureAccessToken;
+
+        if (!azureAccessToken) {
+          // Demo mode
+          console.log(`[azure-marketplace] Demo: Purchasing ${productId} plan ${planId}`);
+          
+          json(res, 200, {
+            ok: true,
+            isDemo: true,
+            productId,
+            planId,
+            subscriptionId: `DEMO-SAAS-${Date.now()}`,
+            message: 'Simulated purchase (demo mode). Connect to Azure for real purchases.',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        // Use the provided subscription ID or fall back to our test subscription
+        const azureSubscriptionId = subscriptionId || '3aad85d7-6ac9-4ef0-bb0f-30837aebff49';
+        const rgName = resourceGroupName || 'marketplace-purchases';
+        const resourceName = name || `saas-${Date.now()}`;
+
+        console.log(`[azure-marketplace] Creating marketplace subscription...`);
+        console.log(`[azure-marketplace] Product: ${productId}, Plan: ${planId}`);
+        console.log(`[azure-marketplace] Subscription: ${azureSubscriptionId}, RG: ${rgName}`);
+
+        // First, ensure resource group exists
+        const rgUrl = `https://management.azure.com/subscriptions/${azureSubscriptionId}/resourceGroups/${rgName}?api-version=2021-04-01`;
+        const rgRes = await fetch(rgUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${azureAccessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            location: 'eastus',
+            tags: { purpose: 'marketplace-purchases' }
+          }),
+        });
+
+        if (!rgRes.ok && rgRes.status !== 409) {
+          const errorText = await rgRes.text();
+          console.log('[azure-marketplace] RG create response:', rgRes.status, errorText);
+          // Continue - RG might already exist or we might not have permission but can still create resources
+        } else {
+          console.log('[azure-marketplace] Resource group ready');
+        }
+
+        // Create SaaS subscription via ARM
+        // API: https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.SaaS/resources/{resourceName}
+        const saasUrl = `https://management.azure.com/subscriptions/${azureSubscriptionId}/resourceGroups/${rgName}/providers/Microsoft.SaaS/resources/${resourceName}?api-version=2018-03-01-beta`;
+        
+        const saasPayload = {
+          name: resourceName,
+          type: 'Microsoft.SaaS/resources',
+          location: 'global',
+          properties: {
+            saasResourceName: resourceName,
+            publisherId: publisherId || 'unknown',
+            offerId: offerId || productId,
+            planId: planId || 'default',
+            quantity: quantity || 1,
+            termId: termId, // Optional
+            autoRenew: true,
+            paymentChannelType: 'SubscriptionDelegated',
+            paymentChannelMetadata: {
+              azureSubscriptionId: azureSubscriptionId,
+            },
+          },
+          tags: {
+            createdBy: 'marketplace-poc',
+            productId: productId,
+            createdAt: new Date().toISOString(),
+          },
+        };
+
+        console.log(`[azure-marketplace] Creating SaaS resource...`);
+
+        const saasRes = await fetch(saasUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${azureAccessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(saasPayload),
+        });
+
+        const responseText = await saasRes.text();
+        console.log(`[azure-marketplace] SaaS response (${saasRes.status}):`, responseText);
+
+        if (!saasRes.ok) {
+          let errorDetail = responseText;
+          try {
+            const errorJson = JSON.parse(responseText);
+            errorDetail = errorJson.error?.message || errorJson.message || responseText;
+          } catch (e) {}
+
+          json(res, saasRes.status, {
+            ok: false,
+            error: `Failed to create marketplace subscription: ${errorDetail}`,
+            hint: 'The product may require different purchase flow or additional permissions.',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        let saasResource;
+        try {
+          saasResource = JSON.parse(responseText);
+        } catch (e) {
+          saasResource = { id: resourceName };
+        }
+
+        json(res, 200, {
+          ok: true,
+          isDemo: false,
+          productId,
+          planId,
+          resourceId: saasResource.id,
+          resourceName: resourceName,
+          subscriptionId: azureSubscriptionId,
+          status: saasResource.properties?.saasSubscriptionStatus || 'PendingFulfillmentStart',
+          message: 'Marketplace subscription created successfully.',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error('[azure-marketplace] Purchase error:', e);
+        json(res, 500, {
+          ok: false,
+          error: e.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+    return;
+  }
+
+  // ============================================================================
+  // PARTNER CENTER - Create CSP Subscription via Cart API (for Azure Plan, Software, etc.)
   // Docs: https://learn.microsoft.com/en-us/partner-center/developer/create-subscription-azure-marketplace-products
   // ============================================================================
 
-  // Purchase a marketplace product for a customer
+  // Purchase a CSP product for a customer (not third-party marketplace)
   if (req.method === 'POST' && u.pathname === '/api/partner-center/marketplace/purchase') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -1813,6 +1977,92 @@ const server = http.createServer(async (req, res) => {
         });
       }
     });
+    return;
+  }
+
+  // ============================================================================
+  // Partner Center Catalog - Get products that can be purchased via Cart API
+  // ============================================================================
+  
+  // Get Partner Center catalog (for cart purchases)
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/catalog') {
+    const store = readTokenStore();
+    const accessToken = store?.accessToken;
+    const targetSegment = u.searchParams.get('segment') || 'commercial';
+    const productType = u.searchParams.get('productType') || 'Azure';
+    const country = u.searchParams.get('country') || 'US';
+
+    if (!accessToken) {
+      json(res, 200, {
+        ok: true,
+        isDemo: true,
+        products: [],
+        message: 'Connect to Partner Center to view catalog products.',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    try {
+      const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
+      
+      // Query Partner Center catalog
+      // Docs: https://learn.microsoft.com/en-us/partner-center/developer/get-a-list-of-products
+      // targetView: Azure, AzureReservations, Software, etc.
+      const targetView = u.searchParams.get('targetView') || 'Azure';
+      console.log(`[partner-center] Fetching catalog for country=${country}, targetView=${targetView}...`);
+      
+      const catalogRes = await fetch(
+        `${baseUrl}/v1/products?country=${country}&targetView=${targetView}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!catalogRes.ok) {
+        const errorText = await catalogRes.text();
+        console.error('[partner-center] Get catalog failed:', catalogRes.status, errorText);
+        
+        json(res, catalogRes.status, {
+          ok: false,
+          error: `Failed to get catalog: ${errorText}`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const result = await catalogRes.json();
+      const products = (result.items || []).map((p) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        productType: p.productType,
+        isMicrosoftProduct: p.isMicrosoftProduct,
+        publisherName: p.publisherName,
+      }));
+      
+      console.log(`[partner-center] Found ${products.length} catalog products`);
+      
+      json(res, 200, {
+        ok: true,
+        isDemo: false,
+        products,
+        totalCount: products.length,
+        message: 'Use the "id" field as catalogItemId for cart purchases.',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('[partner-center] Get catalog error:', e);
+      json(res, 500, {
+        ok: false,
+        error: e.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
     return;
   }
 
