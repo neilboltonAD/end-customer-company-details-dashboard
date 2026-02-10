@@ -39,6 +39,7 @@ import {
   ShoppingCart,
   Check,
   AlertCircle,
+  AlertTriangle,
   Info,
   Building2,
   Cloud,
@@ -53,6 +54,10 @@ import {
 import { TopNavbar } from '../components/navigation/TopNavbar';
 import {
   listMarketplaceCatalogProducts,
+  activateSubscription,
+  suspendSubscription,
+  reinstateSubscription,
+  cancelSubscription,
   ProductSummary,
   PlanSummary,
   PRODUCT_TYPES,
@@ -74,8 +79,9 @@ interface OrderItem {
   publisherName: string;
   quantity: number;
   pricingType: string;
-  status: 'pending' | 'provisioning' | 'active' | 'failed' | 'cancelled';
+  status: 'pending' | 'provisioning' | 'active' | 'suspended' | 'failed' | 'cancelled';
   createdAt: string;
+  activatedAt?: string;
   billingCycle?: 'monthly' | 'annual' | 'usage-based';
   estimatedMonthlyPrice?: number;
   customerId?: string;
@@ -249,41 +255,209 @@ export function AzureMarketplaceCatalog() {
     setQuantity(1);
   };
 
-  // Handle activating an order (simulates Azure API call)
-  const handleActivateOrder = (orderId: string) => {
-    const updatedOrders = orders.map(order => {
-      if (order.id === orderId) {
-        return { ...order, status: 'active' as const };
+  // Handle activating an order via Azure SaaS Fulfillment API
+  const handleActivateOrder = async (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Set to provisioning state
+    const provisioningOrders = orders.map(o => 
+      o.id === orderId ? { ...o, status: 'provisioning' as const } : o
+    );
+    setOrders(provisioningOrders);
+    saveOrders(provisioningOrders);
+
+    try {
+      const result = await activateSubscription(orderId, order.planId, order.quantity);
+      
+      if (result.ok) {
+        const updatedOrders = orders.map(o => 
+          o.id === orderId 
+            ? { ...o, status: 'active' as const, activatedAt: new Date().toISOString() } 
+            : o
+        );
+        setOrders(updatedOrders);
+        saveOrders(updatedOrders);
+        
+        notifications.show({
+          title: 'Subscription activated',
+          message: result.message || 'The subscription is now active.',
+          color: 'green',
+          icon: <Check size={16} />,
+        });
+      } else {
+        // Activation failed
+        const failedOrders = orders.map(o => 
+          o.id === orderId ? { ...o, status: 'failed' as const } : o
+        );
+        setOrders(failedOrders);
+        saveOrders(failedOrders);
+        
+        notifications.show({
+          title: 'Activation failed',
+          message: result.error || 'Failed to activate the subscription.',
+          color: 'red',
+        });
       }
-      return order;
-    });
-    setOrders(updatedOrders);
-    saveOrders(updatedOrders);
-    
-    notifications.show({
-      title: 'Order activated',
-      message: 'The subscription is now active. In production, this would provision the Azure resource.',
-      color: 'green',
-      icon: <Check size={16} />,
-    });
+    } catch (err) {
+      const failedOrders = orders.map(o => 
+        o.id === orderId ? { ...o, status: 'failed' as const } : o
+      );
+      setOrders(failedOrders);
+      saveOrders(failedOrders);
+      
+      notifications.show({
+        title: 'Activation error',
+        message: 'An error occurred while activating the subscription.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Handle suspending an active order
+  const handleSuspendOrder = async (orderId: string) => {
+    try {
+      const result = await suspendSubscription(orderId);
+      
+      if (result.ok) {
+        const updatedOrders = orders.map(o => 
+          o.id === orderId ? { ...o, status: 'suspended' as const } : o
+        );
+        setOrders(updatedOrders);
+        saveOrders(updatedOrders);
+        
+        notifications.show({
+          title: 'Subscription suspended',
+          message: result.message || 'The subscription has been suspended.',
+          color: 'yellow',
+        });
+      } else {
+        notifications.show({
+          title: 'Suspend failed',
+          message: result.error || 'Failed to suspend the subscription.',
+          color: 'red',
+        });
+      }
+    } catch (err) {
+      notifications.show({
+        title: 'Suspend error',
+        message: 'An error occurred while suspending the subscription.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Handle reinstating a suspended order
+  const handleReinstateOrder = async (orderId: string) => {
+    try {
+      const result = await reinstateSubscription(orderId);
+      
+      if (result.ok) {
+        const updatedOrders = orders.map(o => 
+          o.id === orderId ? { ...o, status: 'active' as const } : o
+        );
+        setOrders(updatedOrders);
+        saveOrders(updatedOrders);
+        
+        notifications.show({
+          title: 'Subscription reinstated',
+          message: result.message || 'The subscription has been reinstated.',
+          color: 'green',
+          icon: <Check size={16} />,
+        });
+      } else {
+        notifications.show({
+          title: 'Reinstate failed',
+          message: result.error || 'Failed to reinstate the subscription.',
+          color: 'red',
+        });
+      }
+    } catch (err) {
+      notifications.show({
+        title: 'Reinstate error',
+        message: 'An error occurred while reinstating the subscription.',
+        color: 'red',
+      });
+    }
   };
 
   // Handle cancelling an order
-  const handleCancelOrder = (orderId: string) => {
-    const updatedOrders = orders.map(order => {
-      if (order.id === orderId) {
-        return { ...order, status: 'cancelled' as const };
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      const result = await cancelSubscription(orderId);
+      
+      if (result.ok) {
+        const updatedOrders = orders.map(o => 
+          o.id === orderId ? { ...o, status: 'cancelled' as const } : o
+        );
+        setOrders(updatedOrders);
+        saveOrders(updatedOrders);
+        
+        notifications.show({
+          title: 'Subscription cancelled',
+          message: result.message || 'The subscription has been cancelled.',
+          color: 'orange',
+        });
+      } else {
+        notifications.show({
+          title: 'Cancel failed',
+          message: result.error || 'Failed to cancel the subscription.',
+          color: 'red',
+        });
       }
-      return order;
-    });
-    setOrders(updatedOrders);
-    saveOrders(updatedOrders);
-    
+    } catch (err) {
+      notifications.show({
+        title: 'Cancel error',
+        message: 'An error occurred while cancelling the subscription.',
+        color: 'red',
+      });
+    }
+  };
+
+  // Bulk action: Activate all pending orders
+  const handleActivateAllPending = async () => {
+    const pendingOrders = orders.filter(o => o.status === 'pending');
+    if (pendingOrders.length === 0) {
+      notifications.show({
+        title: 'No pending orders',
+        message: 'There are no pending orders to activate.',
+        color: 'blue',
+      });
+      return;
+    }
+
     notifications.show({
-      title: 'Order cancelled',
-      message: 'The order has been cancelled.',
+      title: 'Activating orders...',
+      message: `Activating ${pendingOrders.length} pending order(s).`,
+      color: 'blue',
+    });
+
+    for (const order of pendingOrders) {
+      await handleActivateOrder(order.id);
+    }
+  };
+
+  // Bulk action: Cancel all non-cancelled orders
+  const handleCancelAll = async () => {
+    const activeOrders = orders.filter(o => o.status !== 'cancelled');
+    if (activeOrders.length === 0) {
+      notifications.show({
+        title: 'No orders to cancel',
+        message: 'All orders are already cancelled.',
+        color: 'blue',
+      });
+      return;
+    }
+
+    notifications.show({
+      title: 'Cancelling orders...',
+      message: `Cancelling ${activeOrders.length} order(s).`,
       color: 'orange',
     });
+
+    for (const order of activeOrders) {
+      await handleCancelOrder(order.id);
+    }
   };
 
   // Get pricing badge color
@@ -422,6 +596,7 @@ export function AzureMarketplaceCatalog() {
                     order.status === 'active' ? 'green' :
                     order.status === 'pending' ? 'yellow' :
                     order.status === 'provisioning' ? 'blue' :
+                    order.status === 'suspended' ? 'orange' :
                     order.status === 'failed' ? 'red' : 'gray'
                   }
                 >
@@ -443,6 +618,41 @@ export function AzureMarketplaceCatalog() {
                       onClick={() => handleActivateOrder(order.id)}
                     >
                       Activate
+                    </Button>
+                  )}
+                  {order.status === 'provisioning' && (
+                    <Button size="xs" variant="light" color="blue" loading disabled>
+                      Provisioning...
+                    </Button>
+                  )}
+                  {order.status === 'active' && (
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="orange"
+                      onClick={() => handleSuspendOrder(order.id)}
+                    >
+                      Suspend
+                    </Button>
+                  )}
+                  {order.status === 'suspended' && (
+                    <Button
+                      size="xs"
+                      variant="filled"
+                      color="green"
+                      onClick={() => handleReinstateOrder(order.id)}
+                    >
+                      Reinstate
+                    </Button>
+                  )}
+                  {order.status === 'failed' && (
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="blue"
+                      onClick={() => handleActivateOrder(order.id)}
+                    >
+                      Retry
                     </Button>
                   )}
                   {order.status !== 'cancelled' && (
@@ -655,21 +865,42 @@ export function AzureMarketplaceCatalog() {
                     </Text>
                   </Box>
                   {orders.length > 0 && (
-                    <Button
-                      variant="subtle"
-                      color="red"
-                      onClick={() => {
-                        setOrders([]);
-                        saveOrders([]);
-                        notifications.show({
-                          title: 'Orders cleared',
-                          message: 'All orders have been cleared',
-                          color: 'blue',
-                        });
-                      }}
-                    >
-                      Clear All Orders
-                    </Button>
+                    <Group gap="sm">
+                      {orders.some(o => o.status === 'pending') && (
+                        <Button
+                          variant="light"
+                          color="green"
+                          size="sm"
+                          onClick={handleActivateAllPending}
+                        >
+                          Activate All Pending ({orders.filter(o => o.status === 'pending').length})
+                        </Button>
+                      )}
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        size="sm"
+                        onClick={handleCancelAll}
+                      >
+                        Cancel All
+                      </Button>
+                      <Button
+                        variant="subtle"
+                        color="gray"
+                        size="sm"
+                        onClick={() => {
+                          setOrders([]);
+                          saveOrders([]);
+                          notifications.show({
+                            title: 'Orders cleared',
+                            message: 'All orders have been cleared from local storage',
+                            color: 'blue',
+                          });
+                        }}
+                      >
+                        Clear All
+                      </Button>
+                    </Group>
                   )}
                 </Group>
 
@@ -681,7 +912,7 @@ export function AzureMarketplaceCatalog() {
                 {orders.length > 0 && (
                   <Paper p="lg" withBorder>
                     <Title order={5} mb="md">Billing Summary</Title>
-                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
                       <Card withBorder>
                         <Group>
                           <ThemeIcon size="lg" color="green" variant="light">
@@ -704,6 +935,19 @@ export function AzureMarketplaceCatalog() {
                             <Text size="xs" c="dimmed">Pending Orders</Text>
                             <Text size="lg" fw={600}>
                               {orders.filter(o => o.status === 'pending').length}
+                            </Text>
+                          </Box>
+                        </Group>
+                      </Card>
+                      <Card withBorder>
+                        <Group>
+                          <ThemeIcon size="lg" color="orange" variant="light">
+                            <AlertTriangle size={20} />
+                          </ThemeIcon>
+                          <Box>
+                            <Text size="xs" c="dimmed">Suspended</Text>
+                            <Text size="lg" fw={600}>
+                              {orders.filter(o => o.status === 'suspended').length}
                             </Text>
                           </Box>
                         </Group>

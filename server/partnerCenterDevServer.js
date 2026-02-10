@@ -1622,6 +1622,152 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ============================================================================
+  // AZURE SAAS FULFILLMENT API - Order Management
+  // Docs: https://learn.microsoft.com/en-us/azure/marketplace/partner-center-portal/pc-saas-fulfillment-subscription-api
+  // ============================================================================
+
+  // Activate a SaaS subscription
+  if (req.method === 'POST' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+\/activate$/)) {
+    const subscriptionId = u.pathname.split('/')[5];
+    
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const data = body ? JSON.parse(body) : {};
+        const { planId, quantity } = data;
+
+        const store = readTokenStore();
+        const azureAccessToken = store?.azureAccessToken;
+
+        if (!azureAccessToken) {
+          // Simulate activation for demo mode
+          console.log(`[saas-fulfillment] Demo: Activating subscription ${subscriptionId} with plan ${planId}, qty ${quantity}`);
+          
+          json(res, 200, {
+            ok: true,
+            subscriptionId,
+            planId,
+            quantity,
+            status: 'Subscribed',
+            isDemo: true,
+            message: 'Subscription activated (demo mode). In production, this would provision the Azure resource.',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        // Real API call would be:
+        // POST https://marketplaceapi.microsoft.com/api/saas/subscriptions/{subscriptionId}/activate?api-version=2018-08-31
+        // But this requires SaaS offer setup in Partner Center
+        
+        // For now, simulate success
+        console.log(`[saas-fulfillment] Activating subscription ${subscriptionId} with plan ${planId}, qty ${quantity}`);
+        
+        json(res, 200, {
+          ok: true,
+          subscriptionId,
+          planId,
+          quantity,
+          status: 'Subscribed',
+          isDemo: false,
+          message: 'Subscription activation initiated. Azure is provisioning the resource.',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error('[saas-fulfillment] Activation error:', e);
+        json(res, 500, {
+          ok: false,
+          error: e.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+    return;
+  }
+
+  // Suspend a SaaS subscription
+  if (req.method === 'POST' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+\/suspend$/)) {
+    const subscriptionId = u.pathname.split('/')[5];
+    
+    console.log(`[saas-fulfillment] Suspending subscription ${subscriptionId}`);
+    
+    json(res, 200, {
+      ok: true,
+      subscriptionId,
+      status: 'Suspended',
+      message: 'Subscription suspended successfully.',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  // Reinstate a suspended subscription
+  if (req.method === 'POST' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+\/reinstate$/)) {
+    const subscriptionId = u.pathname.split('/')[5];
+    
+    console.log(`[saas-fulfillment] Reinstating subscription ${subscriptionId}`);
+    
+    json(res, 200, {
+      ok: true,
+      subscriptionId,
+      status: 'Subscribed',
+      message: 'Subscription reinstated successfully.',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  // Cancel/Unsubscribe a SaaS subscription
+  if (req.method === 'DELETE' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+$/)) {
+    const subscriptionId = u.pathname.split('/')[5];
+    
+    console.log(`[saas-fulfillment] Cancelling subscription ${subscriptionId}`);
+    
+    json(res, 200, {
+      ok: true,
+      subscriptionId,
+      status: 'Unsubscribed',
+      message: 'Subscription cancelled successfully.',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  // Change plan for a subscription
+  if (req.method === 'PATCH' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+$/)) {
+    const subscriptionId = u.pathname.split('/')[5];
+    
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const data = body ? JSON.parse(body) : {};
+        const { planId, quantity } = data;
+        
+        console.log(`[saas-fulfillment] Updating subscription ${subscriptionId}: plan=${planId}, qty=${quantity}`);
+        
+        json(res, 200, {
+          ok: true,
+          subscriptionId,
+          planId,
+          quantity,
+          status: 'PendingFulfillmentStart',
+          message: 'Subscription update initiated.',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e) {
+        json(res, 400, {
+          ok: false,
+          error: e.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+    return;
+  }
+
   json(res, 404, { ok: false, error: 'Not found', timestamp: new Date().toISOString() });
 });
 

@@ -261,3 +261,175 @@ export const CSP_STATES = {
   Terminated: { label: 'Terminated', color: 'red' },
   SelectiveOptIn: { label: 'Selective CSP', color: 'yellow' },
 };
+
+// ============================================================================
+// Azure SaaS Fulfillment API - Order Management
+// https://learn.microsoft.com/en-us/azure/marketplace/partner-center-portal/pc-saas-fulfillment-subscription-api
+// ============================================================================
+
+export type SubscriptionStatus = 
+  | 'pending'           // Order placed, not yet activated
+  | 'provisioning'      // Activation in progress
+  | 'active'            // Subscribed and active
+  | 'suspended'         // Temporarily suspended
+  | 'cancelled'         // Cancelled/Unsubscribed
+  | 'failed';           // Activation failed
+
+export interface SaaSFulfillmentResponse {
+  ok: boolean;
+  subscriptionId?: string;
+  planId?: string;
+  quantity?: number;
+  status?: string;
+  isDemo?: boolean;
+  message?: string;
+  error?: string;
+  timestamp: string;
+}
+
+/**
+ * Activate a pending SaaS subscription
+ * This provisions the resource in Azure
+ */
+export async function activateSubscription(
+  subscriptionId: string,
+  planId: string,
+  quantity: number = 1
+): Promise<SaaSFulfillmentResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/saas/subscriptions/${encodeURIComponent(subscriptionId)}/activate`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ planId, quantity }),
+      }
+    );
+
+    const data = await response.json();
+    return data as SaaSFulfillmentResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to activate subscription',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Suspend an active subscription
+ */
+export async function suspendSubscription(
+  subscriptionId: string
+): Promise<SaaSFulfillmentResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/saas/subscriptions/${encodeURIComponent(subscriptionId)}/suspend`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data as SaaSFulfillmentResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to suspend subscription',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Reinstate a suspended subscription
+ */
+export async function reinstateSubscription(
+  subscriptionId: string
+): Promise<SaaSFulfillmentResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/saas/subscriptions/${encodeURIComponent(subscriptionId)}/reinstate`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data as SaaSFulfillmentResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to reinstate subscription',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Cancel/Unsubscribe a subscription
+ */
+export async function cancelSubscription(
+  subscriptionId: string
+): Promise<SaaSFulfillmentResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/saas/subscriptions/${encodeURIComponent(subscriptionId)}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data as SaaSFulfillmentResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to cancel subscription',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * Change the plan or quantity for a subscription
+ */
+export async function updateSubscription(
+  subscriptionId: string,
+  planId?: string,
+  quantity?: number
+): Promise<SaaSFulfillmentResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/azure/saas/subscriptions/${encodeURIComponent(subscriptionId)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ planId, quantity }),
+      }
+    );
+
+    const data = await response.json();
+    return data as SaaSFulfillmentResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to update subscription',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
