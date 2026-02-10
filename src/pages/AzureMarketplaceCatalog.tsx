@@ -219,7 +219,7 @@ export function AzureMarketplaceCatalog() {
     
     const newOrder: OrderItem = {
       id: `ORD-${Date.now()}`,
-      productId: selectedProduct.uniqueProductId,
+      productId: selectedProduct.uniqueProductId || selectedProduct.productId || selectedProduct.displayName,
       productName: selectedProduct.displayName,
       planId: selectedPlan.planId,
       planName: selectedPlan.displayName,
@@ -258,7 +258,7 @@ export function AzureMarketplaceCatalog() {
   // Render product card
   const renderProductCard = (product: ProductSummary) => (
     <Card
-      key={product.uniqueProductId}
+      key={product.uniqueProductId || product.productId || product.displayName}
       shadow="sm"
       padding="lg"
       radius="md"
@@ -292,7 +292,7 @@ export function AzureMarketplaceCatalog() {
         </Group>
 
         <Text size="sm" c="dimmed" lineClamp={2} style={{ minHeight: 40 }}>
-          {product.summary || 'No description available'}
+          {product.description || product.summary || 'No description available'}
         </Text>
 
         <Group gap="xs" wrap="wrap">
@@ -305,6 +305,18 @@ export function AzureMarketplaceCatalog() {
             </Badge>
           ))}
         </Group>
+
+        {/* Show starting price if available */}
+        {product.startingPrice && product.startingPrice.minTermPrice !== undefined && (
+          <Group gap="xs" align="baseline">
+            <Text size="lg" fw={700} c="teal">
+              {product.startingPrice.currency || 'USD'} {product.startingPrice.minTermPrice.toFixed(2)}
+            </Text>
+            <Text size="xs" c="dimmed">
+              / {product.startingPrice.termUnits === 'P1Y' ? 'year' : 'month'}
+            </Text>
+          </Group>
+        )}
 
         {product.plans && product.plans.length > 0 && (
           <Text size="xs" c="dimmed">
@@ -754,8 +766,27 @@ export function AzureMarketplaceCatalog() {
                       </Group>
                     </Card>
                   ))
+                ) : selectedProduct?.startingPrice ? (
+                  <Card padding="sm" radius="md" withBorder>
+                    <Group justify="space-between" align="center">
+                      <Box>
+                        <Text fw={500}>Standard Pricing</Text>
+                        <Text size="xs" c="dimmed">
+                          {selectedProduct.productFamily || selectedProduct.serviceFamily || 'Microsoft Product'}
+                        </Text>
+                      </Box>
+                      <Box ta="right">
+                        <Text size="lg" fw={700} c="teal">
+                          {selectedProduct.startingPrice.currency || 'USD'} {selectedProduct.startingPrice.minTermPrice?.toFixed(2) || '0.00'}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          per {selectedProduct.startingPrice.termUnits === 'P1Y' ? 'year' : 'month'}
+                        </Text>
+                      </Box>
+                    </Group>
+                  </Card>
                 ) : (
-                  <Text size="sm" c="dimmed">No plans available</Text>
+                  <Text size="sm" c="dimmed">No plans or pricing available</Text>
                 )}
               </Stack>
             </Box>

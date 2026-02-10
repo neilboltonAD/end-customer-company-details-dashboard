@@ -52,8 +52,16 @@ export interface PlanMetadata {
   altStackReference?: string;
 }
 
+export interface StartingPrice {
+  market?: string;
+  termUnits?: string; // P1M = monthly, P1Y = yearly
+  minTermPrice?: number;
+  currency?: string;
+}
+
 export interface ProductSummary {
-  uniqueProductId: string;
+  uniqueProductId?: string; // May not be present in all API responses
+  productId?: string; // Alternative ID field from API
   displayName: string;
   publisherDisplayName: string;
   publisherId?: string;
@@ -73,6 +81,10 @@ export interface ProductSummary {
   lastModifiedDate?: string;
   plans?: PlanSummary[];
   imageUrl?: string;
+  startingPrice?: StartingPrice;
+  productFamily?: string;
+  service?: string;
+  serviceFamily?: string;
 }
 
 export interface ProductSummaryListResult {
