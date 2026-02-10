@@ -249,6 +249,43 @@ export function AzureMarketplaceCatalog() {
     setQuantity(1);
   };
 
+  // Handle activating an order (simulates Azure API call)
+  const handleActivateOrder = (orderId: string) => {
+    const updatedOrders = orders.map(order => {
+      if (order.id === orderId) {
+        return { ...order, status: 'active' as const };
+      }
+      return order;
+    });
+    setOrders(updatedOrders);
+    saveOrders(updatedOrders);
+    
+    notifications.show({
+      title: 'Order activated',
+      message: 'The subscription is now active. In production, this would provision the Azure resource.',
+      color: 'green',
+      icon: <Check size={16} />,
+    });
+  };
+
+  // Handle cancelling an order
+  const handleCancelOrder = (orderId: string) => {
+    const updatedOrders = orders.map(order => {
+      if (order.id === orderId) {
+        return { ...order, status: 'cancelled' as const };
+      }
+      return order;
+    });
+    setOrders(updatedOrders);
+    saveOrders(updatedOrders);
+    
+    notifications.show({
+      title: 'Order cancelled',
+      message: 'The order has been cancelled.',
+      color: 'orange',
+    });
+  };
+
   // Get pricing badge color
   const getPricingBadgeColor = (pricingType: string) => {
     const pt = PRICING_TYPES.find(p => p.value === pricingType);
@@ -339,12 +376,13 @@ export function AzureMarketplaceCatalog() {
           <Table.Th>Est. Monthly</Table.Th>
           <Table.Th>Status</Table.Th>
           <Table.Th>Created</Table.Th>
+          <Table.Th>Actions</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
         {orders.length === 0 ? (
           <Table.Tr>
-            <Table.Td colSpan={7}>
+            <Table.Td colSpan={8}>
               <Text ta="center" c="dimmed" py="xl">
                 No orders yet. Browse the catalog to place orders.
               </Text>
@@ -394,6 +432,30 @@ export function AzureMarketplaceCatalog() {
                 <Text size="sm">
                   {new Date(order.createdAt).toLocaleDateString()}
                 </Text>
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xs">
+                  {order.status === 'pending' && (
+                    <Button
+                      size="xs"
+                      variant="filled"
+                      color="green"
+                      onClick={() => handleActivateOrder(order.id)}
+                    >
+                      Activate
+                    </Button>
+                  )}
+                  {order.status !== 'cancelled' && (
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      color="red"
+                      onClick={() => handleCancelOrder(order.id)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </Group>
               </Table.Td>
             </Table.Tr>
           ))
