@@ -93,14 +93,16 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     linkedDomain: 'appdirect.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
-  // Customers WITHOUT linked tenants (need Azure Plan first)
+  // Demo Reseller customers (Azure-enabled for testing)
   { 
     id: 'mc-1', 
     name: 'demoresellercustomer3', 
     contactName: 'John Smith', 
     email: 'john@demoresellercustomer3.com', 
     createdOn: '11/11/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoresellercustomer3.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
   { 
     id: 'mc-2', 
@@ -108,7 +110,9 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     contactName: 'Sarah Johnson', 
     email: 'sarah@opportunity.com', 
     createdOn: '11/11/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoresellercustomeropportunity.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
   { 
     id: 'mc-3', 
@@ -116,7 +120,9 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     contactName: 'Mike Wilson', 
     email: 'mike@demoresellercustomer2.com', 
     createdOn: '11/10/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoresellercustomer2.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
   { 
     id: 'mc-4', 
@@ -124,7 +130,9 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     contactName: 'Emma Davis', 
     email: 'emma@demoresellercustomer1.com', 
     createdOn: '11/10/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoresellercustomer1.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
   { 
     id: 'mc-5', 
@@ -132,7 +140,9 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     contactName: 'Alex Brown', 
     email: 'alex@demoreseller.com', 
     createdOn: '11/10/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoreseller.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
   { 
     id: 'mc-6', 
@@ -140,7 +150,9 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     contactName: 'Chris Lee', 
     email: 'chris@demoresellermanager.com', 
     createdOn: '11/10/25', 
-    hasTenantLinked: false,
+    hasTenantLinked: true,
+    linkedDomain: 'demoresellermanager.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
   },
 ];
 
