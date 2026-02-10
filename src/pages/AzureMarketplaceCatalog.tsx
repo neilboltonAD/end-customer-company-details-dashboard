@@ -139,7 +139,7 @@ export function AzureMarketplaceCatalog() {
     setLoading(true);
     const result = await listMarketplaceCatalogProducts({
       filter: productTypeFilter ? { productType: productTypeFilter } : undefined,
-      expand: ['plans'],
+      // Note: Don't use expand: ['plans'] as it nullifies startingPrice in the Azure API response
       top: 500, // Increased to get more products
     });
     
