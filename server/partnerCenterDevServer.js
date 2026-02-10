@@ -195,6 +195,13 @@ function gdapGraphDelegatedScope() {
   );
 }
 
+function azureManagementDelegatedScope() {
+  return (
+    process.env.AZURE_MANAGEMENT_SCOPES ||
+    'https://management.azure.com/user_impersonation offline_access openid profile'
+  );
+}
+
 async function exchangeAuthCode({ tenantId, clientId, clientSecret, code, redirectUri, codeVerifier, scope }) {
   const s = scope || partnerCenterDelegatedScope();
   const tokenUrl = `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`;
@@ -390,6 +397,40 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Start Azure Management connect flow (App+User) for Azure Marketplace Catalog API.
+  if (req.method === 'GET' && u.pathname === '/api/partner-center/connect-azure') {
+    try {
+      const { tenantId, clientId } = envClientInfoOrThrow();
+      const redirectUri = `http://localhost:${PORT}/api/partner-center/callback`;
+      const state = Math.random().toString(16).slice(2);
+      const pkce = createPkcePair();
+      const scope = encodeURIComponent(azureManagementDelegatedScope());
+      const authorizeUrl =
+        `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/authorize` +
+        `?client_id=${encodeURIComponent(clientId)}` +
+        `&response_type=code` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_mode=query` +
+        `&scope=${scope}` +
+        `&state=${encodeURIComponent(state)}` +
+        `&code_challenge=${encodeURIComponent(pkce.challenge)}` +
+        `&code_challenge_method=${encodeURIComponent(pkce.method)}`;
+
+      writeTokenStore({
+        ...(readTokenStore() || {}),
+        pendingKind: 'azure',
+        pendingState: state,
+        pendingCodeVerifier: pkce.verifier,
+      });
+
+      res.writeHead(302, { Location: authorizeUrl });
+      res.end();
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Connect Azure failed', timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
   // OAuth callback: exchange code for tokens and store refresh token (dev only)
   if (req.method === 'GET' && u.pathname === '/api/partner-center/callback') {
     try {
@@ -496,7 +537,7 @@ const server = http.createServer(async (req, res) => {
           code,
           redirectUri,
           codeVerifier: store.pendingCodeVerifier,
-          scope: kind === 'gdap' ? gdapGraphDelegatedScope() : partnerCenterDelegatedScope(),
+          scope: kind === 'gdap' ? gdapGraphDelegatedScope() : kind === 'azure' ? azureManagementDelegatedScope() : partnerCenterDelegatedScope(),
         });
       } catch (e) {
         const msg = e?.message || '';
@@ -618,6 +659,14 @@ const server = http.createServer(async (req, res) => {
           gdapAccessToken: accessToken,
           gdapAccessTokenClaims: claims,
         });
+      } else if (kind === 'azure') {
+        writeTokenStore({
+          ...nextStore,
+          azureConnectedAt: new Date().toISOString(),
+          azureRefreshToken: refreshToken,
+          azureAccessToken: accessToken,
+          azureAccessTokenClaims: claims,
+        });
       } else {
         writeTokenStore({
           ...nextStore,
@@ -627,10 +676,12 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      // Redirect back to UI (default to GDAP page if we just connected GDAP)
+      // Redirect back to UI based on connection type
       const uiRedirect =
         kind === 'gdap'
           ? 'http://localhost:3000/operations/microsoft/onboarding/gdap'
+          : kind === 'azure'
+          ? 'http://localhost:3000/integrations/azure-marketplace-catalog'
           : 'http://localhost:3000/settings/vendor-integrations/microsoft';
       res.writeHead(302, { Location: uiRedirect });
       res.end();
@@ -690,8 +741,10 @@ const server = http.createServer(async (req, res) => {
       store: {
         hasPartnerCenter: Boolean(store?.refreshToken),
         hasGdap: Boolean(store?.gdapRefreshToken),
+        hasAzure: Boolean(store?.azureRefreshToken),
         connectedAt: store?.connectedAt,
         gdapConnectedAt: store?.gdapConnectedAt,
+        azureConnectedAt: store?.azureConnectedAt,
       },
       timestamp: new Date().toISOString(),
     });
@@ -1369,17 +1422,17 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && u.pathname === '/api/azure/marketplace-catalog/products') {
     try {
       const store = readTokenStore();
-      const refreshToken = store?.refreshToken;
+      const azureRefreshToken = store?.azureRefreshToken;
       
-      if (!refreshToken) {
-        // Return demo data when not connected
+      if (!azureRefreshToken) {
+        // Return demo data when Azure is not connected
         json(res, 200, {
           ok: true,
           products: getAzureMarketplaceDemoProducts(),
           nextLink: null,
           totalCount: 15,
           isDemo: true,
-          message: 'Using demo data. Connect to Azure to see real products.',
+          message: 'Azure not connected. Click "Connect Azure" to see real products.',
           timestamp: new Date().toISOString(),
         });
         return;
@@ -1397,14 +1450,14 @@ const server = http.createServer(async (req, res) => {
             tenantId,
             clientId,
             clientSecret,
-            refreshToken,
+            refreshToken: azureRefreshToken,
             scope: 'https://management.azure.com/.default offline_access',
           });
           
           if (refreshed.access_token) {
             accessToken = refreshed.access_token;
             const newStore = { ...store, azureAccessToken: accessToken };
-            if (refreshed.refresh_token) newStore.refreshToken = refreshed.refresh_token;
+            if (refreshed.refresh_token) newStore.azureRefreshToken = refreshed.refresh_token;
             writeTokenStore(newStore);
           }
         } catch (refreshErr) {

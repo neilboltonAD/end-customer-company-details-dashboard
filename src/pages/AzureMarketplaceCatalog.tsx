@@ -451,7 +451,22 @@ export function AzureMarketplaceCatalog() {
               color="blue"
               title="Demo Mode"
             >
-              {demoMessage || 'Showing demo products. Connect to Azure for real catalog data.'}
+              <Group justify="space-between" align="center">
+                <Text size="sm">
+                  {demoMessage || 'Showing demo products. Connect to Azure for real catalog data.'}
+                </Text>
+                <Button
+                  size="xs"
+                  variant="filled"
+                  color="blue"
+                  leftSection={<Cloud size={14} />}
+                  onClick={() => {
+                    window.location.href = 'http://localhost:4000/api/partner-center/connect-azure';
+                  }}
+                >
+                  Connect Azure
+                </Button>
+              </Group>
             </Alert>
           )}
 
