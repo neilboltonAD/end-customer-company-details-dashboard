@@ -1676,7 +1676,28 @@ const server = http.createServer(async (req, res) => {
 
         console.log(`[partner-center] Creating cart for customer ${customerIdForApi}...`);
 
-        // Step 1: Create cart with the marketplace item
+        // First, get the partner's MPN ID from profile (needed for attestation)
+        let partnerMpnId = null;
+        try {
+          const profileRes = await fetch(`${baseUrl}/v1/profiles/mpn`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Accept': 'application/json',
+            },
+          });
+          if (profileRes.ok) {
+            const profile = await profileRes.json();
+            partnerMpnId = profile.mpnId;
+            console.log(`[partner-center] Partner MPN ID: ${partnerMpnId}`);
+          }
+        } catch (e) {
+          console.log('[partner-center] Could not fetch partner MPN ID:', e.message);
+        }
+
+        // Step 1: Create cart with the marketplace item and Partner on Record attestation
+        // The attestation confirms the partner is authorized to purchase on behalf of the customer
+        // Docs: https://learn.microsoft.com/en-us/partner-center/developer/create-a-cart
         const cartPayload = {
           lineItems: [
             {
@@ -1685,8 +1706,16 @@ const server = http.createServer(async (req, res) => {
               billingCycle: billingCycle || 'monthly',
               termDuration: termDuration || 'P1M',
             }
-          ]
+          ],
         };
+
+        // Add Partner on Record attestation at cart level if we have MPN ID
+        // This is required for Azure marketplace purchases
+        if (partnerMpnId) {
+          cartPayload.partnerOnRecordAttestationAccepted = true;
+        }
+
+        console.log(`[partner-center] Cart payload:`, JSON.stringify(cartPayload, null, 2));
 
         const createCartRes = await fetch(`${baseUrl}/v1/customers/${customerIdForApi}/carts`, {
           method: 'POST',
