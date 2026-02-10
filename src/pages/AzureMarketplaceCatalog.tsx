@@ -700,7 +700,7 @@ export function AzureMarketplaceCatalog() {
                 by {selectedProduct.publisherDisplayName}
               </Text>
               <Text size="sm">
-                {selectedProduct.summary || selectedProduct.longSummary || 'No description available'}
+                {selectedProduct.description || selectedProduct.summary || selectedProduct.longSummary || 'No description available'}
               </Text>
             </Box>
 
