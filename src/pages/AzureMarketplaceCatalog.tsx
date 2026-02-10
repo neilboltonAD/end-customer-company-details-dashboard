@@ -307,10 +307,10 @@ export function AzureMarketplaceCatalog() {
         </Group>
 
         {/* Show starting price if available */}
-        {product.startingPrice && product.startingPrice.minTermPrice !== undefined && (
+        {product.startingPrice && (
           <Group gap="xs" align="baseline">
             <Text size="lg" fw={700} c="teal">
-              {product.startingPrice.currency || 'USD'} {product.startingPrice.minTermPrice.toFixed(2)}
+              {product.startingPrice.currency || 'USD'} {(product.startingPrice.minTermPrice ?? 0).toFixed(2)}
             </Text>
             <Text size="xs" c="dimmed">
               / {product.startingPrice.termUnits === 'P1Y' ? 'year' : 'month'}
