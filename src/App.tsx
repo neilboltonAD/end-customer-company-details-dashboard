@@ -25,6 +25,7 @@ import { OperationsCustomerOnboarding } from './pages/OperationsCustomerOnboardi
 import { OperationsGDAPManagement } from './pages/OperationsGDAPManagement';
 import { OperationsP2PTransfers } from './pages/OperationsP2PTransfers';
 import { PriceSyncTool } from './pages/PriceSyncTool';
+import { AzureMarketplaceCatalog } from './pages/AzureMarketplaceCatalog';
 import { mantineTheme } from './styles/mantineTheme';
 
 export function App() {
@@ -56,6 +57,7 @@ export function App() {
           <Route path="/integrations/td-synnex" element={<TDSynnexCredentials />} />
           <Route path="/integrations/firstbase" element={<FirstbaseCredentials />} />
           <Route path="/integrations/microsoft-marketplace" element={<MicrosoftMarketplaceCredentials />} />
+          <Route path="/integrations/azure-marketplace-catalog" element={<AzureMarketplaceCatalog />} />
           <Route path="/settings/vendor-integrations" element={<VendorIntegrations />} />
           <Route path="/settings/vendor-integrations/microsoft" element={<MicrosoftOnboarding />} />
           <Route path="/reports" element={<MarketplaceHome />} />

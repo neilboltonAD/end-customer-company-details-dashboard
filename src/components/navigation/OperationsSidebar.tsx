@@ -21,6 +21,7 @@ const SECTION: { title: string; icon?: string; items: NavItem[] }[] = [
       { label: 'Reseller: P2P Transfers', path: '/operations/microsoft/p2p', icon: 'ri-arrow-left-right-line', indent: 24 },
       { label: 'Reseller: Customer Onboarding', path: '/operations/microsoft/onboarding', icon: 'ri-user-add-line', indent: 24 },
       { label: 'GDAP: Management', path: '/operations/microsoft/onboarding/gdap', icon: 'ri-shield-keyhole-line', indent: 36 },
+      { label: 'Azure Marketplace Catalog', path: '/integrations/azure-marketplace-catalog', icon: 'ri-store-2-line', indent: 24 },
     ],
   },
 ];

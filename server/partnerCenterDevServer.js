@@ -1355,8 +1355,440 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ============================================================================
+  // Azure Marketplace Catalog API endpoints
+  // ============================================================================
+  // Uses the Azure Marketplace Catalog API (2025-05-01) with subscription:
+  // 3aad85d7-6ac9-4ef0-bb0f-30837aebff49
+  // ============================================================================
+
+  const AZURE_SUBSCRIPTION_ID = '3aad85d7-6ac9-4ef0-bb0f-30837aebff49';
+  const AZURE_API_VERSION = '2025-05-01';
+
+  // List products from Azure Marketplace Catalog
+  if (req.method === 'GET' && u.pathname === '/api/azure/marketplace-catalog/products') {
+    try {
+      const store = readTokenStore();
+      const refreshToken = store?.refreshToken;
+      
+      if (!refreshToken) {
+        // Return demo data when not connected
+        json(res, 200, {
+          ok: true,
+          products: getAzureMarketplaceDemoProducts(),
+          nextLink: null,
+          totalCount: 15,
+          isDemo: true,
+          message: 'Using demo data. Connect to Azure to see real products.',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Get access token for Azure Management API
+      let accessToken = store?.azureAccessToken;
+      let claims = accessToken ? decodeJwt(accessToken) : null;
+
+      // Refresh token if expired
+      if (!accessToken || isJwtExpired(claims)) {
+        try {
+          const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+          const refreshed = await refreshUserToken({
+            tenantId,
+            clientId,
+            clientSecret,
+            refreshToken,
+            scope: 'https://management.azure.com/.default offline_access',
+          });
+          
+          if (refreshed.access_token) {
+            accessToken = refreshed.access_token;
+            const newStore = { ...store, azureAccessToken: accessToken };
+            if (refreshed.refresh_token) newStore.refreshToken = refreshed.refresh_token;
+            writeTokenStore(newStore);
+          }
+        } catch (refreshErr) {
+          console.error('[azure-catalog] Token refresh failed:', refreshErr.message);
+          // Fall back to demo data
+          json(res, 200, {
+            ok: true,
+            products: getAzureMarketplaceDemoProducts(),
+            nextLink: null,
+            totalCount: 15,
+            isDemo: true,
+            message: 'Token refresh failed. Using demo data.',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+      }
+
+      // Build Azure API URL
+      // GET https://management.azure.com/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/providers/Microsoft.Marketplace/products
+      const billingAccountId = AZURE_SUBSCRIPTION_ID;
+      const filter = u.searchParams.get('$filter') || '';
+      const orderby = u.searchParams.get('$orderby') || '';
+      const expand = u.searchParams.get('$expand') || '';
+      const top = u.searchParams.get('$top') || '50';
+
+      let azureUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/providers/Microsoft.Marketplace/products?api-version=${AZURE_API_VERSION}`;
+      if (filter) azureUrl += `&$filter=${encodeURIComponent(filter)}`;
+      if (orderby) azureUrl += `&$orderby=${encodeURIComponent(orderby)}`;
+      if (expand) azureUrl += `&$expand=${encodeURIComponent(expand)}`;
+      if (top) azureUrl += `&$top=${encodeURIComponent(top)}`;
+
+      const azureResp = await fetch(azureUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const text = await azureResp.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { raw: text };
+      }
+
+      if (azureResp.status >= 200 && azureResp.status < 300) {
+        const products = Array.isArray(data?.value) ? data.value : [];
+        json(res, 200, {
+          ok: true,
+          products,
+          nextLink: data?.nextLink || null,
+          totalCount: products.length,
+          isDemo: false,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        console.error('[azure-catalog] API error:', azureResp.status, data);
+        // Fall back to demo data on error
+        json(res, 200, {
+          ok: true,
+          products: getAzureMarketplaceDemoProducts(),
+          nextLink: null,
+          totalCount: 15,
+          isDemo: true,
+          message: `Azure API returned ${azureResp.status}. Using demo data.`,
+          error: data?.error?.message || `HTTP ${azureResp.status}`,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.error('[azure-catalog] Error:', e.message);
+      json(res, 200, {
+        ok: true,
+        products: getAzureMarketplaceDemoProducts(),
+        nextLink: null,
+        totalCount: 15,
+        isDemo: true,
+        message: 'Error fetching from Azure. Using demo data.',
+        error: e.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
+  // Get a specific product by ID
+  if (req.method === 'GET' && u.pathname.startsWith('/api/azure/marketplace-catalog/products/')) {
+    const productId = decodeURIComponent(u.pathname.replace('/api/azure/marketplace-catalog/products/', ''));
+    
+    // For now, return from demo data
+    const demoProducts = getAzureMarketplaceDemoProducts();
+    const product = demoProducts.find(p => p.uniqueProductId === productId);
+    
+    if (product) {
+      json(res, 200, {
+        ok: true,
+        product,
+        isDemo: true,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      json(res, 404, {
+        ok: false,
+        error: `Product not found: ${productId}`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
   json(res, 404, { ok: false, error: 'Not found', timestamp: new Date().toISOString() });
 });
+
+// Demo products for Azure Marketplace Catalog
+function getAzureMarketplaceDemoProducts() {
+  return [
+    {
+      uniqueProductId: 'microsoft_windowsserver2022datacenter',
+      displayName: 'Windows Server 2022 Datacenter',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'VirtualMachine',
+      summary: 'Windows Server is the platform for building an infrastructure of connected applications, networks, and web services.',
+      popularity: 95,
+      pricingTypes: ['PayAsYouGo', 'BYOL'],
+      operatingSystems: ['Windows'],
+      categoryIds: ['compute', 'operating-systems'],
+      lastModifiedDate: '2025-12-01T00:00:00Z',
+      plans: [
+        { planId: 'datacenter-core', displayName: 'Datacenter Core', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'datacenter-core', pricing: { currencyCode: 'USD', retailPrice: 0.192, unitPrice: 0.192, unitOfMeasure: '1 Hour', billingPeriod: 'hourly' } },
+        { planId: 'datacenter-desktop', displayName: 'Datacenter with Desktop', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'datacenter-desktop', pricing: { currencyCode: 'USD', retailPrice: 0.288, unitPrice: 0.288, unitOfMeasure: '1 Hour', billingPeriod: 'hourly' } },
+      ],
+    },
+    {
+      uniqueProductId: 'canonical_ubuntuserver2204lts',
+      displayName: 'Ubuntu Server 22.04 LTS',
+      publisherDisplayName: 'Canonical',
+      publisherId: 'canonical',
+      publisherType: 'ThirdParty',
+      productType: 'VirtualMachine',
+      summary: "Ubuntu Server is the world's most popular Linux for cloud environments.",
+      popularity: 92,
+      pricingTypes: ['Free', 'PayAsYouGo'],
+      operatingSystems: ['Linux'],
+      categoryIds: ['compute', 'operating-systems'],
+      lastModifiedDate: '2025-11-15T00:00:00Z',
+      plans: [
+        { planId: '2204-lts', displayName: 'Ubuntu 22.04 LTS', pricingTypes: ['Free'], cspState: 'OptIn', skuId: '2204-lts', pricing: { currencyCode: 'USD', retailPrice: 0, unitPrice: 0, unitOfMeasure: '1 Hour', billingPeriod: 'hourly' } },
+        { planId: '2204-lts-pro', displayName: 'Ubuntu Pro 22.04 LTS', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: '2204-lts-pro', pricing: { currencyCode: 'USD', retailPrice: 0.011, unitPrice: 0.011, unitOfMeasure: '1 Hour', billingPeriod: 'hourly' } },
+      ],
+    },
+    {
+      uniqueProductId: 'microsoft_dynamics365sales',
+      displayName: 'Dynamics 365 Sales',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'DynamicsCE',
+      summary: 'Empower sellers with insights to personalize relationships, predict customer needs, and close sales faster.',
+      popularity: 88,
+      pricingTypes: ['Subscription'],
+      categoryIds: ['business-applications', 'crm'],
+      lastModifiedDate: '2025-10-20T00:00:00Z',
+      plans: [
+        { planId: 'professional', displayName: 'Professional', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'sales-professional', pricing: { currencyCode: 'USD', retailPrice: 65.00, unitPrice: 65.00, unitOfMeasure: '1 User', billingPeriod: 'monthly' } },
+        { planId: 'enterprise', displayName: 'Enterprise', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'sales-enterprise', pricing: { currencyCode: 'USD', retailPrice: 95.00, unitPrice: 95.00, unitOfMeasure: '1 User', billingPeriod: 'monthly' } },
+      ],
+    },
+    {
+      uniqueProductId: 'microsoft_powerbipro',
+      displayName: 'Power BI Pro',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'PowerBI',
+      summary: "Self-service and enterprise business intelligence that's scalable and easy to use.",
+      popularity: 90,
+      pricingTypes: ['Subscription'],
+      categoryIds: ['analytics', 'business-intelligence'],
+      lastModifiedDate: '2025-11-01T00:00:00Z',
+      plans: [
+        { planId: 'pro', displayName: 'Power BI Pro', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'power-bi-pro', pricing: { currencyCode: 'USD', retailPrice: 10.00, unitPrice: 10.00, unitOfMeasure: '1 User', billingPeriod: 'monthly' } },
+        { planId: 'premium-per-user', displayName: 'Power BI Premium Per User', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'power-bi-premium-per-user', pricing: { currencyCode: 'USD', retailPrice: 20.00, unitPrice: 20.00, unitOfMeasure: '1 User', billingPeriod: 'monthly' } },
+      ],
+    },
+    {
+      uniqueProductId: 'redhat_rhel9',
+      displayName: 'Red Hat Enterprise Linux 9',
+      publisherDisplayName: 'Red Hat',
+      publisherId: 'redhat',
+      publisherType: 'ThirdParty',
+      productType: 'VirtualMachine',
+      summary: "The world's leading enterprise Linux platform, certified on hundreds of clouds.",
+      popularity: 85,
+      pricingTypes: ['PayAsYouGo', 'BYOL'],
+      operatingSystems: ['Linux'],
+      categoryIds: ['compute', 'operating-systems'],
+      lastModifiedDate: '2025-09-15T00:00:00Z',
+      plans: [
+        { planId: 'rhel-9', displayName: 'RHEL 9', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'rhel-9' },
+        { planId: 'rhel-9-byol', displayName: 'RHEL 9 BYOL', pricingTypes: ['BYOL'], cspState: 'OptIn', skuId: 'rhel-9-byol' },
+      ],
+    },
+    {
+      uniqueProductId: 'microsoft_sqlserver2022enterprise',
+      displayName: 'SQL Server 2022 Enterprise',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'VirtualMachine',
+      summary: 'Mission-critical intelligent database platform with industry-leading performance.',
+      popularity: 87,
+      pricingTypes: ['PayAsYouGo', 'BYOL'],
+      operatingSystems: ['Windows', 'Linux'],
+      categoryIds: ['databases', 'data-platform'],
+      lastModifiedDate: '2025-10-01T00:00:00Z',
+      plans: [
+        { planId: 'enterprise', displayName: 'SQL Server 2022 Enterprise', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'sql-enterprise' },
+        { planId: 'standard', displayName: 'SQL Server 2022 Standard', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'sql-standard' },
+      ],
+    },
+    {
+      uniqueProductId: 'microsoft_microsoft365e5',
+      displayName: 'Microsoft 365 E5',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'Office365',
+      summary: 'The most complete productivity and security solution for enterprises.',
+      popularity: 93,
+      pricingTypes: ['Subscription'],
+      categoryIds: ['productivity', 'security'],
+      lastModifiedDate: '2025-12-01T00:00:00Z',
+      plans: [
+        { planId: 'e5', displayName: 'Microsoft 365 E5', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'm365-e5' },
+        { planId: 'e3', displayName: 'Microsoft 365 E3', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'm365-e3' },
+      ],
+    },
+    {
+      uniqueProductId: 'datadog_monitoring',
+      displayName: 'Datadog',
+      publisherDisplayName: 'Datadog',
+      publisherId: 'datadog',
+      publisherType: 'ThirdParty',
+      productType: 'SaaS',
+      summary: 'Cloud-scale monitoring and security platform for cloud applications.',
+      popularity: 82,
+      pricingTypes: ['Subscription', 'PayAsYouGo'],
+      categoryIds: ['monitoring', 'devops'],
+      lastModifiedDate: '2025-11-10T00:00:00Z',
+      plans: [
+        { planId: 'pro', displayName: 'Pro', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'datadog-pro' },
+        { planId: 'enterprise', displayName: 'Enterprise', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'datadog-enterprise' },
+      ],
+    },
+    {
+      uniqueProductId: 'splunk_enterprise',
+      displayName: 'Splunk Enterprise',
+      publisherDisplayName: 'Splunk',
+      publisherId: 'splunk',
+      publisherType: 'ThirdParty',
+      productType: 'SaaS',
+      summary: 'Turn machine data into answers with the leading platform for Operational Intelligence.',
+      popularity: 80,
+      pricingTypes: ['BYOL', 'Subscription'],
+      categoryIds: ['analytics', 'security'],
+      lastModifiedDate: '2025-10-25T00:00:00Z',
+      plans: [
+        { planId: 'enterprise', displayName: 'Splunk Enterprise', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'splunk-enterprise' },
+        { planId: 'cloud', displayName: 'Splunk Cloud', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'splunk-cloud' },
+      ],
+    },
+    {
+      uniqueProductId: 'paloaltonetworks_vmseries',
+      displayName: 'Palo Alto Networks VM-Series',
+      publisherDisplayName: 'Palo Alto Networks',
+      publisherId: 'paloaltonetworks',
+      publisherType: 'ThirdParty',
+      productType: 'VirtualMachine',
+      summary: 'Next-Generation Firewall for securing cloud environments.',
+      popularity: 76,
+      pricingTypes: ['BYOL', 'PayAsYouGo'],
+      operatingSystems: ['Linux'],
+      categoryIds: ['security', 'networking'],
+      lastModifiedDate: '2025-09-20T00:00:00Z',
+      plans: [
+        { planId: 'byol', displayName: 'VM-Series BYOL', pricingTypes: ['BYOL'], cspState: 'OptIn', skuId: 'vm-series-byol' },
+        { planId: 'payg', displayName: 'VM-Series PAYG', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'vm-series-payg' },
+      ],
+    },
+    {
+      uniqueProductId: 'nginx_nginxplus',
+      displayName: 'NGINX Plus',
+      publisherDisplayName: 'F5 Networks',
+      publisherId: 'f5-networks',
+      publisherType: 'ThirdParty',
+      productType: 'VirtualMachine',
+      summary: 'High-performance load balancer, web server, and content cache.',
+      popularity: 78,
+      pricingTypes: ['PayAsYouGo'],
+      operatingSystems: ['Linux'],
+      categoryIds: ['networking', 'web'],
+      lastModifiedDate: '2025-08-30T00:00:00Z',
+      plans: [
+        { planId: 'plus', displayName: 'NGINX Plus', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'nginx-plus' },
+      ],
+    },
+    {
+      uniqueProductId: 'azure_kubernetesservice',
+      displayName: 'Azure Kubernetes Service (AKS)',
+      publisherDisplayName: 'Microsoft',
+      publisherId: 'microsoft',
+      publisherType: 'Microsoft',
+      productType: 'ContainerApps',
+      summary: 'Highly available, secure, and fully managed Kubernetes service.',
+      popularity: 89,
+      pricingTypes: ['PayAsYouGo'],
+      categoryIds: ['containers', 'compute'],
+      lastModifiedDate: '2025-11-20T00:00:00Z',
+      plans: [
+        { planId: 'standard', displayName: 'AKS Standard', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'aks-standard' },
+        { planId: 'premium', displayName: 'AKS Premium', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'aks-premium' },
+      ],
+    },
+    {
+      uniqueProductId: 'hashicorp_terraform',
+      displayName: 'Terraform Cloud',
+      publisherDisplayName: 'HashiCorp',
+      publisherId: 'hashicorp',
+      publisherType: 'ThirdParty',
+      productType: 'SaaS',
+      summary: 'Collaborative infrastructure as code for teams.',
+      popularity: 84,
+      pricingTypes: ['Free', 'Subscription'],
+      categoryIds: ['devops', 'infrastructure'],
+      lastModifiedDate: '2025-10-15T00:00:00Z',
+      plans: [
+        { planId: 'free', displayName: 'Free', pricingTypes: ['Free'], cspState: 'OptIn', skuId: 'terraform-free' },
+        { planId: 'team', displayName: 'Team', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'terraform-team' },
+        { planId: 'business', displayName: 'Business', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'terraform-business' },
+      ],
+    },
+    {
+      uniqueProductId: 'elastic_elasticsearch',
+      displayName: 'Elastic Cloud (Elasticsearch)',
+      publisherDisplayName: 'Elastic',
+      publisherId: 'elastic',
+      publisherType: 'ThirdParty',
+      productType: 'SaaS',
+      summary: 'Search, observe, and protect your data with the Elastic Stack.',
+      popularity: 81,
+      pricingTypes: ['PayAsYouGo', 'Subscription'],
+      categoryIds: ['analytics', 'monitoring'],
+      lastModifiedDate: '2025-11-05T00:00:00Z',
+      plans: [
+        { planId: 'standard', displayName: 'Standard', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'elastic-standard' },
+        { planId: 'gold', displayName: 'Gold', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'elastic-gold' },
+        { planId: 'platinum', displayName: 'Platinum', pricingTypes: ['Subscription'], cspState: 'OptIn', skuId: 'elastic-platinum' },
+      ],
+    },
+    {
+      uniqueProductId: 'confluent_cloud',
+      displayName: 'Confluent Cloud',
+      publisherDisplayName: 'Confluent',
+      publisherId: 'confluent',
+      publisherType: 'ThirdParty',
+      productType: 'SaaS',
+      summary: 'Fully managed Apache Kafka service for real-time data streaming.',
+      popularity: 79,
+      pricingTypes: ['PayAsYouGo'],
+      categoryIds: ['data-platform', 'streaming'],
+      lastModifiedDate: '2025-10-30T00:00:00Z',
+      plans: [
+        { planId: 'basic', displayName: 'Basic', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'confluent-basic' },
+        { planId: 'standard', displayName: 'Standard', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'confluent-standard' },
+        { planId: 'dedicated', displayName: 'Dedicated', pricingTypes: ['PayAsYouGo'], cspState: 'OptIn', skuId: 'confluent-dedicated' },
+      ],
+    },
+  ];
+}
 
 server.listen(PORT, () => {
   console.log(`[partner-center-dev] Listening on http://localhost:${PORT}`);
