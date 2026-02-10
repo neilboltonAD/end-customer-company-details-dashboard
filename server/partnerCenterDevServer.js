@@ -1476,19 +1476,65 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
-      // Build Azure API URL
+      // First, get the billing account ID for this subscription
+      // GET https://management.azure.com/providers/Microsoft.Billing/billingAccounts?api-version=2024-04-01
+      let billingAccountId = null;
+      try {
+        const billingAccountsUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts?api-version=2024-04-01`;
+        const billingResp = await fetch(billingAccountsUrl, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (billingResp.ok) {
+          const billingData = await billingResp.json();
+          console.log('[azure-catalog] Billing accounts response:', JSON.stringify(billingData, null, 2));
+          
+          // Find the first billing account (or filter by subscription if multiple)
+          if (billingData.value && billingData.value.length > 0) {
+            billingAccountId = billingData.value[0].name;
+            console.log('[azure-catalog] Using billing account:', billingAccountId);
+          }
+        } else {
+          const billingErr = await billingResp.text();
+          console.error('[azure-catalog] Failed to get billing accounts:', billingResp.status, billingErr);
+        }
+      } catch (billingErr) {
+        console.error('[azure-catalog] Error fetching billing accounts:', billingErr.message);
+      }
+
+      // If we couldn't get a billing account, fall back to demo data
+      if (!billingAccountId) {
+        console.log('[azure-catalog] No billing account found, using demo data');
+        json(res, 200, {
+          ok: true,
+          products: getAzureMarketplaceDemoProducts(),
+          nextLink: null,
+          totalCount: 15,
+          isDemo: true,
+          message: 'Could not retrieve billing account. Using demo data. You may need Billing Reader role.',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Build Azure Marketplace Catalog API URL
       // GET https://management.azure.com/providers/Microsoft.Billing/billingAccounts/{billingAccountId}/providers/Microsoft.Marketplace/products
-      const billingAccountId = AZURE_SUBSCRIPTION_ID;
       const filter = u.searchParams.get('$filter') || '';
       const orderby = u.searchParams.get('$orderby') || '';
       const expand = u.searchParams.get('$expand') || '';
       const top = u.searchParams.get('$top') || '50';
 
-      let azureUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${billingAccountId}/providers/Microsoft.Marketplace/products?api-version=${AZURE_API_VERSION}`;
+      let azureUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${encodeURIComponent(billingAccountId)}/providers/Microsoft.Marketplace/products?api-version=${AZURE_API_VERSION}`;
       if (filter) azureUrl += `&$filter=${encodeURIComponent(filter)}`;
       if (orderby) azureUrl += `&$orderby=${encodeURIComponent(orderby)}`;
       if (expand) azureUrl += `&$expand=${encodeURIComponent(expand)}`;
       if (top) azureUrl += `&$top=${encodeURIComponent(top)}`;
+
+      console.log('[azure-catalog] Fetching products from:', azureUrl);
 
       const azureResp = await fetch(azureUrl, {
         method: 'GET',
@@ -1508,12 +1554,17 @@ const server = http.createServer(async (req, res) => {
 
       if (azureResp.status >= 200 && azureResp.status < 300) {
         const products = Array.isArray(data?.value) ? data.value : [];
+        console.log('[azure-catalog] Products API returned:', azureResp.status, 'Products count:', products.length);
+        if (products.length === 0) {
+          console.log('[azure-catalog] Full response:', JSON.stringify(data, null, 2));
+        }
         json(res, 200, {
           ok: true,
           products,
           nextLink: data?.nextLink || null,
           totalCount: products.length,
           isDemo: false,
+          message: products.length === 0 ? 'API returned 0 products. You may need additional permissions on the billing account.' : undefined,
           timestamp: new Date().toISOString(),
         });
       } else {
