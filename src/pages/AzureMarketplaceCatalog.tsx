@@ -140,7 +140,7 @@ export function AzureMarketplaceCatalog() {
     const result = await listMarketplaceCatalogProducts({
       filter: productTypeFilter ? { productType: productTypeFilter } : undefined,
       expand: ['plans'],
-      top: 50,
+      top: 500, // Increased to get more products
     });
     
     if (result.ok && result.products) {

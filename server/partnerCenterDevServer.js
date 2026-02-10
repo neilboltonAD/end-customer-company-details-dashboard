@@ -1526,7 +1526,7 @@ const server = http.createServer(async (req, res) => {
       const filter = u.searchParams.get('$filter') || '';
       const orderby = u.searchParams.get('$orderby') || '';
       const expand = u.searchParams.get('$expand') || '';
-      const top = u.searchParams.get('$top') || '50';
+      const top = u.searchParams.get('$top') || '500'; // Increased default to get more products
 
       let azureUrl = `https://management.azure.com/providers/Microsoft.Billing/billingAccounts/${encodeURIComponent(billingAccountId)}/providers/Microsoft.Marketplace/products?api-version=${AZURE_API_VERSION}`;
       if (filter) azureUrl += `&$filter=${encodeURIComponent(filter)}`;
