@@ -35,7 +35,25 @@ export const DEMO_AZURE_SUBSCRIPTION_ID = '3aad85d7-6ac9-4ef0-bb0f-30837aebff49'
  * - Customers with hasTenantLinked: false need to purchase an Azure Plan first
  */
 export const MARKETPLACE_CUSTOMERS: Customer[] = [
-  // Customers WITH linked tenants (can purchase from Azure Marketplace)
+  // ============================================================================
+  // REAL PARTNER CENTER CUSTOMER (Azure Plan Provisioned)
+  // This is the customer with the authorized subscription for Marketplace API
+  // ============================================================================
+  { 
+    id: 'mc-real-1', 
+    name: 'Azure Plan Provisioning', 
+    contactName: 'Test Customer', 
+    email: 'admin@5sep2023test1sj.onmicrosoft.com', 
+    createdOn: '09/05/23', 
+    hasTenantLinked: true,
+    linkedDomain: '5sep2023test1sj.onmicrosoft.com',
+    azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
+    azureTenantId: '31941305-7fbe-4dc3-a5b3-ae5ed2a13980', // Real GUID from Partner Center
+  },
+
+  // ============================================================================
+  // Demo Customers (placeholder GUIDs)
+  // ============================================================================
   // IMPORTANT: azureTenantId must be the Partner Center customer GUID
   // Get real GUIDs from: GET /v1/customers in Partner Center API
   { 
@@ -132,23 +150,23 @@ export const MARKETPLACE_CUSTOMERS: Customer[] = [
     id: 'mc-3', 
     name: 'demoresellercustomer2', 
     contactName: 'Mike Wilson', 
-    email: 'mike@demoresellercustomer2.com', 
+    email: 'mike@demoresellercustomer26851.onmicrosoft.com', 
     createdOn: '11/10/25', 
     hasTenantLinked: true,
-    linkedDomain: 'demoresellercustomer2.onmicrosoft.com',
+    linkedDomain: 'demoresellercustomer26851.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: '33333333-3333-3333-3333-333333333333', // Replace with real GUID
+    azureTenantId: '71d4a690-6a18-4b55-87d0-b26b21bc81ce', // Real GUID from Partner Center
   },
   { 
     id: 'mc-4', 
     name: 'demoresellercustomer1', 
     contactName: 'Emma Davis', 
-    email: 'emma@demoresellercustomer1.com', 
+    email: 'emma@demoresellercustomer13799.onmicrosoft.com', 
     createdOn: '11/10/25', 
     hasTenantLinked: true,
-    linkedDomain: 'demoresellercustomer1.onmicrosoft.com',
+    linkedDomain: 'demoresellercustomer13799.onmicrosoft.com',
     azureSubscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
-    azureTenantId: '44444444-4444-4444-4444-444444444444', // Replace with real GUID
+    azureTenantId: '8e97f6e7-f67b-445f-9e85-393c7daff321', // Real GUID from Partner Center
   },
   { 
     id: 'mc-5', 
