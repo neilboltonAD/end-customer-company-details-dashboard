@@ -58,6 +58,7 @@ import {
   suspendSubscription,
   reinstateSubscription,
   cancelSubscription,
+  purchaseMarketplaceProduct,
   ProductSummary,
   PlanSummary,
   PRODUCT_TYPES,
@@ -92,6 +93,8 @@ interface OrderItem {
   estimatedMonthlyPrice?: number;
   customerId?: string;
   customerName?: string;
+  customerTenantId?: string; // Partner Center customer ID for real purchases
+  azureSubscriptionId?: string; // Real Azure subscription ID after activation
 }
 
 // Local storage key for orders
@@ -255,6 +258,7 @@ export function AzureMarketplaceCatalog() {
       estimatedMonthlyPrice,
       customerId: customer.id,
       customerName: customer.name,
+      customerTenantId: customer.azureTenantId, // For Partner Center API calls
     };
     
     const updatedOrders = [newOrder, ...orders];
@@ -288,19 +292,33 @@ export function AzureMarketplaceCatalog() {
     saveOrders(provisioningOrders);
 
     try {
-      const result = await activateSubscription(orderId, order.planId, order.quantity);
+      // Use Partner Center API to create real subscription
+      const result = await purchaseMarketplaceProduct({
+        customerId: order.customerId || '',
+        customerTenantId: order.customerTenantId,
+        productId: order.productId,
+        planId: order.planId,
+        quantity: order.quantity,
+        billingCycle: order.billingCycle === 'annual' ? 'annual' : 'monthly',
+      });
       
       if (result.ok) {
         const updatedOrders = orders.map(o => 
           o.id === orderId 
-            ? { ...o, status: 'active' as const, activatedAt: new Date().toISOString() } 
+            ? { 
+                ...o, 
+                status: 'active' as const, 
+                activatedAt: new Date().toISOString(),
+                azureSubscriptionId: result.subscriptionId, // Store real subscription ID
+              } 
             : o
         );
         setOrders(updatedOrders);
         saveOrders(updatedOrders);
         
+        const demoNote = result.isDemo ? ' (Demo Mode)' : '';
         notifications.show({
-          title: 'Subscription activated',
+          title: `Subscription activated${demoNote}`,
           message: result.message || 'The subscription is now active.',
           color: 'green',
           icon: <Check size={16} />,

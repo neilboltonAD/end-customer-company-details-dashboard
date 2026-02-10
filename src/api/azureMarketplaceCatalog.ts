@@ -433,3 +433,103 @@ export async function updateSubscription(
     };
   }
 }
+
+// ============================================================================
+// Partner Center Marketplace Purchase API
+// ============================================================================
+
+export interface MarketplacePurchaseRequest {
+  customerId: string;
+  customerTenantId?: string;
+  productId: string;
+  planId?: string;
+  quantity?: number;
+  termDuration?: string;
+  billingCycle?: 'monthly' | 'annual';
+}
+
+export interface MarketplacePurchaseResponse {
+  ok: boolean;
+  isDemo?: boolean;
+  subscriptionId?: string;
+  orderId?: string;
+  customerId?: string;
+  productId?: string;
+  planId?: string;
+  quantity?: number;
+  status?: string;
+  message?: string;
+  error?: string;
+  partnerCenterResponse?: any;
+  createdAt?: string;
+  timestamp: string;
+}
+
+/**
+ * Purchase a marketplace product for a customer via Partner Center
+ * This creates a real Azure subscription when connected to Partner Center
+ */
+export async function purchaseMarketplaceProduct(
+  request: MarketplacePurchaseRequest
+): Promise<MarketplacePurchaseResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/partner-center/marketplace/purchase`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      }
+    );
+
+    const data = await response.json();
+    return data as MarketplacePurchaseResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to purchase marketplace product',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+
+export interface CustomerSubscriptionsResponse {
+  ok: boolean;
+  isDemo?: boolean;
+  customerId?: string;
+  subscriptions?: any[];
+  totalCount?: number;
+  message?: string;
+  error?: string;
+  timestamp: string;
+}
+
+/**
+ * Get customer subscriptions from Partner Center
+ */
+export async function getCustomerSubscriptions(
+  customerId: string
+): Promise<CustomerSubscriptionsResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/partner-center/customers/${encodeURIComponent(customerId)}/subscriptions`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data as CustomerSubscriptionsResponse;
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || 'Failed to get customer subscriptions',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}

@@ -1623,11 +1623,240 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ============================================================================
+  // PARTNER CENTER - Create Azure Marketplace Subscription via Cart API
+  // Docs: https://learn.microsoft.com/en-us/partner-center/developer/create-subscription-azure-marketplace-products
+  // ============================================================================
+
+  // Purchase a marketplace product for a customer
+  if (req.method === 'POST' && u.pathname === '/api/partner-center/marketplace/purchase') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const data = body ? JSON.parse(body) : {};
+        const { customerId, customerTenantId, productId, planId, quantity, termDuration, billingCycle } = data;
+
+        if (!customerId || !productId) {
+          json(res, 400, {
+            ok: false,
+            error: 'Missing required fields: customerId, productId',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        const store = readTokenStore();
+        const accessToken = store?.accessToken;
+
+        if (!accessToken) {
+          // Demo mode - simulate purchase
+          console.log(`[partner-center] Demo: Purchasing ${productId} plan ${planId} for customer ${customerId}`);
+          
+          const demoSubscriptionId = `sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          
+          json(res, 200, {
+            ok: true,
+            isDemo: true,
+            subscriptionId: demoSubscriptionId,
+            customerId,
+            productId,
+            planId,
+            quantity: quantity || 1,
+            status: 'active',
+            message: 'Subscription created (demo mode). Connect to Partner Center for real subscriptions.',
+            createdAt: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        // Real Partner Center API flow: Create Cart → Checkout
+        const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
+        const customerIdForApi = customerTenantId || customerId;
+
+        console.log(`[partner-center] Creating cart for customer ${customerIdForApi}...`);
+
+        // Step 1: Create cart with the marketplace item
+        const cartPayload = {
+          lineItems: [
+            {
+              catalogItemId: productId,
+              quantity: quantity || 1,
+              billingCycle: billingCycle || 'monthly',
+              termDuration: termDuration || 'P1M',
+            }
+          ]
+        };
+
+        const createCartRes = await fetch(`${baseUrl}/v1/customers/${customerIdForApi}/carts`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(cartPayload),
+        });
+
+        if (!createCartRes.ok) {
+          const errorText = await createCartRes.text();
+          console.error('[partner-center] Create cart failed:', createCartRes.status, errorText);
+          
+          // Try to parse error for better message
+          let errorDetail = errorText;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetail = errorJson.description || errorJson.message || errorText;
+          } catch {}
+          
+          json(res, createCartRes.status, {
+            ok: false,
+            error: `Failed to create cart: ${errorDetail}`,
+            status: createCartRes.status,
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        const cart = await createCartRes.json();
+        console.log(`[partner-center] Cart created: ${cart.id}`);
+
+        // Step 2: Checkout the cart
+        console.log(`[partner-center] Checking out cart ${cart.id}...`);
+        
+        const checkoutRes = await fetch(`${baseUrl}/v1/customers/${customerIdForApi}/carts/${cart.id}/checkout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!checkoutRes.ok) {
+          const errorText = await checkoutRes.text();
+          console.error('[partner-center] Checkout failed:', checkoutRes.status, errorText);
+          
+          let errorDetail = errorText;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetail = errorJson.description || errorJson.message || errorText;
+          } catch {}
+          
+          json(res, checkoutRes.status, {
+            ok: false,
+            error: `Failed to checkout cart: ${errorDetail}`,
+            cartId: cart.id,
+            status: checkoutRes.status,
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        const checkoutResult = await checkoutRes.json();
+        console.log(`[partner-center] Checkout successful:`, JSON.stringify(checkoutResult, null, 2));
+
+        // Extract subscription ID from the result
+        const subscription = checkoutResult.orders?.[0]?.lineItems?.[0] || {};
+        const subscriptionId = subscription.subscriptionId || checkoutResult.id || `sub-${Date.now()}`;
+
+        json(res, 200, {
+          ok: true,
+          isDemo: false,
+          subscriptionId,
+          orderId: checkoutResult.id,
+          customerId,
+          productId,
+          planId,
+          quantity: quantity || 1,
+          status: 'active',
+          message: 'Subscription created successfully in Partner Center.',
+          partnerCenterResponse: checkoutResult,
+          createdAt: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.error('[partner-center] Purchase error:', e);
+        json(res, 500, {
+          ok: false,
+          error: e.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    });
+    return;
+  }
+
+  // Get customer subscriptions from Partner Center
+  if (req.method === 'GET' && u.pathname.match(/^\/api\/partner-center\/customers\/[^/]+\/subscriptions$/)) {
+    const customerId = u.pathname.split('/')[4];
+    
+    const store = readTokenStore();
+    const accessToken = store?.accessToken;
+
+    if (!accessToken) {
+      // Demo mode
+      json(res, 200, {
+        ok: true,
+        isDemo: true,
+        customerId,
+        subscriptions: [],
+        message: 'No subscriptions (demo mode). Connect to Partner Center to view real subscriptions.',
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    try {
+      const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
+      
+      const subscriptionsRes = await fetch(`${baseUrl}/v1/customers/${customerId}/subscriptions`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!subscriptionsRes.ok) {
+        const errorText = await subscriptionsRes.text();
+        console.error('[partner-center] Get subscriptions failed:', subscriptionsRes.status, errorText);
+        
+        json(res, subscriptionsRes.status, {
+          ok: false,
+          error: `Failed to get subscriptions: ${errorText}`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const result = await subscriptionsRes.json();
+      
+      json(res, 200, {
+        ok: true,
+        isDemo: false,
+        customerId,
+        subscriptions: result.items || [],
+        totalCount: result.totalCount || 0,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('[partner-center] Get subscriptions error:', e);
+      json(res, 500, {
+        ok: false,
+        error: e.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
+  // ============================================================================
   // AZURE SAAS FULFILLMENT API - Order Management
   // Docs: https://learn.microsoft.com/en-us/azure/marketplace/partner-center-portal/pc-saas-fulfillment-subscription-api
   // ============================================================================
 
-  // Activate a SaaS subscription
+  // Activate a SaaS subscription (uses Partner Center purchase flow)
   if (req.method === 'POST' && u.pathname.match(/^\/api\/azure\/saas\/subscriptions\/[^/]+\/activate$/)) {
     const subscriptionId = u.pathname.split('/')[5];
     
@@ -1636,12 +1865,12 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const data = body ? JSON.parse(body) : {};
-        const { planId, quantity } = data;
+        const { planId, quantity, customerId, customerTenantId, productId } = data;
 
         const store = readTokenStore();
-        const azureAccessToken = store?.azureAccessToken;
+        const accessToken = store?.accessToken;
 
-        if (!azureAccessToken) {
+        if (!accessToken) {
           // Simulate activation for demo mode
           console.log(`[saas-fulfillment] Demo: Activating subscription ${subscriptionId} with plan ${planId}, qty ${quantity}`);
           
@@ -1650,29 +1879,100 @@ const server = http.createServer(async (req, res) => {
             subscriptionId,
             planId,
             quantity,
-            status: 'Subscribed',
+            status: 'active',
             isDemo: true,
-            message: 'Subscription activated (demo mode). In production, this would provision the Azure resource.',
+            message: 'Subscription activated (demo mode). Connect to Partner Center for real subscriptions.',
             timestamp: new Date().toISOString(),
           });
           return;
         }
 
-        // Real API call would be:
-        // POST https://marketplaceapi.microsoft.com/api/saas/subscriptions/{subscriptionId}/activate?api-version=2018-08-31
-        // But this requires SaaS offer setup in Partner Center
+        // Use Partner Center Cart API to create the real subscription
+        const baseUrl = process.env.PARTNER_CENTER_BASE_URL || 'https://api.partnercenter.microsoft.com';
+        const customerIdForApi = customerTenantId || customerId;
+
+        if (!customerIdForApi || !productId) {
+          json(res, 400, {
+            ok: false,
+            error: 'Customer ID and Product ID are required for real subscription creation',
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        console.log(`[partner-center] Creating subscription for customer ${customerIdForApi}, product ${productId}...`);
+
+        // Create and checkout cart
+        const cartPayload = {
+          lineItems: [
+            {
+              catalogItemId: productId,
+              quantity: quantity || 1,
+              billingCycle: 'monthly',
+            }
+          ]
+        };
+
+        const createCartRes = await fetch(`${baseUrl}/v1/customers/${customerIdForApi}/carts`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(cartPayload),
+        });
+
+        if (!createCartRes.ok) {
+          const errorText = await createCartRes.text();
+          console.error('[partner-center] Create cart failed:', createCartRes.status, errorText);
+          
+          json(res, createCartRes.status, {
+            ok: false,
+            error: `Failed to create subscription: ${errorText}`,
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        const cart = await createCartRes.json();
         
-        // For now, simulate success
-        console.log(`[saas-fulfillment] Activating subscription ${subscriptionId} with plan ${planId}, qty ${quantity}`);
+        const checkoutRes = await fetch(`${baseUrl}/v1/customers/${customerIdForApi}/carts/${cart.id}/checkout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!checkoutRes.ok) {
+          const errorText = await checkoutRes.text();
+          console.error('[partner-center] Checkout failed:', checkoutRes.status, errorText);
+          
+          json(res, checkoutRes.status, {
+            ok: false,
+            error: `Failed to complete purchase: ${errorText}`,
+            timestamp: new Date().toISOString(),
+          });
+          return;
+        }
+
+        const checkoutResult = await checkoutRes.json();
+        const newSubscriptionId = checkoutResult.orders?.[0]?.lineItems?.[0]?.subscriptionId || subscriptionId;
+
+        console.log(`[partner-center] Subscription created: ${newSubscriptionId}`);
         
         json(res, 200, {
           ok: true,
-          subscriptionId,
+          subscriptionId: newSubscriptionId,
+          orderId: checkoutResult.id,
           planId,
           quantity,
-          status: 'Subscribed',
+          status: 'active',
           isDemo: false,
-          message: 'Subscription activation initiated. Azure is provisioning the resource.',
+          message: 'Subscription created successfully in Partner Center.',
+          partnerCenterResponse: checkoutResult,
           timestamp: new Date().toISOString(),
         });
       } catch (e) {
