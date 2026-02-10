@@ -65,6 +65,12 @@ import {
   CSP_STATES,
   AUTHORIZED_SUBSCRIPTION_ID,
 } from '../api/azureMarketplaceCatalog';
+import {
+  Customer,
+  getAzureEnabledCustomers,
+  getCustomerById,
+  DEMO_AZURE_SUBSCRIPTION_ID,
+} from '../api/customers';
 
 // ============================================================================
 // Order/Subscription Tracking Types
@@ -128,6 +134,13 @@ export function AzureMarketplaceCatalog() {
   const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanSummary | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  
+  // Customer filter for orders
+  const [customerFilter, setCustomerFilter] = useState<string | null>(null);
+  
+  // Get Azure-enabled customers for the dropdown
+  const azureEnabledCustomers = useMemo(() => getAzureEnabledCustomers(), []);
   
   // Orders tracking
   const [orders, setOrders] = useState<OrderItem[]>(loadOrders());
@@ -207,7 +220,11 @@ export function AzureMarketplaceCatalog() {
 
   // Handle placing an order
   const handlePlaceOrder = () => {
-    if (!selectedProduct || !selectedPlan) return;
+    if (!selectedProduct || !selectedPlan || !selectedCustomerId) return;
+    
+    // Get customer details
+    const customer = getCustomerById(selectedCustomerId);
+    if (!customer) return;
     
     // Calculate estimated price
     const pricing = selectedPlan.pricing;
@@ -236,6 +253,8 @@ export function AzureMarketplaceCatalog() {
       createdAt: new Date().toISOString(),
       billingCycle: selectedPlan.pricingTypes?.includes('Subscription') ? 'monthly' : 'usage-based',
       estimatedMonthlyPrice,
+      customerId: customer.id,
+      customerName: customer.name,
     };
     
     const updatedOrders = [newOrder, ...orders];
@@ -245,13 +264,14 @@ export function AzureMarketplaceCatalog() {
     const priceMessage = estimatedMonthlyPrice ? ` (Est. $${estimatedMonthlyPrice.toFixed(2)}/mo)` : '';
     notifications.show({
       title: 'Order placed',
-      message: `${selectedProduct.displayName} - ${selectedPlan.displayName}${priceMessage} added to orders`,
+      message: `${selectedProduct.displayName} for ${customer.name}${priceMessage} added to orders`,
       color: 'green',
       icon: <Check size={16} />,
     });
     
     setSelectedProduct(null);
     setSelectedPlan(null);
+    setSelectedCustomerId(null);
     setQuantity(1);
   };
 
@@ -538,12 +558,19 @@ export function AzureMarketplaceCatalog() {
     </Card>
   );
 
+  // Filter orders by customer if filter is set
+  const filteredOrders = useMemo(() => {
+    if (!customerFilter) return orders;
+    return orders.filter(o => o.customerId === customerFilter);
+  }, [orders, customerFilter]);
+
   // Render orders table
   const renderOrdersTable = () => (
     <Table striped highlightOnHover>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Order ID</Table.Th>
+          <Table.Th>Customer</Table.Th>
           <Table.Th>Product</Table.Th>
           <Table.Th>Plan</Table.Th>
           <Table.Th>Qty</Table.Th>
@@ -554,19 +581,27 @@ export function AzureMarketplaceCatalog() {
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {orders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
           <Table.Tr>
-            <Table.Td colSpan={8}>
+            <Table.Td colSpan={9}>
               <Text ta="center" c="dimmed" py="xl">
-                No orders yet. Browse the catalog to place orders.
+                {customerFilter ? 'No orders for this customer.' : 'No orders yet. Browse the catalog to place orders.'}
               </Text>
             </Table.Td>
           </Table.Tr>
         ) : (
-          orders.map(order => (
+          filteredOrders.map(order => (
             <Table.Tr key={order.id}>
               <Table.Td>
                 <Text size="sm" ff="monospace">{order.id}</Text>
+              </Table.Td>
+              <Table.Td>
+                <Group gap="xs">
+                  <ThemeIcon size="sm" color="blue" variant="light" radius="xl">
+                    <Building2 size={12} />
+                  </ThemeIcon>
+                  <Text size="sm" fw={500}>{order.customerName || 'Unknown'}</Text>
+                </Group>
               </Table.Td>
               <Table.Td>
                 <Text size="sm" fw={500}>{order.productName}</Text>
@@ -857,52 +892,79 @@ export function AzureMarketplaceCatalog() {
             {/* Orders Tab */}
             <Tabs.Panel value="orders" pt="lg">
               <Stack gap="lg">
-                <Group justify="space-between">
-                  <Box>
-                    <Title order={4}>Orders & Subscriptions</Title>
-                    <Text size="sm" c="dimmed">
-                      Track your Azure Marketplace orders and billing
-                    </Text>
-                  </Box>
-                  {orders.length > 0 && (
-                    <Group gap="sm">
-                      {orders.some(o => o.status === 'pending') && (
+                <Stack gap="md">
+                  <Group justify="space-between">
+                    <Box>
+                      <Title order={4}>Orders & Subscriptions</Title>
+                      <Text size="sm" c="dimmed">
+                        Track your Azure Marketplace orders and billing
+                      </Text>
+                    </Box>
+                    {orders.length > 0 && (
+                      <Group gap="sm">
+                        {orders.some(o => o.status === 'pending') && (
+                          <Button
+                            variant="light"
+                            color="green"
+                            size="sm"
+                            onClick={handleActivateAllPending}
+                          >
+                            Activate All Pending ({orders.filter(o => o.status === 'pending').length})
+                          </Button>
+                        )}
                         <Button
-                          variant="light"
-                          color="green"
+                          variant="subtle"
+                          color="red"
                           size="sm"
-                          onClick={handleActivateAllPending}
+                          onClick={handleCancelAll}
                         >
-                          Activate All Pending ({orders.filter(o => o.status === 'pending').length})
+                          Cancel All
                         </Button>
-                      )}
-                      <Button
-                        variant="subtle"
-                        color="red"
-                        size="sm"
-                        onClick={handleCancelAll}
-                      >
-                        Cancel All
-                      </Button>
-                      <Button
-                        variant="subtle"
-                        color="gray"
-                        size="sm"
-                        onClick={() => {
-                          setOrders([]);
-                          saveOrders([]);
-                          notifications.show({
-                            title: 'Orders cleared',
-                            message: 'All orders have been cleared from local storage',
-                            color: 'blue',
-                          });
-                        }}
-                      >
-                        Clear All
-                      </Button>
-                    </Group>
-                  )}
-                </Group>
+                        <Button
+                          variant="subtle"
+                          color="gray"
+                          size="sm"
+                          onClick={() => {
+                            setOrders([]);
+                            saveOrders([]);
+                            notifications.show({
+                              title: 'Orders cleared',
+                              message: 'All orders have been cleared from local storage',
+                              color: 'blue',
+                            });
+                          }}
+                        >
+                          Clear All
+                        </Button>
+                      </Group>
+                    )}
+                  </Group>
+                  
+                  {/* Customer Filter */}
+                  <Group>
+                    <Select
+                      placeholder="All Customers"
+                      description="Filter orders by customer"
+                      data={[
+                        { value: '', label: 'All Customers' },
+                        ...azureEnabledCustomers.map(c => ({
+                          value: c.id,
+                          label: c.name,
+                        })),
+                      ]}
+                      value={customerFilter || ''}
+                      onChange={(v) => setCustomerFilter(v || null)}
+                      clearable
+                      leftSection={<Building2 size={16} />}
+                      style={{ minWidth: 250 }}
+                    />
+                    {customerFilter && (
+                      <Badge color="blue" variant="light">
+                        Showing {filteredOrders.length} of {orders.length} orders
+                      </Badge>
+                    )}
+                  </Group>
+                </Stack>
 
                 <Paper withBorder>
                   {renderOrdersTable()}
@@ -912,7 +974,7 @@ export function AzureMarketplaceCatalog() {
                 {orders.length > 0 && (
                   <Paper p="lg" withBorder>
                     <Title order={5} mb="md">Billing Summary</Title>
-                    <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 5 }} spacing="md">
                       <Card withBorder>
                         <Group>
                           <ThemeIcon size="lg" color="green" variant="light">
@@ -965,6 +1027,19 @@ export function AzureMarketplaceCatalog() {
                           </Box>
                         </Group>
                       </Card>
+                      <Card withBorder>
+                        <Group>
+                          <ThemeIcon size="lg" color="violet" variant="light">
+                            <Building2 size={20} />
+                          </ThemeIcon>
+                          <Box>
+                            <Text size="xs" c="dimmed">Customers</Text>
+                            <Text size="lg" fw={600}>
+                              {new Set(orders.filter(o => o.customerId).map(o => o.customerId)).size}
+                            </Text>
+                          </Box>
+                        </Group>
+                      </Card>
                     </SimpleGrid>
                   </Paper>
                 )}
@@ -981,6 +1056,7 @@ export function AzureMarketplaceCatalog() {
           setSelectedProduct(null);
           setSelectedPlan(null);
           setQuantity(1);
+          setSelectedCustomerId(null);
         }}
         title={
           <Group gap="sm">
@@ -1125,6 +1201,36 @@ export function AzureMarketplaceCatalog() {
             {selectedPlan && (
               <>
                 <Divider />
+                
+                {/* Customer Selection - Required for placing orders */}
+                <Box>
+                  <Text fw={500} size="sm" mb="xs">Purchase on behalf of customer</Text>
+                  <Select
+                    placeholder="Select a customer..."
+                    description="Select which customer this purchase is for"
+                    data={azureEnabledCustomers.map(c => ({
+                      value: c.id,
+                      label: `${c.name} (${c.contactName})`,
+                    }))}
+                    value={selectedCustomerId}
+                    onChange={setSelectedCustomerId}
+                    searchable
+                    clearable
+                    leftSection={<Building2 size={16} />}
+                    nothingFoundMessage="No customers with Azure Plan found"
+                  />
+                  {azureEnabledCustomers.length === 0 && (
+                    <Alert color="orange" mt="xs" icon={<AlertTriangle size={16} />}>
+                      No customers have an Azure Plan subscription. Customers need to purchase an Azure Plan before they can buy Marketplace products.
+                    </Alert>
+                  )}
+                  {selectedCustomerId && (
+                    <Text size="xs" c="dimmed" mt="xs">
+                      Using subscription: {DEMO_AZURE_SUBSCRIPTION_ID.slice(0, 8)}... (Demo)
+                    </Text>
+                  )}
+                </Box>
+                
                 <Group>
                   <NumberInput
                     label="Quantity"
@@ -1145,13 +1251,14 @@ export function AzureMarketplaceCatalog() {
                 onClick={() => {
                   setSelectedProduct(null);
                   setSelectedPlan(null);
+                  setSelectedCustomerId(null);
                 }}
               >
                 Cancel
               </Button>
               <Button
                 leftSection={<ShoppingCart size={16} />}
-                disabled={!selectedPlan}
+                disabled={!selectedPlan || !selectedCustomerId}
                 onClick={handlePlaceOrder}
               >
                 Add to Orders
