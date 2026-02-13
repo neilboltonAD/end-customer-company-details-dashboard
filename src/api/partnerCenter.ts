@@ -301,3 +301,45 @@ export const GDAP_COMMON_ROLES = {
   // Global reader (read-only access to everything)
   GLOBAL_READER: 'f2ef992c-3afb-46b9-b7cf-a126ee74c451',
 } as const;
+
+// ============================================================================
+// Azure Connector - Status and Health
+// ============================================================================
+
+export type AzureStatus = {
+  ok: boolean;
+  store?: {
+    hasAzureToken?: boolean;
+    azureConnectedAt?: string;
+    azureScope?: string;
+  };
+  error?: string;
+  timestamp: string;
+};
+
+export type AzureHealth = {
+  ok: boolean;
+  azure?: {
+    status: string;
+    httpStatus?: number;
+    sampleEndpoint?: string;
+  };
+  subscriptionsSample?: Array<{
+    subscriptionId?: string;
+    displayName?: string;
+    state?: string;
+  }>;
+  error?: string;
+  hint?: string;
+  timestamp: string;
+};
+
+export async function getAzureStatus(): Promise<AzureStatus> {
+  const resp = await fetch(`${API_BASE}/api/azure/status`);
+  return resp.json();
+}
+
+export async function getAzureHealth(): Promise<AzureHealth> {
+  const resp = await fetch(`${API_BASE}/api/azure/health`);
+  return resp.json();
+}

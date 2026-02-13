@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Group, Modal, Paper, Stack, Text } from '@mantine/core';
+import { Badge, Button, Divider, Group, Modal, Paper, Stack, Text, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   disconnectPartnerCenter,
   getPartnerCenterConnectUrl,
   getPartnerCenterHealth,
   getPartnerCenterStatus,
+  getAzureStatus,
+  getAzureHealth,
   type PartnerCenterHealth,
   type PartnerCenterStatus,
+  type AzureStatus,
+  type AzureHealth,
 } from '../../api/partnerCenter';
 
 export type PartnerCenterConnectorModalProps = {
@@ -29,16 +33,28 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
   const [connectorHealthJson, setConnectorHealthJson] = useState<PartnerCenterHealth | null>(null);
   const [connectorLastError, setConnectorLastError] = useState<string | null>(null);
 
+  // Azure connector state
+  const [azureStatus, setAzureStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown');
+  const [azureStatusJson, setAzureStatusJson] = useState<AzureStatus | null>(null);
+  const [azureHealthJson, setAzureHealthJson] = useState<AzureHealth | null>(null);
+
   const statusBadgeColor = useMemo(() => {
     if (connectorStatus === 'connected') return 'green';
     if (connectorStatus === 'disconnected') return 'red';
     return 'gray';
   }, [connectorStatus]);
 
+  const azureBadgeColor = useMemo(() => {
+    if (azureStatus === 'connected') return 'green';
+    if (azureStatus === 'disconnected') return 'red';
+    return 'gray';
+  }, [azureStatus]);
+
   const refresh = useCallback(async (opts?: { showToast?: boolean }) => {
     setIsSyncingConnector(true);
     setConnectorLastError(null);
     try {
+      // Fetch Partner Center status
       const status = await getPartnerCenterStatus();
       const health = await getPartnerCenterHealth();
       setConnectorStatusJson(status);
@@ -46,6 +62,22 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
       const computed: 'connected' | 'disconnected' = status.ok && health.ok ? 'connected' : 'disconnected';
       setConnectorStatus(computed);
       onStatusChange?.(computed);
+
+      // Fetch Azure status
+      try {
+        const azStatus = await getAzureStatus();
+        const azHealth = await getAzureHealth();
+        setAzureStatusJson(azStatus);
+        setAzureHealthJson(azHealth);
+        const azComputed: 'connected' | 'disconnected' = azStatus.ok && azHealth.ok ? 'connected' : 'disconnected';
+        setAzureStatus(azComputed);
+      } catch (azErr: any) {
+        console.error('Azure status check failed:', azErr);
+        setAzureStatus('disconnected');
+        setAzureStatusJson(null);
+        setAzureHealthJson(null);
+      }
+
       if (opts?.showToast) {
         notifications.show({
           title: computed === 'connected' ? 'Connector connected' : 'Connector not connected',
@@ -58,6 +90,7 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
       }
     } catch (e: any) {
       setConnectorStatus('disconnected');
+      setAzureStatus('disconnected');
       onStatusChange?.('disconnected');
       setConnectorLastError(e?.message || 'Failed to reach connector endpoints.');
       if (opts?.showToast) {
@@ -140,11 +173,14 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
           </Button>
         </Group>
 
+        {/* Partner Center Section */}
+        <Title order={5} c="dimmed">Partner Center</Title>
+        
         <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
           <Text size="xs" fw={600} mb={6}>
             /api/partner-center/status
           </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 224, overflow: 'auto', margin: 0 }}>
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
             {connectorStatusJson ? JSON.stringify(connectorStatusJson, null, 2) : '—'}
           </pre>
         </Paper>
@@ -153,8 +189,42 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
           <Text size="xs" fw={600} mb={6}>
             /api/partner-center/health
           </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 224, overflow: 'auto', margin: 0 }}>
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
             {connectorHealthJson ? JSON.stringify(connectorHealthJson, null, 2) : '—'}
+          </pre>
+        </Paper>
+
+        <Divider my="sm" />
+
+        {/* Azure Section */}
+        <Group justify="space-between" align="center">
+          <Group gap="xs">
+            <Title order={5} c="dimmed">Azure Management</Title>
+            <Badge variant="light" color={azureBadgeColor} size="sm">
+              {azureStatus === 'connected'
+                ? 'Connected'
+                : azureStatus === 'disconnected'
+                  ? 'Not connected'
+                  : 'Unknown'}
+            </Badge>
+          </Group>
+        </Group>
+
+        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
+          <Text size="xs" fw={600} mb={6}>
+            /api/azure/status
+          </Text>
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
+            {azureStatusJson ? JSON.stringify(azureStatusJson, null, 2) : '—'}
+          </pre>
+        </Paper>
+
+        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
+          <Text size="xs" fw={600} mb={6}>
+            /api/azure/health
+          </Text>
+          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
+            {azureHealthJson ? JSON.stringify(azureHealthJson, null, 2) : '—'}
           </pre>
         </Paper>
       </Stack>

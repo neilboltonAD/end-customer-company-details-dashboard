@@ -751,6 +751,139 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ============================================================================
+  // AZURE CONNECTOR - Status and Health Check
+  // ============================================================================
+
+  if (req.method === 'GET' && u.pathname === '/api/azure/status') {
+    const store = readTokenStore();
+    json(res, 200, {
+      ok: Boolean(store?.azureRefreshToken || store?.azureAccessToken),
+      store: {
+        hasAzureToken: Boolean(store?.azureRefreshToken || store?.azureAccessToken),
+        azureConnectedAt: store?.azureConnectedAt,
+        azureScope: store?.azureScope || 'https://management.azure.com/.default',
+      },
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && u.pathname === '/api/azure/health') {
+    try {
+      const store = readTokenStore();
+      
+      if (!store?.azureAccessToken && !store?.azureRefreshToken) {
+        json(res, 200, {
+          ok: false,
+          azure: { status: 'not_connected' },
+          error: 'Azure not connected. The connector needs to acquire Azure Management tokens.',
+          hint: 'Click Connect to authenticate with Azure.',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      let azureAccessToken = store.azureAccessToken;
+
+      // Try to refresh Azure token if we have a refresh token
+      if (store.azureRefreshToken && !store.isPublicClient) {
+        try {
+          const { tenantId, clientId, clientSecret } = envClientInfoOrThrow();
+          const azureScope = 'https://management.azure.com/.default';
+          
+          const tokenRes = await fetch(`https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              grant_type: 'refresh_token',
+              client_id: clientId,
+              client_secret: clientSecret,
+              refresh_token: store.azureRefreshToken,
+              scope: azureScope,
+            }).toString(),
+          });
+
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            azureAccessToken = tokenData.access_token;
+            writeTokenStore({
+              ...store,
+              azureAccessToken,
+              azureRefreshToken: tokenData.refresh_token || store.azureRefreshToken,
+              azureLastRefreshedAt: new Date().toISOString(),
+            });
+          }
+        } catch (e) {
+          console.log('[azure-health] Token refresh failed:', e.message);
+        }
+      }
+
+      if (!azureAccessToken) {
+        json(res, 200, {
+          ok: false,
+          azure: { status: 'no_token' },
+          error: 'No Azure access token available.',
+          hint: 'Reconnect to acquire Azure Management API token.',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      // Test Azure Management API with a simple subscriptions call
+      const testUrl = 'https://management.azure.com/subscriptions?api-version=2022-12-01';
+      const testRes = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${azureAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const testStatus = testRes.status;
+      let subscriptions = [];
+      let errorMessage = null;
+
+      if (testRes.ok) {
+        const data = await testRes.json();
+        subscriptions = (data.value || []).slice(0, 5).map(s => ({
+          subscriptionId: s.subscriptionId,
+          displayName: s.displayName,
+          state: s.state,
+        }));
+      } else {
+        const errorData = await testRes.text();
+        try {
+          const parsed = JSON.parse(errorData);
+          errorMessage = parsed.error?.message || errorData;
+        } catch {
+          errorMessage = errorData;
+        }
+      }
+
+      json(res, 200, {
+        ok: testRes.ok,
+        azure: {
+          status: testRes.ok ? 'connected' : 'error',
+          httpStatus: testStatus,
+          sampleEndpoint: '/subscriptions',
+        },
+        subscriptionsSample: subscriptions,
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('[azure-health] Error:', e.message);
+      json(res, 500, {
+        ok: false,
+        azure: { status: 'error' },
+        error: e.message || 'Unknown error checking Azure health.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+
   // Live customers list for the UI (used by GDAP management and onboarding). Mirrors the Vercel API response shape.
   if (req.method === 'GET' && u.pathname === '/api/partner-center/customers') {
     try {
