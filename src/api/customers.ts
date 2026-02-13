@@ -27,6 +27,73 @@ export interface Customer {
 // Demo subscription ID authorized for Azure Marketplace Catalog API
 export const DEMO_AZURE_SUBSCRIPTION_ID = '3aad85d7-6ac9-4ef0-bb0f-30837aebff49';
 
+// ============================================================================
+// POC Mode Configuration
+// ============================================================================
+// The POC mode uses a single real customer with an authorized Azure subscription.
+// This is the only customer that can make real Azure Marketplace transactions.
+
+export const POC_CUSTOMER = {
+  id: 'mc-real-1',
+  name: 'Azure Plan Provisioning',
+  tenantId: '31941305-7fbe-4dc3-a5b3-ae5ed2a13980',
+  domain: '5sep2023test1sj.onmicrosoft.com',
+  subscriptionId: DEMO_AZURE_SUBSCRIPTION_ID,
+};
+
+// Mode types for the Azure Marketplace feature
+export type MarketplaceMode = 'poc' | 'demo';
+
+// Storage key for persisting mode selection
+const MARKETPLACE_MODE_KEY = 'azure-marketplace-mode';
+
+/**
+ * Get the current marketplace mode from localStorage
+ */
+export function getMarketplaceMode(): MarketplaceMode {
+  if (typeof window === 'undefined') return 'demo';
+  const stored = localStorage.getItem(MARKETPLACE_MODE_KEY);
+  return stored === 'poc' ? 'poc' : 'demo';
+}
+
+/**
+ * Set the marketplace mode in localStorage
+ */
+export function setMarketplaceMode(mode: MarketplaceMode): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(MARKETPLACE_MODE_KEY, mode);
+}
+
+/**
+ * Get customers filtered by mode
+ * - POC mode: Only returns the real POC customer
+ * - Demo mode: Returns all customers
+ */
+export function getCustomersByMode(mode: MarketplaceMode): Customer[] {
+  if (mode === 'poc') {
+    return MARKETPLACE_CUSTOMERS.filter(c => c.id === POC_CUSTOMER.id);
+  }
+  return getAzureEnabledCustomers();
+}
+
+/**
+ * Get the effective tenant ID for transactions
+ * - In POC mode: Uses the real POC customer tenant
+ * - In Demo mode: Also uses POC tenant (all transactions go through the one authorized tenant)
+ */
+export function getEffectiveTenantId(mode: MarketplaceMode, _selectedCustomerId?: string): string {
+  // Both modes use the POC tenant for actual transactions
+  // (Demo mode just allows showing different customers in the UI)
+  return POC_CUSTOMER.tenantId;
+}
+
+/**
+ * Get the effective subscription ID for transactions
+ */
+export function getEffectiveSubscriptionId(): string {
+  return POC_CUSTOMER.subscriptionId;
+}
+
 /**
  * Mock customer data representing our managed customers.
  * 

@@ -431,6 +431,126 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ============================================================================
+  // POC Mode: Connect to Azure using the POC CUSTOMER's tenant
+  // This allows real Azure Marketplace transactions for the authorized subscription
+  // ============================================================================
+  const POC_CUSTOMER_TENANT_ID = '31941305-7fbe-4dc3-a5b3-ae5ed2a13980';
+  const POC_CUSTOMER_DOMAIN = '5sep2023test1sj.onmicrosoft.com';
+
+  if (req.method === 'GET' && u.pathname === '/api/azure/connect-poc') {
+    try {
+      const { clientId } = envClientInfoOrThrow();
+      const redirectUri = `http://localhost:${PORT}/api/azure/callback-poc`;
+      const state = 'poc-' + Math.random().toString(16).slice(2);
+      const pkce = createPkcePair();
+      const scope = encodeURIComponent(azureManagementDelegatedScope());
+      
+      // Use the POC CUSTOMER'S tenant for authentication
+      const authorizeUrl =
+        `https://login.microsoftonline.com/${encodeURIComponent(POC_CUSTOMER_TENANT_ID)}/oauth2/v2.0/authorize` +
+        `?client_id=${encodeURIComponent(clientId)}` +
+        `&response_type=code` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_mode=query` +
+        `&scope=${scope}` +
+        `&state=${encodeURIComponent(state)}` +
+        `&code_challenge=${encodeURIComponent(pkce.challenge)}` +
+        `&code_challenge_method=${encodeURIComponent(pkce.method)}`;
+
+      writeTokenStore({
+        ...(readTokenStore() || {}),
+        pendingKind: 'azure-poc',
+        pendingState: state,
+        pendingCodeVerifier: pkce.verifier,
+        pocTenantId: POC_CUSTOMER_TENANT_ID,
+      });
+
+      console.log(`[azure-poc] Starting OAuth flow for POC customer tenant: ${POC_CUSTOMER_TENANT_ID}`);
+      console.log(`[azure-poc] User must have an account in: ${POC_CUSTOMER_DOMAIN}`);
+
+      res.writeHead(302, { Location: authorizeUrl });
+      res.end();
+    } catch (e) {
+      json(res, 500, { ok: false, error: e.message || 'Connect Azure POC failed', timestamp: new Date().toISOString() });
+    }
+    return;
+  }
+
+  // Callback for POC Azure flow
+  if (req.method === 'GET' && u.pathname === '/api/azure/callback-poc') {
+    const code = u.searchParams.get('code');
+    const state = u.searchParams.get('state');
+    const error = u.searchParams.get('error');
+    const errorDesc = u.searchParams.get('error_description');
+
+    if (error) {
+      console.error('[azure-poc] OAuth error:', error, errorDesc);
+      res.writeHead(302, { Location: `http://localhost:3000/vendor-integrations/azure-marketplace-catalog?error=${encodeURIComponent(errorDesc || error)}` });
+      res.end();
+      return;
+    }
+
+    const store = readTokenStore();
+    if (!code || !state || store?.pendingState !== state) {
+      res.writeHead(302, { Location: `http://localhost:3000/vendor-integrations/azure-marketplace-catalog?error=Invalid+callback` });
+      res.end();
+      return;
+    }
+
+    try {
+      const { clientId, clientSecret } = envClientInfoOrThrow();
+      const redirectUri = `http://localhost:${PORT}/api/azure/callback-poc`;
+      const scope = azureManagementDelegatedScope();
+
+      // Exchange code for token using the POC customer's tenant
+      const tokenRes = await fetch(`https://login.microsoftonline.com/${POC_CUSTOMER_TENANT_ID}/oauth2/v2.0/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+          scope,
+          code_verifier: store.pendingCodeVerifier,
+        }).toString(),
+      });
+
+      if (!tokenRes.ok) {
+        const errorText = await tokenRes.text();
+        console.error('[azure-poc] Token exchange failed:', tokenRes.status, errorText);
+        res.writeHead(302, { Location: `http://localhost:3000/vendor-integrations/azure-marketplace-catalog?error=${encodeURIComponent('Token exchange failed')}` });
+        res.end();
+        return;
+      }
+
+      const tokenData = await tokenRes.json();
+      console.log('[azure-poc] Successfully obtained token for POC customer tenant');
+
+      writeTokenStore({
+        ...store,
+        azureAccessToken: tokenData.access_token,
+        azureRefreshToken: tokenData.refresh_token,
+        azureConnectedAt: new Date().toISOString(),
+        azureTenantId: POC_CUSTOMER_TENANT_ID,
+        azureScope: scope,
+        pendingKind: null,
+        pendingState: null,
+        pendingCodeVerifier: null,
+      });
+
+      res.writeHead(302, { Location: 'http://localhost:3000/vendor-integrations/azure-marketplace-catalog?connected=poc' });
+      res.end();
+    } catch (e) {
+      console.error('[azure-poc] Callback error:', e);
+      res.writeHead(302, { Location: `http://localhost:3000/vendor-integrations/azure-marketplace-catalog?error=${encodeURIComponent(e.message)}` });
+      res.end();
+    }
+    return;
+  }
+
   // OAuth callback: exchange code for tokens and store refresh token (dev only)
   if (req.method === 'GET' && u.pathname === '/api/partner-center/callback') {
     try {

@@ -72,6 +72,13 @@ import {
   getAzureEnabledCustomers,
   getCustomerById,
   DEMO_AZURE_SUBSCRIPTION_ID,
+  POC_CUSTOMER,
+  MarketplaceMode,
+  getMarketplaceMode,
+  setMarketplaceMode,
+  getCustomersByMode,
+  getEffectiveTenantId,
+  getEffectiveSubscriptionId,
 } from '../api/customers';
 
 // ============================================================================
@@ -134,17 +141,34 @@ export function AzureMarketplaceCatalog() {
   const [publisherFilter, setPublisherFilter] = useState<string>('');
   const [pricingFilter, setPricingFilter] = useState<string>('');
   
+  // POC/Demo mode toggle
+  const [marketplaceMode, setMarketplaceModeState] = useState<MarketplaceMode>(() => getMarketplaceMode());
+  
   // Product detail modal
   const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanSummary | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   
+  // Handle mode change
+  const handleModeChange = (mode: MarketplaceMode) => {
+    setMarketplaceModeState(mode);
+    setMarketplaceMode(mode);
+    setSelectedCustomerId(null); // Reset customer selection when mode changes
+    notifications.show({
+      title: mode === 'poc' ? 'POC Mode Enabled' : 'Demo Mode Enabled',
+      message: mode === 'poc' 
+        ? `Using real customer: ${POC_CUSTOMER.domain}` 
+        : 'All transactions will use POC tenant behind the scenes.',
+      color: mode === 'poc' ? 'blue' : 'orange',
+    });
+  };
+  
   // Customer filter for orders
   const [customerFilter, setCustomerFilter] = useState<string | null>(null);
   
-  // Get Azure-enabled customers for the dropdown
-  const azureEnabledCustomers = useMemo(() => getAzureEnabledCustomers(), []);
+  // Get Azure-enabled customers for the dropdown (filtered by mode)
+  const azureEnabledCustomers = useMemo(() => getCustomersByMode(marketplaceMode), [marketplaceMode]);
   
   // Orders tracking
   const [orders, setOrders] = useState<OrderItem[]>(loadOrders());
@@ -285,6 +309,20 @@ export function AzureMarketplaceCatalog() {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
+    // Get effective tenant and subscription (always uses POC values for real transactions)
+    const effectiveTenantId = getEffectiveTenantId(marketplaceMode, order.customerId);
+    const effectiveSubscriptionId = getEffectiveSubscriptionId();
+    
+    // Show info about what's happening
+    if (marketplaceMode === 'demo' && order.customerId !== POC_CUSTOMER.id) {
+      notifications.show({
+        title: 'Demo Mode Transaction',
+        message: `Visually purchasing for ${order.customerName}, but using POC tenant (${POC_CUSTOMER.domain}) for actual transaction.`,
+        color: 'orange',
+        icon: <Info size={16} />,
+      });
+    }
+
     // Set to provisioning state
     const provisioningOrders = orders.map(o => 
       o.id === orderId ? { ...o, status: 'provisioning' as const } : o
@@ -294,8 +332,9 @@ export function AzureMarketplaceCatalog() {
 
     try {
       // Use Azure Marketplace API to create real subscription (third-party products)
+      // In both POC and Demo mode, we use the POC customer's tenant/subscription
       const result = await purchaseAzureMarketplaceProduct({
-        subscriptionId: AUTHORIZED_SUBSCRIPTION_ID, // Use authorized subscription
+        subscriptionId: effectiveSubscriptionId, // Always uses POC subscription
         productId: order.productId,
         planId: order.planId,
         publisherId: order.publisherName?.toLowerCase().replace(/\s+/g, '-'),
@@ -762,6 +801,13 @@ export function AzureMarketplaceCatalog() {
                   <ArrowLeft size={20} />
                 </ActionIcon>
                 <Title order={2}>Azure Marketplace Catalog</Title>
+                <Badge 
+                  size="lg" 
+                  variant="filled" 
+                  color={marketplaceMode === 'poc' ? 'blue' : 'orange'}
+                >
+                  {marketplaceMode === 'poc' ? 'POC Mode' : 'Demo Mode'}
+                </Badge>
               </Group>
               <Text c="dimmed" size="sm">
                 Discover and transact Azure Marketplace products via the Catalog API
@@ -769,6 +815,16 @@ export function AzureMarketplaceCatalog() {
             </Box>
             
             <Group gap="sm">
+              {/* Mode Toggle */}
+              <SegmentedControl
+                value={marketplaceMode}
+                onChange={(value) => handleModeChange(value as MarketplaceMode)}
+                data={[
+                  { label: 'POC', value: 'poc' },
+                  { label: 'Demo', value: 'demo' },
+                ]}
+                size="sm"
+              />
               <Badge
                 size="lg"
                 variant="light"
@@ -807,11 +863,41 @@ export function AzureMarketplaceCatalog() {
                     window.location.href = 'http://localhost:4000/api/partner-center/connect-azure';
                   }}
                 >
-                  Connect Azure
+                  Connect Azure (Partner)
+                </Button>
+                <Button
+                  size="xs"
+                  variant="filled"
+                  color="green"
+                  leftSection={<Check size={14} />}
+                  onClick={() => {
+                    window.location.href = 'http://localhost:4000/api/azure/connect-poc';
+                  }}
+                >
+                  Connect POC Customer
                 </Button>
               </Group>
             </Alert>
           )}
+
+          {/* POC/Demo Mode Explanation */}
+          <Alert
+            icon={marketplaceMode === 'poc' ? <Check size={16} /> : <Info size={16} />}
+            color={marketplaceMode === 'poc' ? 'blue' : 'orange'}
+            title={marketplaceMode === 'poc' ? 'POC Mode' : 'Demo Mode'}
+          >
+            {marketplaceMode === 'poc' ? (
+              <Text size="sm">
+                <strong>Real transactions only.</strong> Using customer <code>{POC_CUSTOMER.domain}</code> (Tenant: <code>{POC_CUSTOMER.tenantId.slice(0, 8)}...</code>). 
+                All purchases will be made against this customer's Azure subscription.
+              </Text>
+            ) : (
+              <Text size="sm">
+                <strong>Demo mode enabled.</strong> You can select any customer from the list, but all actual transactions 
+                will use the POC tenant (<code>{POC_CUSTOMER.domain}</code>) behind the scenes. Great for demonstrations!
+              </Text>
+            )}
+          </Alert>
 
           {/* Tabs */}
           <Tabs value={activeTab} onChange={(v) => setActiveTab(v || 'catalog')}>
