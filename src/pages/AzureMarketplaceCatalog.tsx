@@ -886,17 +886,30 @@ export function AzureMarketplaceCatalog() {
             color={marketplaceMode === 'poc' ? 'blue' : 'orange'}
             title={marketplaceMode === 'poc' ? 'POC Mode' : 'Demo Mode'}
           >
-            {marketplaceMode === 'poc' ? (
-              <Text size="sm">
-                <strong>Real transactions only.</strong> Using customer <code>{POC_CUSTOMER.domain}</code> (Tenant: <code>{POC_CUSTOMER.tenantId.slice(0, 8)}...</code>). 
-                All purchases will be made against this customer's Azure subscription.
-              </Text>
-            ) : (
-              <Text size="sm">
-                <strong>Demo mode enabled.</strong> You can select any customer from the list, but all actual transactions 
-                will use the POC tenant (<code>{POC_CUSTOMER.domain}</code>) behind the scenes. Great for demonstrations!
-              </Text>
-            )}
+            <Group justify="space-between" align="center">
+              {marketplaceMode === 'poc' ? (
+                <Text size="sm">
+                  <strong>Real transactions only.</strong> Using customer <code>{POC_CUSTOMER.domain}</code> (Tenant: <code>{POC_CUSTOMER.tenantId.slice(0, 8)}...</code>). 
+                  All purchases will be made against this customer's Azure subscription.
+                </Text>
+              ) : (
+                <Text size="sm">
+                  <strong>Demo mode enabled.</strong> You can select any customer from the list, but all actual transactions 
+                  will use the POC tenant (<code>{POC_CUSTOMER.domain}</code>) behind the scenes.
+                </Text>
+              )}
+              <Button
+                size="xs"
+                variant="filled"
+                color="green"
+                leftSection={<Cloud size={14} />}
+                onClick={() => {
+                  window.location.href = 'http://localhost:4000/api/azure/connect-poc';
+                }}
+              >
+                Connect POC Customer
+              </Button>
+            </Group>
           </Alert>
 
           {/* Tabs */}
