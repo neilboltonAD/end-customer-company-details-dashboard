@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Divider, Group, Modal, Paper, Stack, Text, Title } from '@mantine/core';
+import { Accordion, Badge, Box, Button, Group, Modal, Stack, Text, ThemeIcon } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { CheckCircle, XCircle, ChevronDown } from 'lucide-react';
 import {
   disconnectPartnerCenter,
   getPartnerCenterConnectUrl,
@@ -173,60 +174,108 @@ export function PartnerCenterConnectorModal(props: PartnerCenterConnectorModalPr
           </Button>
         </Group>
 
-        {/* Partner Center Section */}
-        <Title order={5} c="dimmed">Partner Center</Title>
-        
-        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
-          <Text size="xs" fw={600} mb={6}>
-            /api/partner-center/status
-          </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
-            {connectorStatusJson ? JSON.stringify(connectorStatusJson, null, 2) : '—'}
-          </pre>
-        </Paper>
+        {/* Collapsible Status Sections */}
+        <Accordion variant="separated" radius="md">
+          {/* Partner Center Status */}
+          <Accordion.Item value="pc-status">
+            <Accordion.Control
+              icon={
+                <ThemeIcon 
+                  color={connectorStatusJson?.ok ? 'green' : 'red'} 
+                  variant="light" 
+                  size="sm" 
+                  radius="xl"
+                >
+                  {connectorStatusJson?.ok ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                </ThemeIcon>
+              }
+            >
+              <Text size="sm" fw={500}>Partner Center Status</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Box style={{ background: 'var(--mantine-color-gray-0)', borderRadius: 8, padding: 12 }}>
+                <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', margin: 0 }}>
+                  {connectorStatusJson ? JSON.stringify(connectorStatusJson, null, 2) : '—'}
+                </pre>
+              </Box>
+            </Accordion.Panel>
+          </Accordion.Item>
 
-        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
-          <Text size="xs" fw={600} mb={6}>
-            /api/partner-center/health
-          </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
-            {connectorHealthJson ? JSON.stringify(connectorHealthJson, null, 2) : '—'}
-          </pre>
-        </Paper>
+          {/* Partner Center Health */}
+          <Accordion.Item value="pc-health">
+            <Accordion.Control
+              icon={
+                <ThemeIcon 
+                  color={connectorHealthJson?.ok ? 'green' : 'red'} 
+                  variant="light" 
+                  size="sm" 
+                  radius="xl"
+                >
+                  {connectorHealthJson?.ok ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                </ThemeIcon>
+              }
+            >
+              <Text size="sm" fw={500}>Partner Center Health</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Box style={{ background: 'var(--mantine-color-gray-0)', borderRadius: 8, padding: 12 }}>
+                <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', margin: 0 }}>
+                  {connectorHealthJson ? JSON.stringify(connectorHealthJson, null, 2) : '—'}
+                </pre>
+              </Box>
+            </Accordion.Panel>
+          </Accordion.Item>
 
-        <Divider my="sm" />
+          {/* Azure Status */}
+          <Accordion.Item value="azure-status">
+            <Accordion.Control
+              icon={
+                <ThemeIcon 
+                  color={azureStatusJson?.ok ? 'green' : 'red'} 
+                  variant="light" 
+                  size="sm" 
+                  radius="xl"
+                >
+                  {azureStatusJson?.ok ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                </ThemeIcon>
+              }
+            >
+              <Text size="sm" fw={500}>Azure Management Status</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Box style={{ background: 'var(--mantine-color-gray-0)', borderRadius: 8, padding: 12 }}>
+                <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', margin: 0 }}>
+                  {azureStatusJson ? JSON.stringify(azureStatusJson, null, 2) : '—'}
+                </pre>
+              </Box>
+            </Accordion.Panel>
+          </Accordion.Item>
 
-        {/* Azure Section */}
-        <Group justify="space-between" align="center">
-          <Group gap="xs">
-            <Title order={5} c="dimmed">Azure Management</Title>
-            <Badge variant="light" color={azureBadgeColor} size="sm">
-              {azureStatus === 'connected'
-                ? 'Connected'
-                : azureStatus === 'disconnected'
-                  ? 'Not connected'
-                  : 'Unknown'}
-            </Badge>
-          </Group>
-        </Group>
-
-        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
-          <Text size="xs" fw={600} mb={6}>
-            /api/azure/status
-          </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
-            {azureStatusJson ? JSON.stringify(azureStatusJson, null, 2) : '—'}
-          </pre>
-        </Paper>
-
-        <Paper withBorder radius="sm" p="sm" style={{ background: 'var(--mantine-color-gray-0)' }}>
-          <Text size="xs" fw={600} mb={6}>
-            /api/azure/health
-          </Text>
-          <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 180, overflow: 'auto', margin: 0 }}>
-            {azureHealthJson ? JSON.stringify(azureHealthJson, null, 2) : '—'}
-          </pre>
-        </Paper>
+          {/* Azure Health */}
+          <Accordion.Item value="azure-health">
+            <Accordion.Control
+              icon={
+                <ThemeIcon 
+                  color={azureHealthJson?.ok ? 'green' : 'red'} 
+                  variant="light" 
+                  size="sm" 
+                  radius="xl"
+                >
+                  {azureHealthJson?.ok ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                </ThemeIcon>
+              }
+            >
+              <Text size="sm" fw={500}>Azure Management Health</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Box style={{ background: 'var(--mantine-color-gray-0)', borderRadius: 8, padding: 12 }}>
+                <pre style={{ fontSize: 12, color: 'var(--mantine-color-gray-8)', whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', margin: 0 }}>
+                  {azureHealthJson ? JSON.stringify(azureHealthJson, null, 2) : '—'}
+                </pre>
+              </Box>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
       </Stack>
     </Modal>
   );
