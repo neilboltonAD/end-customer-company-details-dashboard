@@ -1,7 +1,7 @@
 # PRD: Azure Marketplace Catalog
 
-**Version:** 1.0  
-**Last Updated:** 2026-02-10  
+**Version:** 1.1  
+**Last Updated:** 2026-02-13  
 **Status:** POC Complete
 
 ---
@@ -14,6 +14,7 @@ The Azure Marketplace Catalog feature enables discovery and transaction of Azure
 - **View** product details, plans, and pricing
 - **Select** offers for transaction
 - **Track** orders and billing
+- **Purchase** on behalf of customers (POC mode)
 
 ### Authorized Subscription
 
@@ -21,9 +22,51 @@ The feature operates using the following authorized Azure subscription:
 
 ```
 Subscription ID: 3aad85d7-6ac9-4ef0-bb0f-30837aebff49
+Tenant ID: 31941305-7fbe-4dc3-a5b3-ae5ed2a13980
+Customer Domain: 5sep2023test1sj.onmicrosoft.com
 ```
 
 This subscription has been authorized by Microsoft for access to the Marketplace Catalog APIs.
+
+---
+
+## 1.1 POC Mode vs Demo Mode
+
+The feature supports two operating modes to facilitate both real testing and demonstrations:
+
+### POC Mode (Real Transactions)
+
+| Setting | Value |
+|---------|-------|
+| **Mode** | POC |
+| **Customers Shown** | Only `5sep2023test1sj.onmicrosoft.com` |
+| **Tenant Used** | `31941305-7fbe-4dc3-a5b3-ae5ed2a13980` |
+| **Transactions** | Real Azure Marketplace API calls |
+| **Use Case** | Testing real purchase flows |
+
+### Demo Mode (Simulated)
+
+| Setting | Value |
+|---------|-------|
+| **Mode** | Demo |
+| **Customers Shown** | All mock customers |
+| **Tenant Used** | POC tenant (behind the scenes) |
+| **Transactions** | Uses POC tenant for all purchases |
+| **Use Case** | Demonstrations, UI testing |
+
+### Mode Toggle
+
+- Located in the page header as a segmented control (POC / Demo)
+- Mode is persisted to localStorage
+- Visual badge indicates current mode (Blue = POC, Orange = Demo)
+- Explanatory alert describes mode behavior
+
+### Authentication for POC Mode
+
+For real Azure transactions, users must authenticate to the POC customer's tenant:
+1. Click **"Connect POC Customer"** button in the mode alert
+2. Authenticate with credentials for `5sep2023test1sj.onmicrosoft.com`
+3. Azure API calls will then use a token issued for the correct tenant
 
 ---
 
@@ -325,6 +368,7 @@ When Azure credentials are not configured, the feature operates in **Demo Mode**
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2026-02-13 | Added POC/Demo mode toggle, customer filtering by mode, POC customer OAuth flow |
 | 1.0 | 2026-02-10 | Initial POC release with product discovery, pricing display, and order tracking |
 
 ---
@@ -334,6 +378,17 @@ When Azure credentials are not configured, the feature operates in **Demo Mode**
 | File | Description |
 |------|-------------|
 | `src/api/azureMarketplaceCatalog.ts` | Frontend API client and types |
-| `src/pages/AzureMarketplaceCatalog.tsx` | Main UI component |
-| `server/partnerCenterDevServer.js` | Backend API endpoints |
+| `src/api/customers.ts` | Customer data, POC mode config, mode helpers |
+| `src/pages/AzureMarketplaceCatalog.tsx` | Main UI component with mode toggle |
+| `server/partnerCenterDevServer.js` | Backend API endpoints including POC OAuth |
 | `docs/PRD-Azure-Marketplace-Catalog.md` | This document |
+
+### Key API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/azure/marketplace/purchase` | POST | Purchase third-party Azure Marketplace product |
+| `/api/azure/connect-poc` | GET | Start OAuth flow for POC customer tenant |
+| `/api/azure/callback-poc` | GET | OAuth callback for POC customer |
+| `/api/azure/status` | GET | Check Azure connector status |
+| `/api/azure/health` | GET | Health check Azure Management API |
