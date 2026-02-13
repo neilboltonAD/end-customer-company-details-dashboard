@@ -335,11 +335,17 @@ export type AzureHealth = {
 };
 
 export async function getAzureStatus(): Promise<AzureStatus> {
-  const resp = await fetch(`${API_BASE}/api/azure/status`);
+  const baseUrl = window.location.hostname === 'localhost' && window.location.port === '3000'
+    ? 'http://localhost:4000'
+    : '';
+  const resp = await fetch(`${baseUrl}/api/azure/status`);
   return resp.json();
 }
 
 export async function getAzureHealth(): Promise<AzureHealth> {
-  const resp = await fetch(`${API_BASE}/api/azure/health`);
+  const baseUrl = window.location.hostname === 'localhost' && window.location.port === '3000'
+    ? 'http://localhost:4000'
+    : '';
+  const resp = await fetch(`${baseUrl}/api/azure/health`);
   return resp.json();
 }
